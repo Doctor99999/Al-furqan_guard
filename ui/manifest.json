@@ -1,0 +1,24 @@
+{
+  "name": "Al-Furqan AI — L0 Islamic Ground Truth & Halal Guard",
+  "short_name": "Al-Furqan AI",
+  "description": "Deterministic Quran Anti-Hallucination Guardrail, Halal OCR Scanner, and AAOIFI Shariah Auditor",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#06090F",
+  "theme_color": "#0C111D",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3247/3247167.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3247/3247167.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

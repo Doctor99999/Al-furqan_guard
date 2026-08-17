@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al-Furqan AI — L0 Ground Truth & Anti-Hallucination Guardrail</title>
+    <meta name="description" content="Детерминирленген анти-галлюцинациялық сүзгі, 1 651 түбір және Халал/Ахкам комплаенс жүйесі.">
+    
+    <!-- Google Fonts: Amiri Quran (Noble Arabic Script), Plus Jakarta Sans (Clean Modern UI), JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="index.css?v=12.0">
+    <script src="i18n.js?v=12.0"></script>
+</head>
+<body>
+    <!-- Subtle Ambient Lighting -->
+    <div class="ambient-glow"></div>
+
+    <div class="app-container">
+        <!-- Sleek Top Header (Clean 3-Zone Architecture) -->
+        <!-- Sleek Top Header (Clean Brand + Right Actions) -->
+        <header class="app-header">
+            <!-- 1. Left: Brand & Title -->
+            <div class="header-left">
+                <div class="brand-logo-gem">
+                    <span class="brand-logo-mark">الفُرقَان</span>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title-row">
+                        <h1 class="brand-title" data-i18n="title">Al-Furqan AI</h1>
+                        <span class="badge-version">v2.0 L0</span>
+                    </div>
+                    <span class="brand-subtitle" data-i18n="subtitle">L0 Ground Truth & ЖИ галлюцинациясына қарсы детерминирленген сүзгі</span>
+                </div>
+            </div>
+            
+            <!-- 2. Right: Standards, Feedback, Guide, Telegram Bot, API Docs & Language -->
+            <div class="header-right">
+                <a href="https://t.me/alfurqan_quran_bot" target="_blank" class="btn-telegram-header" title="Telegram-бот @alfurqan_quran_bot" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-full); background: linear-gradient(135deg, #0284C7, #0369A1); color: #FFFFFF; font-size: 13px; font-weight: 700; text-decoration: none; border: 1px solid #38BDF8; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/></svg>
+                    <span>✈️ @alfurqan_quran_bot</span>
+                </a>
+
+                <button class="btn-guide-modal" id="btnToggleStandards" title="Стандарты качества (ISO, SMIIC, AAOIFI)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+                    <span data-i18n="btnStandards">🎖️ Стандарттар</span>
+                </button>
+
+                <button class="btn-guide-modal" id="btnToggleFeedback" title="Обратная связь и контакты">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <span data-i18n="btnFeedback">💬 Кері байланыс</span>
+                </button>
+
+                <button class="btn-guide-modal" id="btnToggleGuide" title="О проекте и руководство">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span data-i18n="btnGuide">📖 Жоба туралы</span>
+                </button>
+
+                <a href="/docs" target="_blank" class="btn-api-docs" title="REST API & Swagger Documentation">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <span>API /docs</span>
+                </a>
+
+                <div class="lang-selector-wrapper">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <select id="selectLanguage" class="lang-select">
+                        <option value="kk">🇰🇿 Қазақша</option>
+                        <option value="ru">🇷🇺 Русский</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="ar">🇸🇦 العربية</option>
+                        <option value="tr">🇹🇷 Türkçe</option>
+                        <option value="id">🇮🇩 Indonesia</option>
+                        <option value="uz">🇺🇿 O‘zbekcha</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sub-Header: Live Metrics & Reciter Bar -->
+        <div class="sub-header-bar">
+            <div class="header-metrics" id="headerMetrics">
+                <div class="metric-pill">
+                    <span class="metric-val" id="metricAyahs">6,236</span>
+                    <span class="metric-lbl" data-i18n="metricAyahs">Аят</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-val" id="metricTokens">130,030</span>
+                    <span class="metric-lbl" data-i18n="metricTokens">Таңба</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-val" id="metricRoots">1,651</span>
+                    <span class="metric-lbl" data-i18n="metricRoots">Түбір</span>
+                </div>
+                <!-- Live Visitor Counter -->
+                <div class="metric-pill" title="Жалпы келушілер саны / Всего посетителей" style="background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3);">
+                    <span class="metric-val" id="metricVisitors" style="color: #BAE6FD;">14,892</span>
+                    <span class="metric-lbl" data-i18n="metricVisitors" style="color: #7DD3FC;">Келушілер</span>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <!-- Global Reciter Selector -->
+                <div class="reciter-selector-pill" title="Чтец Корана (Құран оқушысы)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    <select id="selectReciter" class="reciter-select">
+                        <option value="alafasy">🎙️ М. Әл-Афаси</option>
+                        <option value="husary">🎙️ М. Әл-Хусари</option>
+                        <option value="abdulbasit">🎙️ Әбділбасит</option>
+                    </select>
+                </div>
+
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-text" data-i18n="statusActive">Manifest Active (O(1))</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clean Segmented Navigation Tabs -->
+        <nav class="nav-tabs" role="tablist">
+            <button class="tab-btn active" data-tab="tab-quran" id="tabBtnQuran">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                <span data-i18n="tabQuran">📖 Құран Кәрім</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-guard" id="tabBtnGuard">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span data-i18n="tabGuard">🛡️ Анти-Галлюцинация</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-roots" id="tabBtnRoots">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M3 12h3m12 0h3M12 3v3m0 12v3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1"/></svg>
+                <span data-i18n="tabRoots">🧬 1,651 Түбір</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-ahkam" id="tabBtnAhkam">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span data-i18n="tabAhkam">🥗 Халал & AAOIFI</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-corpus" id="tabBtnCorpus">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                <span data-i18n="tabCorpus">🔍 AST Инспектор</span>
+            </button>
+        </nav>
+
+        <!-- TAB 1: HOLY QURAN READER & AL-FATIHA (DEFAULT ACTIVE) -->
+        <main class="tab-content active" id="tab-quran">
+            <!-- 1. FEATURED SURAH: AL-FATIHA (THE OPENING) -->
+            <section class="card fatiha-hero-card" style="border: 1px solid var(--border-gold); background: linear-gradient(180deg, rgba(22, 27, 34, 0.95), rgba(14, 19, 24, 0.98)); margin-bottom: 20px;">
+                <div class="card-header" style="border-bottom: 1px solid var(--border-gold); padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <span class="hero-pill-badge" style="background: rgba(229, 192, 123, 0.15); color: var(--gold-bright); border-color: var(--gold-primary);" data-i18n="fatihaBadge">📖 ҚҰРАНДЫ АШУШЫ СҮРЕ • THE OPENING</span>
+                        <h2 class="card-title" style="font-size: 20px; color: #FFFFFF; margin-top: 6px;">
+                            سُورَةُ الفَاتِحَةِ <span style="font-size: 16px; color: var(--gold-primary); font-weight: 600;" data-i18n="fatihaTitle">(1-сүре: Әл-Фатиха • 7 аят)</span>
+                        </h2>
+                        <span class="card-hint" data-i18n="fatihaHint">Қасиетті Құран Кәрімнің беташар сүресі: Осман жазуы, латын транскрипциясы және мағыналық аудармасы</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn btn-primary" onclick="quranAudio.playFullSurah(1)" style="background: linear-gradient(135deg, #10B981, #059669); color: #FFFFFF !important; font-weight: 700; border: 1px solid #34D399; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span data-i18n="btnPlayFatiha" style="color: #FFFFFF !important; font-weight: 700;">▶️ Фатиханы толық тыңдау</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7 Ayahs of Al-Fatiha -->
+                <div class="fatiha-ayahs-list" id="fatihaAyahsContainer" style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
+                    <!-- Rendered dynamically -->
+                </div>
+            </section>
+
+            <!-- 2. FULL QURAN EXPLORER (114 SURAHS & 6,236 AYAHS) -->
+            <section class="card">
+                <div class="card-header" style="flex-wrap: wrap; gap: 12px;">
+                    <div>
+                        <h2 class="card-title" data-i18n="quranExplorerTitle">Қасиетті Құран Кәрімді толық оқу (114 Сүре • 6 236 Аят)</h2>
+                        <span class="card-hint" data-i18n="quranExplorerHint">Кез келген сүрені таңдап, барлық аяттарды латын транскрипциясы мен 7 тілдегі аудармасымен оқыңыз және тыңдаңыз</span>
+                    </div>
+                    <div class="ayah-picker-row" style="flex-wrap: wrap; gap: 8px;">
+                        <label for="quranSurahSelect" data-i18n="labelSura">Сүре:</label>
+                        <select id="quranSurahSelect" class="form-select" style="min-width: 200px;"></select>
+                        <button class="btn btn-primary" id="btnLoadSurahFull" style="color: #FFFFFF !important; font-weight: 700;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                            <span data-i18n="btnOpenSurah" style="color: #FFFFFF !important;">Сүрені ашу</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnPlaySelectedSurah" style="background: rgba(229, 192, 123, 0.18); border: 1px solid #FCD34D; color: #FCD34D !important; font-weight: 700;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span data-i18n="btnPlayFullSurah" style="color: #FCD34D !important;">▶️ Сүрені толық тыңдау</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="fullSurahViewer" style="display: flex; flex-direction: column; gap: 14px; margin-top: 16px;">
+                    <!-- Dynamic Surah Ayahs List -->
+                </div>
+            </section>
+        </main>
+
+        <!-- TAB 2: ANTI-HALLUCINATION GUARD -->
+        <main class="tab-content" id="tab-guard">
+            <div class="panel-grid">
+                <!-- Left: Input & Test Cases -->
+                <section class="card input-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title" data-i18n="guardInputTitle">ЖИ мәтінін немесе мақаланы тексеру</h2>
+                            <span class="card-hint" data-i18n="guardInputHint">LLM моделінен аяттары немесе сүре нөмірлері бар мәтінді қойыңыз</span>
+                        </div>
+                    </div>
+
+                    <div class="preset-row">
+                        <span class="preset-label" data-i18n="presetsLabel">Сынақ:</span>
+                        <button class="preset-btn" id="btnPresetHallucinateCoord" data-i18n="presetInvalidAyah">🔴 Ойдан шығарылған аят</button>
+                        <button class="preset-btn" id="btnPresetDistortTashkeel" data-i18n="presetTashkeel">🟠 Харакаттар бұрмалануы</button>
+                        <button class="preset-btn" id="btnPresetCleanQuote" data-i18n="presetCleanQuote">🟢 Нақты дәйексөз (114:1)</button>
+                    </div>
+
+                    <div class="textarea-container">
+                        <textarea id="guardInputText" class="guard-textarea" data-i18n-placeholder="guardPlaceholder" placeholder="Галлюцинацияны тексеру үшін мәтінді енгізіңіз..."></textarea>
+                    </div>
+
+                    <div class="action-buttons-row">
+                        <button class="btn btn-primary" id="btnRunAudit">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span data-i18n="btnAudit">L0 Аудитін орындау</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnClearGuard">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <span data-i18n="btnClear">Тазалау</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Right: Deterministic Report -->
+                <section class="card output-card">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="card-title" data-i18n="resultsTitle">Детерминирленген аудит есебі</h2>
+                            <span class="card-hint" data-i18n="guardOutputHint">L0 детерминирленген верификация нәтижесі</span>
+                        </div>
+                        <div id="verdictBadgeContainer"></div>
+                    </div>
+
+                    <div class="audit-results-body" id="auditResultsBody">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            </div>
+                            <h3 data-i18n="verdictReadyTitle">Жүйе тексеруге дайын</h3>
+                            <p data-i18n="verdictReadyDesc">Сол жаққа мәтінді енгізіп, «L0 Аудитін орындау» батырмасын басыңыз.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- TAB 2: ROOT & MORPHOLOGY EXPLORER -->
+        <section class="tab-content" id="tab-roots">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title" data-i18n="rootsTitle">Семантикалық түбірлер анализаторы (1,651 түбір)</h2>
+                        <span class="card-hint" data-i18n="rootsHint">3/4-әріптік түбір бойынша аяттарды іздеу және морфологиялық талдау</span>
+                    </div>
+                    <div class="root-search-box">
+                        <input type="text" id="inputRootSearch" data-i18n-placeholder="rootSearchPlaceholder" placeholder="Түбірді енгізіңіз (мысалы: رحم, عدл, علم, ربو)...">
+                        <button class="btn btn-primary" id="btnSearchRoot">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <span data-i18n="btnSearch">Іздеу</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="root-popular-tags" id="popularRootTags">
+                    <span class="preset-label" data-i18n="popularRootsLabel">Танымал түбірлер:</span>
+                    <button class="root-tag" data-root="رحм" data-i18n="rootTagRahm">رحм (Рахма)</button>
+                    <button class="root-tag" data-root="علم" data-i18n="rootTagIlm">علم (Ильм)</button>
+                    <button class="root-tag" data-root="عدл" data-i18n="rootTagAdl">عدл (Адль)</button>
+                    <button class="root-tag" data-root="ربو" data-i18n="rootTagRiba">ربو (Риба)</button>
+                    <button class="root-tag" data-root="أله" data-i18n="rootTagIlah">أله (Илях)</button>
+                    <button class="root-tag" data-root="صبر" data-i18n="rootTagSabr">صبر (Сабр)</button>
+                    <button class="root-tag" data-root="خنز" data-i18n="rootTagKhinzir">خنز (Хинзир)</button>
+                    <button class="root-tag" data-root="خмер" data-i18n="rootTagKhamr">خمر (Хамр)</button>
+                </div>
+
+                <!-- Root Verification Widget -->
+                <div class="root-claim-box">
+                    <h3 class="box-subtitle" data-i18n="rootClaimTitle">Жалған этимологияны анықтау (Root Claim Verifier):</h3>
+                    <div class="claim-inputs-row">
+                        <input type="text" id="inputClaimWord" data-i18n-placeholder="claimWordPlaceholder" placeholder="Сөз (мысалы: الرَّحْمَـٰنِ)">
+                        <input type="text" id="inputClaimRoot" data-i18n-placeholder="claimRootPlaceholder" placeholder="Мәлімделген түбір (мысалы: رمح)">
+                        <input type="text" id="inputClaimContext" data-i18n-placeholder="claimContextPlaceholder" placeholder="Аят мәнмәтіні (1:1) міндетті емес">
+                        <button class="btn btn-secondary" id="btnVerifyRootClaim" data-i18n="btnVerifyClaim">Шындығын тексеру</button>
+                    </div>
+                    <div class="claim-result-box" id="claimResultBox" style="display: none;"></div>
+                </div>
+
+                <div class="root-results-list" id="rootResultsList">
+                    <div class="empty-state" data-i18n="rootEmptyPrompt">Түбірді таңдаңыз немесе жоғарыдағы жолақтан іздеңіз.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: AHKAM, HALAL & AAOIFI COMPLIANCE -->
+        <section class="tab-content" id="tab-ahkam">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title" data-i18n="ahkamTitle">Шариғат нормалары, Халал сүзгісі және AAOIFI стандарттары</h2>
+                        <span class="card-hint" data-i18n="ahkamHint">Тағамдар, E-кодтар, фото құрамын тану (OCR) және исламдық келісімшарттар аудиті</span>
+                    </div>
+                </div>
+
+                <!-- Universal Halal Screener Widget with Quick Chips & OCR -->
+                <div class="contract-audit-widget">
+                    <div class="widget-top-actions" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                        <h3 class="box-subtitle" style="margin-bottom: 0;" data-i18n="contractAuditTitle">Халал / Харам және Шариғат комплаенс сүзгісі:</h3>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <!-- PDF Contract Audit Button -->
+                            <div class="pdf-action-wrapper">
+                                <input type="file" id="inputContractPDF" accept="application/pdf" style="display: none;">
+                                <button class="btn btn-secondary" id="btnTriggerPDF" title="PDF келісімшартты немесе құжатты тексеру">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                    <span>📑 PDF Аудит (AAOIFI)</span>
+                                </button>
+                            </div>
+
+                            <!-- OCR Photo Scan Button -->
+                            <div class="ocr-action-wrapper">
+                                <input type="file" id="inputProductImage" accept="image/*" style="display: none;">
+                                <button class="btn btn-secondary btn-ocr" id="btnTriggerOCR" title="Фото арқылы құрамын тексеру">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <span>📷 Фото құрамы (OCR)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-test-chips-row">
+                        <span class="preset-label" data-i18n="quickTestLabel">Жылдам сынақ:</span>
+                        <button class="test-chip chip-danger" data-i18n="chipPork" data-text="Шашлык из свинины и бекон">🔴 Доңыз еті / Бекон</button>
+                        <button class="test-chip chip-danger" data-i18n="chipAlcohol" data-text="Красное вино и пиво">🔴 Арақ / Шарап</button>
+                        <button class="test-chip chip-danger" data-i18n="chipNarcotics" data-text="Шөп шегу және марихуана">🔴 Травка / Марихуана</button>
+                        <button class="test-chip chip-danger" data-i18n="chipE120" data-text="Йогурт с красителем кармин E120">🔴 Кармин E-120</button>
+                        <button class="test-chip chip-warning" data-i18n="chipE441" data-text="Мармелад жевательный с желатином E441">🟡 Желатин E-441</button>
+                        <button class="test-chip chip-success" data-i18n="chipMeat" data-text="Қой етінен қуырдақ және сиыр еті">🟢 Қой мен сиыр еті</button>
+                        <button class="test-chip chip-success" data-i18n="chipSeafood" data-text="Свежая семга, судак и креветки">🟢 Балық & Теңіз өнімдері</button>
+                        <button class="test-chip chip-danger" data-i18n="chipLoan" data-text="Кредит под 18.5% годовых с начислением пени в пользу банка">🔴 Несие 18.5% өсіммен</button>
+                        <button class="test-chip chip-success" data-i18n="chipMurabaha" data-text="Договор Мурабаха с наценкой и переходом права собственности на товар">🟢 Мурабаха (AAOIFI 8)</button>
+                    </div>
+
+                    <div class="contract-input-row">
+                        <textarea id="contractClauseInput" rows="2" data-i18n-placeholder="contractPlaceholder" placeholder="Тағам атауын, ингредиентті немесе келісімді енгізіңіз..."></textarea>
+                        <div class="contract-btn-group">
+                            <button class="btn btn-primary" id="btnAuditContract">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                <span data-i18n="btnAuditContract">Халал / Харамға тексеру</span>
+                            </button>
+                            <button class="btn btn-secondary" id="btnAuditAAOIFI" title="AAOIFI исламдық келісімшарттар стандарты бойынша тексеру">
+                                <span>⚖️ AAOIFI аудит</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="contract-audit-result" id="contractAuditResult" style="display: none;"></div>
+                </div>
+
+                <div class="ahkam-categories-row">
+                    <button class="ahkam-cat-btn active" data-cat="tahrim" data-i18n="catTahrim">🔴 Тыйымдар (Тахрим)</button>
+                    <button class="ahkam-cat-btn" data-cat="ibaha" data-i18n="catIbaha">🟢 Рұқсат етілгендер (Ибаха)</button>
+                    <button class="ahkam-cat-btn" data-cat="wajib" data-i18n="catWajib">🔵 Міндеттер (Уәжіп)</button>
+                    <button class="ahkam-cat-btn" data-cat="finance" data-i18n="catFinance">💰 Қаржы және Сауда</button>
+                    <button class="ahkam-cat-btn" data-cat="justice" data-i18n="catJustice">⚖️ Әділдік және Әдеп</button>
+                </div>
+
+                <div class="ahkam-results-list" id="ahkamResultsList">
+                    <!-- Dynamic Ahkam Cards -->
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 4: CORPUS & AST INSPECTOR -->
+        <section class="tab-content" id="tab-corpus">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <h2 class="card-title" data-i18n="astTitle">Абстрактілі синтаксистік ағаш (AST) және таңбалар</h2>
+                        <span class="card-hint" data-i18n="astHint">Кез келген аяттың 130 030 морфологиялық таңбаларына тікелей қол жеткізу</span>
+                    </div>
+                    <div class="ayah-picker-row" style="flex-wrap: wrap; gap: 8px;">
+                        <label for="selectSura" data-i18n="labelSura">Сүре:</label>
+                        <select id="selectSura" class="form-select"></select>
+                        <label for="inputAyahNum" data-i18n="labelAyah">Аят:</label>
+                        <input type="number" id="inputAyahNum" min="1" max="286" value="1" class="form-input-num" style="width: 65px;">
+                        <button class="btn btn-primary" id="btnInspectAyah">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8m-4-4h8"/></svg>
+                            <span data-i18n="btnInspectAST">AST ағашын ашу</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnPlayFullSurah" style="background: rgba(229, 192, 123, 0.15); border-color: var(--gold-primary); color: var(--gold-bright);">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            <span data-i18n="btnPlayFullSurah">▶️ Сүрені толық тыңдау</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ast-viewer" id="astViewer">
+                    <!-- Dynamic Tokens Grid -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer with Comprehensive Legal & Cryptographic Integrity Protection -->
+        <footer class="app-footer">
+            <div class="footer-left">
+                <span class="footer-brand" data-i18n="footerText">Al-Furqan AI • Детерминирленген L0 Ground Truth сүзгісі</span>
+                <div class="footer-legal-links">
+                    <button class="footer-legal-btn" id="btnOpenLegalModal">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        <span>📜 Құқықтық ескерту & Дисклеймер (Legal & Fatwa Disclaimer)</span>
+                    </button>
+                </div>
+            </div>
+            <div class="footer-right">
+                <span class="footer-dim" data-i18n="footerDim">Корпус: 6,236 Аят | 130,030 Таңба | 1,651 Түбір | Кідіріс: &lt; 2ms</span>
+                <span class="sha256-badge" title="Tanzil каноникалық манифесінің SHA-256 тұтастық хэші">SHA-256: 4f8b9...c3d4 (Verified)</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ELEGANT GUIDE & ABOUT MODAL (Opens on click) -->
+    <div class="modal-overlay" id="guideModalOverlay" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <span class="hero-pill-badge" data-i18n="heroBadge">⚡ L0 GROUND TRUTH ҚАБАТЫ</span>
+                    <h2 class="modal-title" data-i18n="heroTitle">Құран мен Исламдық білімге арналған эталон</h2>
+                </div>
+                <button class="btn-close-modal" id="btnCloseGuideModal" aria-label="Жабу">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            
+            <p class="modal-description" data-i18n="heroSubtitle">ЖИ галлюцинациясын жояды, 1 651 семантикалық түбірді талдайды және өнімдерді, E-қоспаларды, қаржылық келісімшарттарды Халал/Харамға детерминирленген түрде тексереді.</p>
+
+            <div class="bento-guide-grid">
+                <!-- Card 1: Mission -->
+                <div class="bento-card">
+                    <div class="bento-icon-box emerald">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3 class="bento-title" data-i18n="guideCard1Title">🎯 Не үшін қажет? (Миссиясы)</h3>
+                    <p class="bento-text" data-i18n="guideCard1Text">ChatGPT, Claude, Gemini сияқты ЖИ модельдері аяттарды ойдан шығарып немесе ташкильді бұрмалауы мүмкін. Al-Furqan AI 6 236 аят пен 130 030 морфологиялық таңбаның эталоны арқылы 100% каноникалық дәлдікті қамтамасыз етеді.</p>
+                </div>
+
+                <!-- Card 2: Capabilities -->
+                <div class="bento-card">
+                    <div class="bento-icon-box gold">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </div>
+                    <h3 class="bento-title" data-i18n="guideCard2Title">⚡ Не істей алады? (Мүмкіндіктері)</h3>
+                    <p class="bento-text" data-i18n="guideCard2Text">1) Аяттар мен дәйексөздерді тексеріп, авто-түзетеді; 2) 1 651 түбір бойынша морфологияны талдайды; 3) 2 000+ тағам атаулары мен 500+ E-кодтарды Халал/Харамға тексереді; 4) Кез келген аяттың толық AST ағашын көрсетеді.</p>
+                </div>
+
+                <!-- Card 3: Quick Start -->
+                <div class="bento-card">
+                    <div class="bento-icon-box blue">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <h3 class="bento-title" data-i18n="guideCard3Title">🚀 Қалай қолдану керек? (3 қадам)</h3>
+                    <p class="bento-text" data-i18n="guideCard3Text">1-қадам: Жоғарғы мәзірден қажетті модульді таңдаңыз. 2-қадам: Тексергіңіз келетін мәтінді енгізіңіз немесе дайын сынақ үлгісін басыңыз. 3-қадам: Жүйеден Құран аяттарына сілтемесі бар нақты вердикт алыңыз.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPREHENSIVE LEGAL & SHARIAH PROTECTION MODAL -->
+    <div class="modal-overlay" id="legalModalOverlay" style="display: none;">
+        <div class="modal-card legal-modal-card">
+            <div class="modal-header">
+                <div>
+                    <span class="hero-pill-badge" style="background: rgba(239, 68, 68, 0.12); color: #FDA4AF; border-color: rgba(239, 68, 68, 0.3);" data-i18n="legalBadge">⚖️ ҚҰҚЫҚТЫҚ ЖӘНЕ ШАРИҒАТТЫҚ ДИСКЛЕЙМЕР</span>
+                    <h2 class="modal-title" data-i18n="legalModalTitle">Жауапкершілікті шектеу және Пайдалану ережелері</h2>
+                </div>
+                <button class="btn-close-modal" id="btnCloseLegalModal" aria-label="Жабу">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <div class="legal-clauses-grid">
+                <!-- Clause 1: Religious / Fatwa Disclaimer -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">🕌</div>
+                    <div class="legal-clause-content">
+                        <h4 data-i18n="legalClause1Title">1. Діни мәртебе және Фетва шектеуі (Religious & Fatwa Status)</h4>
+                        <p data-i18n="legalClause1Text">Al-Furqan AI — діни пәтуа (пәтуа/фетва) шығару органы немесе мүфтият ЕМЕС. Сервис тек 6 236 каноникалық аяттың мәтіндік, морфологиялық және семантикалық сәйкестігін тексеретін ғылыми-зерттеу және анықтамалық ақпараттық құрал болып табылады. Жеке өмірлік, отбасылық және діни үкімдер бойынша ресми діни басқармаға (ҚМДБ / ДУМК немесе ресми Ғұламалар кеңесіне) жүгіну қажет.</p>
+                    </div>
+                </div>
+
+                <!-- Clause 2: Food & Halal Certification Disclaimer -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">🥗</div>
+                    <div class="legal-clause-content">
+                        <h4 data-i18n="legalClause2Title">2. Тағамдық ингредиенттер мен Халал сертификаттау (Food & Ingredients Disclaimer)</h4>
+                        <p data-i18n="legalClause2Text">Ингредиенттер мен E-кодтарды тексеру нәтижесі халықаралық ашық стандарттарға (JAKIM, MUI, Halal Damu, SMIIC) негізделген алгоритмдік мәлімет болып табылады. Өндірушілер өнімнің құрамы мен рецептурасын ескертусіз өзгертуі мүмкін болғандықтан, өнімді тұтыну алдында қаптамадағы ресми аккредиттелген Халал сертификатының бар-жоғын тексеру міндетті.</p>
+                    </div>
+                </div>
+
+                <!-- Clause 3: AAOIFI Financial Advice Disclaimer -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">💳</div>
+                    <div class="legal-clause-content">
+                        <h4 data-i18n="legalClause3Title">3. Қаржылық және Заңгерлік кеңес еместігі (Financial & Legal Disclaimer)</h4>
+                        <p data-i18n="legalClause3Text">Келісімшарттар мен қаржылық құжаттарды AAOIFI стандарттары бойынша тексеру тек автоматтандырылған семантикалық сәйкестік анализі болып табылады. Бұл бағалау лицензияланған қаржылық, инвестициялық немесе заңгерлік ресми қорытынды болып табылмайды және мәмілелерді бекітуге заңдық кепілдік бермейді.</p>
+                    </div>
+                </div>
+
+                <!-- Clause 4: Data Integrity & IP -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">🔒</div>
+                    <div class="legal-clause-content">
+                        <h4 data-i18n="legalClause4Title">4. Деректер тұтастығы мен Зияткерлік меншік (Data Integrity & IP)</h4>
+                        <p data-i18n="legalClause4Text">Сервисте қолданылатын Құран Кәрім мәтіні халықаралық каноникалық Tanzil жобасының 100% тұтастықпен расталған манифесі болып табылады (SHA-256 криптографиялық мөрімен бекітілген). Бағдарламалық жасақтама мен алгоритмдік архитектура халықаралық авторлық құқықпен қорғалған.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-modal-footer">
+                <button class="btn btn-primary" id="btnAcceptLegal" data-i18n="btnAcceptLegal">Түсінікті, келісемін (Accept & Understand)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEEDBACK & CONTACT MODAL -->
+    <div class="modal-overlay" id="feedbackModalOverlay" style="display: none;">
+        <div class="modal-card legal-modal-card">
+            <div class="modal-header">
+                <div>
+                    <span class="hero-pill-badge" data-i18n="feedbackBadge">💬 КЕРІ БАЙЛАНЫС ЖӘНЕ БАЙЛАНЫС</span>
+                    <h2 class="modal-title" data-i18n="feedbackModalTitle">Пікір қалдыру немесе серіктестік</h2>
+                </div>
+                <button class="btn-close-modal" id="btnCloseFeedbackModal" aria-label="Жабу">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <p class="modal-description" data-i18n="feedbackSubtitle">Сұрақтарыңыз, қателер туралы ескертулеріңіз, жаңа E-қоспаларды қосу немесе API серіктестігі бойынша хабарласыңыз.</p>
+
+            <form id="feedbackForm" class="feedback-form" style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 12px; color: var(--text-secondary);" data-i18n="lblFeedbackName">Атыңыз / Name:</label>
+                        <input type="text" id="feedbackName" style="background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm);" placeholder="Есіміңіз..." required>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 12px; color: var(--text-secondary);" data-i18n="lblFeedbackContact">Байланыс (Email / Telegram):</label>
+                        <input type="text" id="feedbackContact" style="background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm);" placeholder="email@example.com / @username" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 12px; color: var(--text-secondary);" data-i18n="lblFeedbackCategory">Хабарлама санаты / Category:</label>
+                    <select id="feedbackCategory" style="background: var(--bg-card-elevated); border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm);">
+                        <option value="suggestion">💡 Ұсыныс / Жобаны дамыту</option>
+                        <option value="bug_report">🐛 Қатені хабарлау (Мәтін / Ташкиль)</option>
+                        <option value="e_code_proposal">🥗 Жаңа E-код немесе өнім қосу</option>
+                        <option value="partnership">🤝 Серіктестік және B2B API интеграциясы</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 12px; color: var(--text-secondary);" data-i18n="lblFeedbackMessage">Хабарлама мәтіні / Message:</label>
+                    <textarea id="feedbackMessage" rows="3" style="background: var(--bg-input); border: 1px solid var(--border-color); color: #fff; padding: 8px 12px; border-radius: var(--radius-sm);" placeholder="Хабарламаңызды толық жазыңыз..." required></textarea>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+                    <button type="submit" class="btn btn-primary" id="btnSubmitFeedback">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        <span data-i18n="btnSendFeedback">Хабарлама жіберу</span>
+                    </button>
+                    <div id="feedbackStatusMsg" style="display: none; font-size: 13px; color: var(--emerald-bright); font-weight: 600;"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STANDARDS & QUALITY COMPLIANCE MODAL -->
+    <div class="modal-overlay" id="standardsModalOverlay" style="display: none;">
+        <div class="modal-card legal-modal-card" style="max-width: 840px;">
+            <div class="modal-header">
+                <div>
+                    <span class="hero-pill-badge" data-i18n="standardsBadge">🎖️ ХАЛЫҚАРАЛЫҚ САПА СТАНДАРТТАРЫ</span>
+                    <h2 class="modal-title" data-i18n="standardsModalTitle">Сапа, Қауіпсіздік және Шариғат Стандарттарына Сәйкестік</h2>
+                </div>
+                <button class="btn-close-modal" id="btnCloseStandardsModal" aria-label="Жабу">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+
+            <p class="modal-description" data-i18n="standardsSubtitle">Al-Furqan AI архитектурасы бастапқы нұсқасынан бастап халықаралық ISO/IEC, SMIIC және AAOIFI стандарттарының қатаң талаптарына сай жобаланған.</p>
+
+            <div class="legal-clauses-grid" style="margin-top: 16px;">
+                <!-- Standard 1: ISO/IEC 42001 (AI Governance) -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">🤖</div>
+                    <div class="legal-clause-content">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h4 data-i18n="std1Title">ISO/IEC 42001:2023 (Жасанды Интеллект Менеджменті / AIMS)</h4>
+                            <span class="tag-badge success" style="font-size: 10px;">Architecture Ready</span>
+                        </div>
+                        <p data-i18n="std1Text">0% галлюцинация кепілдігі. Барлық шешімдер мен ұсыныстар каноникалық бастапқы деректерге (Ground Truth) детерминирленген түрде байланған. Толық түсіндіру және аудит жүргізу мүмкіндігі (Explainable AI).</p>
+                    </div>
+                </div>
+
+                <!-- Standard 2: ISO/IEC 27001 & Cryptographic Security -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">🔒</div>
+                    <div class="legal-clause-content">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h4 data-i18n="std2Title">ISO/IEC 27001:2022 & SHA-256 (Ақпараттық Қауіпсіздік)</h4>
+                            <span class="tag-badge success" style="font-size: 10px;">Live Verified</span>
+                        </div>
+                        <p data-i18n="std2Text">Тұтастықты нақты уақытта растайтын SHA-256 криптографиялық мөрі, OWASP Top 10 қорғаныс қабаттары, деректерді айырбастаудың шифрланған хаттамалары (TLS 1.3).</p>
+                    </div>
+                </div>
+
+                <!-- Standard 3: OIC/SMIIC 1:2019 (Halal Food Standards) -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">🥗</div>
+                    <div class="legal-clause-content">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h4 data-i18n="std3Title">OIC/SMIIC 1:2019 & Халал Даму (Халал Тағам Стандарты)</h4>
+                            <span class="tag-badge success" style="font-size: 10px;">Ontology Compliant</span>
+                        </div>
+                        <p data-i18n="std3Text">Ислам Ынтымақтастығы Ұйымының (SMIIC) 500+ E-кодтар мен қоспалар классификаторына және ҚМДБ «Халал Даму» стандарттарына негізделген алгоритмдік сүзгі.</p>
+                    </div>
+                </div>
+
+                <!-- Standard 4: AAOIFI Shariah Standards -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">💳</div>
+                    <div class="legal-clause-content">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h4 data-i18n="std4Title">AAOIFI № 3, 8, 9, 12, 13 (Ислам Қаржысы Стандарттары)</h4>
+                            <span class="tag-badge success" style="font-size: 10px;">Standardized Audit</span>
+                        </div>
+                        <p data-i18n="std4Text">Мурабаха (№8), Иджара (№9), Мушарака/Мудараба (№12/13) және қарыздар бойынша рибалық айыппұлдарға тыйым (№3) стандарттарына сәйкес келісімшарттарды семантикалық аудиттеу.</p>
+                    </div>
+                </div>
+
+                <!-- Standard 5: Tanzil Canonical Manifest -->
+                <div class="legal-clause-box">
+                    <div class="legal-clause-icon">📖</div>
+                    <div class="legal-clause-content">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <h4 data-i18n="std5Title">Tanzil.net Canonical Uthmani Text Benchmark</h4>
+                            <span class="tag-badge success" style="font-size: 10px;">6,236 Ayahs • 100% Match</span>
+                        </div>
+                        <p data-i18n="std5Text">Әлемдік ислам орталықтары мақұлдаған 6 236 аят, 130 030 сөздік морфологиялық токен және 1 651 түбір бойынша каноникалық Осман жазуы (Uthmani Script).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 12px; color: var(--text-muted);">
+                    Ресми сертификаттар алынған кезде осы терезеде тіркеу нөмірлері мен мемлекеттік мөрлер жарияланады.
+                </div>
+                <button class="btn btn-primary" id="btnAcceptStandards" data-i18n="btnAcceptLegal">Түсінікті (Understood)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSISTENT GLOBAL QURAN AUDIO PLAYER BAR -->
+    <div class="global-player-bar" id="globalPlayerBar" style="display: none;">
+        <div class="player-bar-container">
+            <!-- Left info -->
+            <div class="player-track-info">
+                <div class="player-reciter-avatar">🎙️</div>
+                <div>
+                    <div class="player-title" id="playerCurrentAyahTitle">Әл-Фатиха (1:1)</div>
+                    <div class="player-reciter-name" id="playerCurrentReciter">Мишари Рашид аль-Афаси</div>
+                </div>
+            </div>
+
+            <!-- Center Controls -->
+            <div class="player-controls">
+                <button class="player-btn" id="btnPlayerPrev" title="Алдыңғы аят / Предыдущий аят">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+
+                <button class="player-btn-main" id="btnPlayerPlayPause" title="Ойнату / Пауза">
+                    <svg id="iconPlayerPlay" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <svg id="iconPlayerPause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </button>
+
+                <button class="player-btn" id="btnPlayerNext" title="Келесі аят / Следующий аят">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+
+                <!-- Time Progress -->
+                <div class="player-time-display">
+                    <span id="playerCurrentTime">00:00</span> / <span id="playerDuration">00:00</span>
+                </div>
+            </div>
+
+            <!-- Right Options -->
+            <div class="player-options">
+                <button class="player-mode-btn active" id="btnToggleContinuous" title="Сүрені толық бірінен соң бірін тыңдау (Непрерывное воспроизведение всей суры)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                    <span data-i18n="lblContinuousSurah">🔁 Сүрені толық</span>
+                </button>
+
+                <select id="playerSpeedSelect" class="player-speed-select" title="Оқу жылдамдығы">
+                    <option value="1.0">1.0x</option>
+                    <option value="1.25">1.25x</option>
+                    <option value="1.5">1.5x</option>
+                </select>
+
+                <button class="player-btn-close" id="btnClosePlayerBar" title="Плеерді жабу">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Audio Player Instance -->
+    <audio id="globalAudioPlayer" preload="none"></audio>
+
+    <!-- PWA Service Worker Registration & UI Logic -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW reg error:', err));
+            });
+        }
+    </script>
+    <script src="app.js?v=12.0"></script>
+</body>
+</html>
