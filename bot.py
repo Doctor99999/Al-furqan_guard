@@ -379,11 +379,11 @@ async def halal_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         desc = m.get(f"description_{lang}") or m.get("description_ru")
         ar_text = m.get("canonical_arabic", "")
         ayah_ref = m.get("ayah_ref", "")
-        
+        arabic_line = f"📖 *{ar_text}*\n\n" if ar_text else ""
         msg = (
             f"{icon} *{title}*\n\n"
             f"📝 {desc}\n\n"
-            f"{f'📖 *{ar_text}*\n' if ar_text else ''}"
+            f"{arabic_line}"
             f"📌 *Основа в Коране:* {ayah_ref}"
         )
         await update.message.reply_markdown(msg)
