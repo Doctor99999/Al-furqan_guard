@@ -803,39 +803,62 @@ def main():
         return
 
     import asyncio
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    import time
+    from telegram.error import Conflict, NetworkError, TelegramError
 
-    print("🚀 Запуск Al-Furqan AI Multi-Modal Telegram Bot...")
-    app = ApplicationBuilder().token(token).build()
+    retry_delay = 5
+    while True:
+        try:
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_closed():
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
 
-    # Регистрация команд
-    app.add_handler(CommandHandler("start", start_command))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CommandHandler("fatiha", fatiha_command))
-    app.add_handler(CommandHandler("ayah", ayah_command))
-    app.add_handler(CommandHandler("surah", ayah_command))
-    app.add_handler(CommandHandler("halal", halal_command))
-    app.add_handler(CommandHandler("root", root_command))
-    app.add_handler(CommandHandler("search", search_command))
-    app.add_handler(CommandHandler("zakat", zakat_command))
-    
-    # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация
-    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
-    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-    
-    # Кнопки
-    app.add_handler(CallbackQueryHandler(handle_callback_query))
-    
-    # Текстовые сообщения
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+            print("🚀 Запуск Al-Furqan AI Multi-Modal Telegram Bot...")
+            app = ApplicationBuilder().token(token).build()
 
-    print("✅ Мультимодальный бот Al-Furqan AI успешно запущен и слушает события Telegram!")
-    app.run_polling(stop_signals=None, close_loop=False)
+            # Регистрация команд
+            app.add_handler(CommandHandler("start", start_command))
+            app.add_handler(CommandHandler("help", help_command))
+            app.add_handler(CommandHandler("fatiha", fatiha_command))
+            app.add_handler(CommandHandler("ayah", ayah_command))
+            app.add_handler(CommandHandler("surah", ayah_command))
+            app.add_handler(CommandHandler("halal", halal_command))
+            app.add_handler(CommandHandler("root", root_command))
+            app.add_handler(CommandHandler("search", search_command))
+            app.add_handler(CommandHandler("zakat", zakat_command))
+            
+            # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация
+            app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+            app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+            app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+            
+            # Кнопки
+            app.add_handler(CallbackQueryHandler(handle_callback_query))
+            
+            # Текстовые сообщения
+            app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+
+            print("✅ Мультимодальный бот Al-Furqan AI успешно запущен и слушает события Telegram!")
+            # drop_pending_updates=True drops stale updates / webhook remnants
+            app.run_polling(drop_pending_updates=True, stop_signals=None, close_loop=False)
+            break
+        except Conflict as e:
+            print(f"[Telegram Bot] ⚠️ Conflict detected (another instance/deploy is running): {e}")
+            print(f"[Telegram Bot] Waiting {retry_delay}s before taking over polling...")
+            time.sleep(retry_delay)
+            retry_delay = min(retry_delay + 5, 30)
+        except (NetworkError, TelegramError) as e:
+            print(f"[Telegram Bot] ⚠️ Network / Telegram error: {e}. Reconnecting in 5s...")
+            time.sleep(5)
+        except Exception as e:
+            print(f"[Telegram Bot] ⚠️ Unexpected bot error: {e}. Reconnecting in 10s...")
+            time.sleep(10)
 
 if __name__ == "__main__":
     main()
+

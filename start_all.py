@@ -54,16 +54,20 @@ def run_telegram_bot():
         print("[Unified Runner] TELEGRAM_BOT_TOKEN not set. Telegram bot disabled.")
         return
     
-    print("[Unified Runner] Starting Telegram Bot (@alfurqan_quran_bot) in background thread...")
-    try:
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        import bot
-        bot.main()
-    except Exception as e:
-        print(f"[Unified Runner] Telegram Bot error: {e}")
+    print("[Unified Runner] Starting Telegram Bot (@alfurqan_quran_bot) in background supervisor thread...")
+    while True:
+        try:
+            import asyncio
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            import bot
+            bot.main()
+            break
+        except Exception as e:
+            print(f"[Unified Runner] Telegram Bot supervisor notice: {e}. Auto-restarting in 10s...")
+            time.sleep(10)
+
 
 def run_web_server():
     port = int(os.environ.get("PORT", 8000))
