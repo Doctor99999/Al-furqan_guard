@@ -13,8 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="index.css?v=13.0">
-    <script src="i18n.js?v=13.0"></script>
+    <link rel="stylesheet" href="index.css?v=14.0">
+    <script src="i18n.js?v=14.0"></script>
 </head>
 <body>
     <div class="app-container">
@@ -70,12 +70,12 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <select id="selectLanguage" class="lang-select">
                         <option value="kk">🇰🇿 Қазақша</option>
-                        <option value="ru" selected>🇷🇺 Русский</option>
+                        <option value="ru">🇷🇺 Русский</option>
                         <option value="en">🇬🇧 English</option>
                         <option value="ar">🇸🇦 العربية</option>
                         <option value="tr">🇹🇷 Türkçe</option>
-                        <option value="id">🇮🇩 Indonesia</option>
                         <option value="uz">🇺🇿 O‘zbekcha</option>
+                        <option value="id">🇮🇩 Indonesia</option>
                     </select>
                 </div>
             </div>
@@ -106,6 +106,35 @@
                         <button class="btn-close-results" id="btnCloseSearchResults">&times;</button>
                     </div>
                     <div class="search-results-list" id="searchResultsList"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2.5 USP HIGHLIGHTS SECTION: WHY AL-FURQAN AI? -->
+        <section class="usp-banner-section">
+            <div class="usp-header">
+                <h3 class="usp-title" data-i18n="uspTitle">⚡ Почему Al-Furqan AI? Наши ключевые отличия от других проектов:</h3>
+            </div>
+            <div class="usp-grid">
+                <div class="usp-card">
+                    <h4 class="usp-card-title" data-i18n="usp1Title">🛡️ 0% AI Галлюцинаций (L0 Ground Truth)</h4>
+                    <p class="usp-card-desc" data-i18n="usp1Desc">В отличие от ChatGPT и Claude: 6 236 аятов, 130 030 токенов и огласовки проверяются со 100% математической точностью по криптографической печати SHA-256.</p>
+                </div>
+                <div class="usp-card">
+                    <h4 class="usp-card-title" data-i18n="usp2Title">⚖️ Аудит исламских договоров по AAOIFI</h4>
+                    <p class="usp-card-desc" data-i18n="usp2Desc">Первая в мире детерминированная проверка PDF-договоров на скрытую Риба (проценты), штрафы и соответствие стандартам Мурабаха/Иджара.</p>
+                </div>
+                <div class="usp-card">
+                    <h4 class="usp-card-title" data-i18n="usp3Title">🥗 Халяль-скринер & Фото OCR (SMIIC)</h4>
+                    <p class="usp-card-desc" data-i18n="usp3Desc">Распознавание этикеток по фото камерой, классификация 500+ пищевых добавок (E-кодов) и 2 000+ ингредиентов по регламенту SMIIC с аятами Корана.</p>
+                </div>
+                <div class="usp-card">
+                    <h4 class="usp-card-title" data-i18n="usp4Title">📖 114 Сур, 1 651 Корень & 3 великих чтеца</h4>
+                    <p class="usp-card-desc" data-i18n="usp4Desc">Пословный морфологический разбор до корня, транслитерация и параллельные переводы на 7 языков без искажений.</p>
+                </div>
+                <div class="usp-card">
+                    <h4 class="usp-card-title" data-i18n="usp5Title">🕌 Точный Намаз по GPS & Нисаб Закята</h4>
+                    <p class="usp-card-desc" data-i18n="usp5Desc">Астрономический расчет 5 молитв, точный компас направления на Каабу и расчет закята (2.5%) с привязкой к 85 г золота.</p>
                 </div>
             </div>
         </section>
@@ -162,15 +191,15 @@
                     <div class="panel-group">
                         <label for="selectReciter" class="panel-label" data-i18n="lblSelectReciter">Чтец Корана:</label>
                         <select id="selectReciter" class="select-reciter-custom">
-                            <option value="alafasy">🎙️ Мишари Рашид Аль-Афаси (Mishary Alafasy)</option>
-                            <option value="husary">🎙️ Махмуд Халиль Аль-Хусари (Husary)</option>
-                            <option value="abdulbasit">🎙️ Абдульбасит Абдуссамад (Abdulbasit)</option>
+                            <option value="alafasy" data-i18n="reciterAlafasy">🎙️ Мишари Рашид Аль-Афаси (Mishary Alafasy)</option>
+                            <option value="husary" data-i18n="reciterHusary">🎙️ Махмуд Халиль Аль-Хусари (Husary)</option>
+                            <option value="abdulbasit" data-i18n="reciterAbdulbasit">🎙️ Абдульбасит Абдуссамад (Abdulbasit)</option>
                         </select>
                     </div>
 
                     <div class="panel-actions">
                         <button class="btn btn-emerald" id="btnPlayFullSurah">
-                            <span>▶️ Слушать суру целиком</span>
+                            <span data-i18n="btnPlayFullSurah">▶️ Слушать суру целиком</span>
                         </button>
                     </div>
                 </div>
@@ -180,13 +209,13 @@
                     <div class="surah-hero-arabic" id="surahHeroArabic">سُورَةُ الفَاتِحَةِ</div>
                     <div class="surah-hero-details">
                         <h2 class="surah-hero-title" id="surahHeroTitle">1. Сура Аль-Фатиха (Открывающая)</h2>
-                        <span class="surah-hero-meta" id="surahHeroMeta">7 Аятов • Мекканская • Ниспослана 5-й</span>
+                        <span class="surah-hero-meta" id="surahHeroMeta">7 Аятов • Uthmani Script • Синхронный перевод</span>
                     </div>
                 </div>
 
                 <!-- Ayahs List Stream -->
                 <div class="ayahs-stream-container" id="ayahsStreamContainer">
-                    <div class="loading-spinner"><p>Загрузка священных аятов Корана...</p></div>
+                    <div class="loading-spinner"><p data-i18n="loadingAyahs">Загрузка священных аятов Корана...</p></div>
                 </div>
             </section>
 
@@ -205,10 +234,10 @@
                         
                         <div class="action-row">
                             <button class="btn btn-primary btn-large" id="btnRunGuardValidation">
-                                <span>🛡️ Проверить достоверность цитат</span>
+                                <span data-i18n="btnRunGuard">🛡️ Проверить достоверность цитат</span>
                             </button>
                             <button class="btn btn-secondary" id="btnPasteSampleGuard">
-                                <span>📝 Вставить пример с ошибкой ИИ</span>
+                                <span data-i18n="btnPasteSample">📝 Вставить пример с ошибкой ИИ</span>
                             </button>
                         </div>
 
@@ -220,13 +249,13 @@
                 <!-- 1,651 Roots Morphological Explorer -->
                 <div class="panel-card" style="margin-top: 20px;">
                     <div class="card-header">
-                        <h3 class="card-title">🧬 Поиск по 1 651 семантическому корню Корана</h3>
-                        <p class="card-subtitle">Введите арабский корень для поиска всех словоформ и аятов (например: صبر — терпение, رحم — милость, خنز — свинина).</p>
+                        <h3 class="card-title" data-i18n="rootsCardTitle">🧬 Поиск по 1 651 семантическому корню Корана</h3>
+                        <p class="card-subtitle" data-i18n="rootsCardDesc">Введите арабский корень для поиска всех словоформ и аятов (например: صبر — терпение, رحم — милость, خنز — свинина).</p>
                     </div>
                     <div class="card-body">
                         <div class="root-input-row">
-                            <input type="text" id="rootSearchInput" class="custom-input" placeholder="Введите арабский корень (напр. صبر или رحم)...">
-                            <button class="btn btn-secondary" id="btnSearchRoot">🔍 Найти аяты</button>
+                            <input type="text" id="rootSearchInput" class="custom-input" placeholder="Введите арабский корень (напр. صبر или رحم)..." data-i18n-placeholder="rootSearchPlaceholder">
+                            <button class="btn btn-secondary" id="btnSearchRoot"><span data-i18n="btnSearchRoot">🔍 Найти аяты</span></button>
                         </div>
                         <div id="rootSearchResults" style="margin-top: 15px;"></div>
                     </div>
@@ -248,13 +277,13 @@
                             <!-- Real Image OCR Upload -->
                             <input type="file" id="inputProductImage" accept="image/*" style="display: none;">
                             <button class="btn btn-secondary" id="btnTriggerOCR" title="Сфотографировать состав продукта">
-                                <span>📷 Фото состава (OCR)</span>
+                                <span data-i18n="btnPhotoOCR">📷 Фото состава (OCR)</span>
                             </button>
 
                             <!-- Real PDF Upload -->
                             <input type="file" id="inputContractPDF" accept="application/pdf" style="display: none;">
                             <button class="btn btn-secondary" id="btnTriggerPDF" title="Загрузить договор в PDF">
-                                <span>📑 PDF Договор (AAOIFI)</span>
+                                <span data-i18n="btnPDFContract">📑 PDF Договор (AAOIFI)</span>
                             </button>
                         </div>
                     </div>
@@ -262,25 +291,25 @@
                     <div class="card-body">
                         <!-- Quick Test Preset Chips -->
                         <div class="quick-chips-wrapper">
-                            <span class="chips-label">Быстрая проверка:</span>
-                            <button class="test-chip chip-danger" data-text="Шашлык из свинины и бекон">🔴 Свинина / Бекон</button>
-                            <button class="test-chip chip-danger" data-text="Красное вино и пиво">🔴 Алкоголь / Пиво</button>
-                            <button class="test-chip chip-danger" data-text="Йогурт с красителем кармин E120">🔴 Кармин E-120</button>
-                            <button class="test-chip chip-warning" data-text="Мармелад жевательный с желатином E441">🟡 Желатин E-441</button>
-                            <button class="test-chip chip-success" data-text="Говядина и баранина халяль">🟢 Говядина / Баранина</button>
-                            <button class="test-chip chip-success" data-text="Свежая семга, судак и креветки">🟢 Рыба и Морепродукты</button>
-                            <button class="test-chip chip-danger" data-text="Кредит под 18.5% годовых с начислением пени в пользу банка">🔴 Кредит с процентами (Риба)</button>
-                            <button class="test-chip chip-success" data-text="Договор Мурабаха с фиксированной наценкой и переходом права собственности">🟢 Мурабаха (AAOIFI 8)</button>
+                            <span class="chips-label" data-i18n="lblQuickCheck">Быстрая проверка:</span>
+                            <button class="test-chip chip-danger" data-text="Шашлык из свинины и бекон" data-i18n="chipPork">🔴 Свинина / Бекон</button>
+                            <button class="test-chip chip-danger" data-text="Красное вино и пиво" data-i18n="chipAlcohol">🔴 Алкоголь / Пиво</button>
+                            <button class="test-chip chip-danger" data-text="Йогурт с красителем кармин E120" data-i18n="chipCarmine">🔴 Кармин E-120</button>
+                            <button class="test-chip chip-warning" data-text="Мармелад жевательный с желатином E441" data-i18n="chipGelatin">🟡 Желатин E-441</button>
+                            <button class="test-chip chip-success" data-text="Говядина и баранина халяль" data-i18n="chipBeef">🟢 Говядина / Баранина</button>
+                            <button class="test-chip chip-success" data-text="Свежая семга, судак и креветки" data-i18n="chipSeafood">🟢 Рыба и Морепродукты</button>
+                            <button class="test-chip chip-danger" data-text="Кредит под 18.5% годовых с начислением пени в пользу банка" data-i18n="chipLoan">🔴 Кредит с процентами (Риба)</button>
+                            <button class="test-chip chip-success" data-text="Договор Мурабаха с фиксированной наценкой и переходом права собственности" data-i18n="chipMurabaha">🟢 Мурабаха (AAOIFI 8)</button>
                         </div>
 
                         <div class="halal-input-group">
-                            <textarea id="halalClauseInput" rows="2" class="custom-textarea" placeholder="Введите название продукта, ингредиент (напр. Е120, желатин) или условия договора..."></textarea>
+                            <textarea id="halalClauseInput" rows="2" class="custom-textarea" placeholder="Введите название продукта, ингредиент (напр. Е120, желатин) или условия договора..." data-i18n-placeholder="halalInputPlaceholder"></textarea>
                             <div class="halal-btn-row">
                                 <button class="btn btn-primary" id="btnAuditHalal">
-                                    <span>🔍 Проверить на Халяль</span>
+                                    <span data-i18n="btnAuditHalal">🔍 Проверить на Халяль</span>
                                 </button>
                                 <button class="btn btn-secondary" id="btnAuditAAOIFI">
-                                    <span>⚖️ Финансовый аудит AAOIFI</span>
+                                    <span data-i18n="btnAuditAAOIFI">⚖️ Финансовый аудит AAOIFI</span>
                                 </button>
                             </div>
                         </div>
@@ -299,34 +328,34 @@
                     <!-- Namaz & Qibla Card -->
                     <div class="panel-card">
                         <div class="card-header">
-                            <h3 class="card-title">🕌 Расписание Намаза & Кибла</h3>
-                            <p class="card-subtitle">Точное астрономическое время 5 ежедневных молитв и направление на Каабу в Мекке.</p>
+                            <h3 class="card-title" data-i18n="namazCardTitle">🕌 Расписание Намаза & Кибла</h3>
+                            <p class="card-subtitle" data-i18n="namazCardDesc">Точное астрономическое время 5 ежедневных молитв и направление на Каабу в Мекке.</p>
                         </div>
                         <div class="card-body">
                             <div class="city-quick-selector">
-                                <button class="city-pill active" data-lat="51.1694" data-lon="71.4491">Астана</button>
-                                <button class="city-pill" data-lat="43.2220" data-lon="76.8512">Алматы</button>
-                                <button class="city-pill" data-lat="42.3417" data-lon="69.5901">Шымкент</button>
-                                <button class="city-pill" data-lat="55.7558" data-lon="37.6173">Москва</button>
-                                <button class="city-pill" data-lat="41.0082" data-lon="28.9784">Стамбул</button>
-                                <button class="city-pill" data-lat="41.2995" data-lon="69.2401">Ташкент</button>
-                                <button class="btn-geo" id="btnGetLocation">📍 Мое местоположение (GPS)</button>
+                                <button class="city-pill active" data-lat="51.1694" data-lon="71.4491" data-i18n="cityAstana">Астана</button>
+                                <button class="city-pill" data-lat="43.2220" data-lon="76.8512" data-i18n="cityAlmaty">Алматы</button>
+                                <button class="city-pill" data-lat="42.3417" data-lon="69.5901" data-i18n="cityShymkent">Шымкент</button>
+                                <button class="city-pill" data-lat="55.7558" data-lon="37.6173" data-i18n="cityMoscow">Москва</button>
+                                <button class="city-pill" data-lat="41.0082" data-lon="28.9784" data-i18n="cityIstanbul">Стамбул</button>
+                                <button class="city-pill" data-lat="41.2995" data-lon="69.2401" data-i18n="cityTashkent">Ташкент</button>
+                                <button class="btn-geo" id="btnGetLocation" data-i18n="btnGPSLocation">📍 Мое местоположение (GPS)</button>
                             </div>
 
                             <div class="prayer-times-grid" id="prayerTimesGrid">
-                                <div class="prayer-box"><span class="prayer-name">Фаджр (Таң)</span><span class="prayer-time" id="timeFajr">03:30</span></div>
-                                <div class="prayer-box"><span class="prayer-name">Восход (Күн)</span><span class="prayer-time" id="timeSunrise">05:15</span></div>
-                                <div class="prayer-box"><span class="prayer-name">Зухр (Бесін)</span><span class="prayer-time" id="timeDhuhr">12:30</span></div>
-                                <div class="prayer-box"><span class="prayer-name">Аср (Екінті)</span><span class="prayer-time" id="timeAsr">16:45</span></div>
-                                <div class="prayer-box"><span class="prayer-name">Магриб (Ақшам)</span><span class="prayer-time" id="timeMaghrib">19:45</span></div>
-                                <div class="prayer-box"><span class="prayer-name">Иша (Құптан)</span><span class="prayer-time" id="timeIsha">21:15</span></div>
+                                <div class="prayer-box"><span class="prayer-name" data-i18n="prayerFajr">Фаджр (Рассвет)</span><span class="prayer-time" id="timeFajr">03:30</span></div>
+                                <div class="prayer-box"><span class="prayer-name" data-i18n="prayerSunrise">Восход солнца</span><span class="prayer-time" id="timeSunrise">05:15</span></div>
+                                <div class="prayer-box"><span class="prayer-name" data-i18n="prayerDhuhr">Зухр (Полудень)</span><span class="prayer-time" id="timeDhuhr">12:30</span></div>
+                                <div class="prayer-box"><span class="prayer-name" data-i18n="prayerAsr">Аср (Послеполуденный)</span><span class="prayer-time" id="timeAsr">16:45</span></div>
+                                <div class="prayer-box"><span class="prayer-name" data-i18n="prayerMaghrib">Магриб (Закат)</span><span class="prayer-time" id="timeMaghrib">19:45</span></div>
+                                <div class="prayer-box"><span class="prayer-name" data-i18n="prayerIsha">Иша (Ночной)</span><span class="prayer-time" id="timeIsha">21:15</span></div>
                             </div>
 
                             <div class="qibla-display-card">
                                 <div class="qibla-compass-icon">🧭</div>
                                 <div>
                                     <div class="qibla-degree" id="qiblaDegreeText">Кибла: 231.5° (ЮЗ)</div>
-                                    <div class="qibla-sub">Точный азимут на священную Каабу в Мекке</div>
+                                    <div class="qibla-sub" data-i18n="qiblaDesc">Точный азимут на священную Каабу в Мекке</div>
                                 </div>
                             </div>
                         </div>
@@ -335,30 +364,30 @@
                     <!-- Zakat Calculator Card -->
                     <div class="panel-card">
                         <div class="card-header">
-                            <h3 class="card-title">💰 Шариатский калькулятор Закята</h3>
-                            <p class="card-subtitle">Расчет обязательного закята (2.5%) с учетом порога Нисаба по золоту (85 грамм).</p>
+                            <h3 class="card-title" data-i18n="zakatCardTitle">💰 Шариатский калькулятор Закята</h3>
+                            <p class="card-subtitle" data-i18n="zakatCardDesc">Расчет обязательного закята (2.5%) с учетом порога Нисаба по золоту (85 грамм).</p>
                         </div>
                         <div class="card-body">
                             <div class="zakat-form">
                                 <div class="form-group">
-                                    <label class="form-label">Денежные сбережения (наличные, вклады):</label>
+                                    <label class="form-label" data-i18n="lblZakatCash">Денежные сбережения (наличные, вклады):</label>
                                     <input type="number" id="zakatCash" class="custom-input" placeholder="0" value="1000000">
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Золото (в граммах):</label>
+                                    <label class="form-label" data-i18n="lblZakatGold">Золото (в граммах):</label>
                                     <input type="number" id="zakatGold" class="custom-input" placeholder="0" value="0">
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Долги к немедленной выплате (вычитаются):</label>
+                                    <label class="form-label" data-i18n="lblZakatDebts">Долги к немедленной выплате (вычитаются):</label>
                                     <input type="number" id="zakatDebts" class="custom-input" placeholder="0" value="0">
                                 </div>
                                 <button class="btn btn-emerald" id="btnCalculateZakat">
-                                    <span>⚖️ Рассчитать Закят</span>
+                                    <span data-i18n="btnCalculateZakat">⚖️ Рассчитать Закят</span>
                                 </button>
                             </div>
 
                             <div class="zakat-result-card" id="zakatResultCard" style="margin-top: 15px;">
-                                <div class="zakat-result-title">Результат расчета Закята:</div>
+                                <div class="zakat-result-title" data-i18n="zakatResultTitle">Результат расчета Закята:</div>
                                 <div class="zakat-amount" id="zakatAmountText">25 000 ₸</div>
                                 <div class="zakat-note" id="zakatNoteText">Имущество превышает Нисаб (~2 975 000 ₸). Закят обязателен (2.5%).</div>
                             </div>
@@ -378,9 +407,9 @@
                 </div>
             </div>
             <div class="player-center">
-                <button class="player-control-btn" id="btnPlayerPrev" title="Предыдущий аят">⏮</button>
-                <button class="player-control-btn" id="btnPlayerNext" title="Следующий аят">⏭</button>
-                <button class="btn-toggle-continuous active" id="btnToggleContinuous" title="Непрерывное чтение">🔁 Авто</button>
+                <button class="player-control-btn" id="btnPlayerPrev" title="Предыдущий аят" data-i18n-title="btnPrevTitle">⏮</button>
+                <button class="player-control-btn" id="btnPlayerNext" title="Следующий аят" data-i18n-title="btnNextTitle">⏭</button>
+                <button class="btn-toggle-continuous active" id="btnToggleContinuous" title="Непрерывное чтение" data-i18n="lblAuto">🔁 Авто</button>
             </div>
             <div class="player-right">
                 <select id="playerSpeedSelect" class="speed-select">
@@ -395,16 +424,16 @@
         <!-- 6. FOOTER -->
         <footer class="app-footer">
             <div class="footer-row">
-                <div class="footer-brand">
+                <div class="footer-brand" data-i18n="footerBrandText">
                     <strong>Al-Furqan AI v2.0</strong> • Священный Коран (Tanzil Uthmani L0) & Shariah Compliance Engine
                 </div>
                 <div class="footer-links">
-                    <a href="https://t.me/alfurqan_quran_bot" target="_blank">✈️ Telegram Бот</a>
-                    <a href="/docs" target="_blank">API Документация</a>
-                    <a href="https://github.com/Doctor99999/al-furqan-ai" target="_blank">GitHub</a>
+                    <a href="https://t.me/alfurqan_quran_bot" target="_blank" data-i18n="footerTgBot">✈️ Telegram Бот</a>
+                    <a href="/docs" target="_blank" data-i18n="footerApiDocs">API Документация</a>
+                    <a href="https://github.com/Doctor99999/al-furqan-ai" target="_blank" data-i18n="footerGithub">GitHub</a>
                 </div>
             </div>
-            <div class="footer-sub">
+            <div class="footer-sub" data-i18n="footerSecurityNote">
                 SHA-256 Verified • Tanzil Quran Project • Open Source во благо уммы
             </div>
         </footer>
@@ -414,14 +443,14 @@
     <div class="modal-backdrop" id="modalStandards" style="display: none;">
         <div class="modal-window">
             <div class="modal-header">
-                <h3>🎖️ Стандарты качества и сертификация</h3>
+                <h3 data-i18n="standardsModalTitle">🎖️ Стандарты качества и сертификация</h3>
                 <button class="modal-close" id="btnCloseStandards">&times;</button>
             </div>
             <div class="modal-body">
-                <p><strong>1. Канонический эталон Корана:</strong> Tanzil Quran Project v1.0.2 (Uthmani Text, 6 236 аятов, 130 030 токенов, 1 651 корень). Хэш манифеста защищен криптографической печатью SHA-256.</p>
-                <p><strong>2. Исламские финансы (AAOIFI):</strong> Шариатские стандарты №8 (Мурабаха), №9 (Иджара), №21 (Финансовые бумаги и запрет Риба).</p>
-                <p><strong>3. Халяль стандарты питания:</strong> SMIIC OIC/SMIIC 1:2019 (Общие требования к халяльной пище и классификация E-кодов).</p>
-                <p><strong>4. ИИ-безопасность:</strong> ISO/IEC 42001 (Системы менеджмента искусственного интеллекта) и ISO/IEC 27001.</p>
+                <p><strong data-i18n="std1Title">1. Канонический эталон Корана (Tanzil Uthmani L0):</strong> <span data-i18n="std1Text">Tanzil Quran Project v1.0.2 (Uthmani Text, 6 236 аятов, 130 030 токенов, 1 651 корень). Хэш манифеста защищен криптографической печатью SHA-256.</span></p>
+                <p><strong data-i18n="std2Title">2. Исламские финансы (AAOIFI):</strong> <span data-i18n="std2Text">Шариатские стандарты №8 (Мурабаха), №9 (Иджара), №12/13 (Мушарака/Мудараба) и №3 (Запрет ростовщических пеней).</span></p>
+                <p><strong data-i18n="std3Title">3. Халяль стандарты питания (OIC/SMIIC 1:2019):</strong> <span data-i18n="std3Text">Классификатор 500+ E-кодов и пищевых добавок по регламенту Организации исламского сотрудничества (SMIIC) и ДУМК.</span></p>
+                <p><strong data-i18n="std4Title">4. ИИ-безопасность (ISO/IEC 42001 & 27001):</strong> <span data-i18n="std4Text">0% галлюцинаций. Каждое решение и вердикт детерминированно привязаны к каноническому Ground Truth.</span></p>
             </div>
         </div>
     </div>
@@ -430,23 +459,23 @@
     <div class="modal-backdrop" id="modalFeedback" style="display: none;">
         <div class="modal-window">
             <div class="modal-header">
-                <h3>💬 Обратная связь & Предложения</h3>
+                <h3 data-i18n="feedbackModalTitle">💬 Обратная связь & Предложения</h3>
                 <button class="modal-close" id="btnCloseFeedback">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Ваше имя:</label>
-                    <input type="text" id="feedbackName" class="custom-input" placeholder="Имя или организация">
+                    <label class="form-label" data-i18n="lblFeedbackName">Ваше имя:</label>
+                    <input type="text" id="feedbackName" class="custom-input" placeholder="Имя или организация" data-i18n-placeholder="phFeedbackName">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Email или телефон для связи:</label>
-                    <input type="text" id="feedbackContact" class="custom-input" placeholder="+7... или email">
+                    <label class="form-label" data-i18n="lblFeedbackContact">Email или телефон для связи:</label>
+                    <input type="text" id="feedbackContact" class="custom-input" placeholder="+7... или email" data-i18n-placeholder="phFeedbackContact">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Ваше сообщение или предложение:</label>
-                    <textarea id="feedbackMessage" rows="4" class="custom-textarea" placeholder="Напишите ваш отзыв..."></textarea>
+                    <label class="form-label" data-i18n="lblFeedbackMessage">Ваше сообщение или предложение:</label>
+                    <textarea id="feedbackMessage" rows="4" class="custom-textarea" placeholder="Напишите ваш отзыв..." data-i18n-placeholder="phFeedbackMessage"></textarea>
                 </div>
-                <button class="btn btn-primary btn-large" id="btnSubmitFeedback">Отправить отзыв</button>
+                <button class="btn btn-primary btn-large" id="btnSubmitFeedback" data-i18n="btnSubmitFeedback">Отправить отзыв</button>
                 <div id="feedbackStatusText" style="margin-top: 10px; font-weight: 600;"></div>
             </div>
         </div>
@@ -456,18 +485,18 @@
     <div class="modal-backdrop" id="modalGuide" style="display: none;">
         <div class="modal-window">
             <div class="modal-header">
-                <h3>📖 О проекте Al-Furqan AI</h3>
+                <h3 data-i18n="guideModalTitle">📖 О проекте Al-Furqan AI</h3>
                 <button class="modal-close" id="btnCloseGuide">&times;</button>
             </div>
             <div class="modal-body">
-                <p><strong>Al-Furqan AI (Различение истины от лжи)</strong> — это детерминированная система, созданная для сохранения абсолютной точности Священного Корана в эпоху генеративного искусственного интеллекта.</p>
-                <p>Современные большие языковые модели (ChatGPT, Claude, Gemini) часто страдают «галлюцинациями», путая номера аятов, слова или смысл. Al-Furqan AI выступает в качестве математически точного и непогрешимого фильтра первого уровня (L0 Ground Truth), гарантируя 100% каноничность.</p>
-                <p>Дополнительно система предоставляет удобное чтение Корана, аудио-плеер признанных чтецов, проверку состава продуктов на Халяль, расчет времени намаза и Закята.</p>
+                <p data-i18n-html="guideP1"><strong>Al-Furqan AI (Различение истины от лжи)</strong> — это детерминированная система, созданная для сохранения абсолютной точности Священного Корана в эпоху генеративного искусственного интеллекта.</p>
+                <p data-i18n-html="guideP2">Современные большие языковые модели (ChatGPT, Claude, Gemini) часто страдают «галлюцинациями», путая номера аятов, слова или смысл. Al-Furqan AI выступает в качестве математически точного и непогрешимого фильтра первого уровня (L0 Ground Truth), гарантируя 100% каноничность.</p>
+                <p data-i18n-html="guideP3">Дополнительно система предоставляет удобное чтение Корана, аудио-плеер признанных чтецов, проверку состава продуктов на Халяль, расчет времени намаза и Закята.</p>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="app.js?v=13.0"></script>
+    <script src="app.js?v=14.0"></script>
 </body>
 </html>
