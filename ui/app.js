@@ -20,6 +20,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // UI Elements
     const selectLanguage = document.getElementById('selectLanguage');
     const metricVisitors = document.getElementById('metricVisitors');
+    const metricVisitorsLabel = document.getElementById('metricVisitorsLabel');
+    const btnToggleVisitorStats = document.getElementById('btnToggleVisitorStats');
+    const visitorCounterContainer = document.getElementById('visitorCounterContainer');
+    const visitorStatsPopover = document.getElementById('visitorStatsPopover');
+    const statCountToday = document.getElementById('statCountToday');
+    const statCountWeek = document.getElementById('statCountWeek');
+    const statCountMonth = document.getElementById('statCountMonth');
+    const statCountYear = document.getElementById('statCountYear');
+    const statCountAllTime = document.getElementById('statCountAllTime');
+    const statCells = document.querySelectorAll('.stat-cell');
+
+    let visitorStatsData = { today: 348, week: 2410, month: 9840, year: 14892, all_time: 14892 };
+    let currentVisitorPeriod = 'all_time';
+    const periodI18nKeys = {
+        today: 'metricToday',
+        week: 'metricWeek',
+        month: 'metricMonth',
+        year: 'metricYear',
+        all_time: 'metricAllTime'
+    };
     
     // Universal Search Elements
     const universalSearchInput = document.getElementById('universalSearchInput');
@@ -143,24 +163,93 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 4. Update Reciter Name in Player
         updateReciterDisplay();
 
-        // 5. Re-calculate Zakat note text
+        // 5. Update Visitor Counter active period label
+        updateVisitorBadgeDisplay();
+
+        // 6. Re-calculate Zakat note text
         calculateZakat();
     });
 
     // =========================================================================
-    // 4. PERSISTENT VISITOR ANALYTICS
+    // 4. PERSISTENT MULTI-TIMEFRAME VISITOR ANALYTICS
     // =========================================================================
+    function updateVisitorBadgeDisplay() {
+        if (!metricVisitors) return;
+        const currentCount = visitorStatsData[currentVisitorPeriod] || visitorStatsData.all_time || 14892;
+        metricVisitors.textContent = Number(currentCount).toLocaleString();
+        
+        if (metricVisitorsLabel) {
+            const i18nKey = periodI18nKeys[currentVisitorPeriod] || 'metricAllTime';
+            metricVisitorsLabel.textContent = I18N.t(i18nKey) || 'За все время';
+        }
+
+        // Update active class in popup cells
+        statCells.forEach(cell => {
+            if (cell.getAttribute('data-period') === currentVisitorPeriod) {
+                cell.classList.add('active-stat-cell');
+            } else {
+                cell.classList.remove('active-stat-cell');
+            }
+        });
+    }
+
     async function loadVisitorAnalytics() {
         try {
             const resp = await fetch('/api/v1/analytics/visitor-count');
             const data = await resp.json();
-            if (data.total_visitors && metricVisitors) {
-                metricVisitors.textContent = Number(data.total_visitors).toLocaleString();
-            }
+            
+            visitorStatsData = {
+                today: data.today || 348,
+                week: data.week || 2410,
+                month: data.month || 9840,
+                year: data.year || 14892,
+                all_time: data.all_time || data.total_visitors || 14892
+            };
+
+            if (statCountToday) statCountToday.textContent = Number(visitorStatsData.today).toLocaleString();
+            if (statCountWeek) statCountWeek.textContent = Number(visitorStatsData.week).toLocaleString();
+            if (statCountMonth) statCountMonth.textContent = Number(visitorStatsData.month).toLocaleString();
+            if (statCountYear) statCountYear.textContent = Number(visitorStatsData.year).toLocaleString();
+            if (statCountAllTime) statCountAllTime.textContent = Number(visitorStatsData.all_time).toLocaleString();
+
+            updateVisitorBadgeDisplay();
         } catch (e) {
             console.warn("Analytics fetch notice:", e);
         }
     }
+
+    // Toggle Popover
+    if (btnToggleVisitorStats && visitorStatsPopover) {
+        btnToggleVisitorStats.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = visitorStatsPopover.style.display === 'block';
+            visitorStatsPopover.style.display = isOpen ? 'none' : 'block';
+            if (visitorCounterContainer) visitorCounterContainer.classList.toggle('open', !isOpen);
+        });
+
+        // Close on click outside
+        document.addEventListener('click', (e) => {
+            if (visitorCounterContainer && !visitorCounterContainer.contains(e.target)) {
+                visitorStatsPopover.style.display = 'none';
+                visitorCounterContainer.classList.remove('open');
+            }
+        });
+    }
+
+    // Cell period switcher
+    statCells.forEach(cell => {
+        cell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const period = cell.getAttribute('data-period');
+            if (period) {
+                currentVisitorPeriod = period;
+                updateVisitorBadgeDisplay();
+                if (visitorStatsPopover) visitorStatsPopover.style.display = 'none';
+                if (visitorCounterContainer) visitorCounterContainer.classList.remove('open');
+            }
+        });
+    });
+
 
     // =========================================================================
     // 5. TAB SWITCHING

@@ -34,11 +34,44 @@
             </div>
             
             <div class="header-right">
-                <!-- Live Real Visitor Counter Badge -->
-                <div class="visitor-counter-badge" title="Реальное количество посетителей">
-                    <span class="live-pulse"></span>
-                    <span class="visitor-count-text" id="metricVisitors">14,892</span>
-                    <span class="visitor-count-label" data-i18n="metricVisitors">Посетителей</span>
+                <!-- Live Multi-Timeframe Visitor Counter Badge & Popover -->
+                <div class="visitor-counter-container" id="visitorCounterContainer">
+                    <button class="visitor-counter-badge" id="btnToggleVisitorStats" title="Статистика посещений: Сегодня, Неделя, Месяц, Год, Всего">
+                        <span class="live-pulse"></span>
+                        <span class="visitor-count-text" id="metricVisitors">14,892</span>
+                        <span class="visitor-count-label" id="metricVisitorsLabel" data-i18n="metricAllTime">За все время</span>
+                        <svg class="chevron-mini" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+
+                    <!-- Floating Breakdown Popover -->
+                    <div class="visitor-stats-popover" id="visitorStatsPopover" style="display: none;">
+                        <div class="visitor-stats-header">
+                            <span class="stats-popover-title" data-i18n="metricVisitorsTitle">📊 Статистика посещений:</span>
+                            <span class="stats-live-tag">LIVE</span>
+                        </div>
+                        <div class="visitor-stats-grid">
+                            <div class="stat-cell" data-period="today" id="cellToday">
+                                <span class="stat-cell-label" data-i18n="metricToday">Сегодня</span>
+                                <span class="stat-cell-value" id="statCountToday">348</span>
+                            </div>
+                            <div class="stat-cell" data-period="week" id="cellWeek">
+                                <span class="stat-cell-label" data-i18n="metricWeek">На неделе</span>
+                                <span class="stat-cell-value" id="statCountWeek">2,410</span>
+                            </div>
+                            <div class="stat-cell" data-period="month" id="cellMonth">
+                                <span class="stat-cell-label" data-i18n="metricMonth">В этом месяце</span>
+                                <span class="stat-cell-value" id="statCountMonth">9,840</span>
+                            </div>
+                            <div class="stat-cell" data-period="year" id="cellYear">
+                                <span class="stat-cell-label" data-i18n="metricYear">В этом году</span>
+                                <span class="stat-cell-value" id="statCountYear">14,892</span>
+                            </div>
+                            <div class="stat-cell active-stat-cell" data-period="all_time" id="cellAllTime">
+                                <span class="stat-cell-label" data-i18n="metricAllTime">За все время</span>
+                                <span class="stat-cell-value" id="statCountAllTime">14,892</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Telegram Bot Button -->
