@@ -320,26 +320,82 @@ class QuranEngine:
                     })
         return results
 
-    def search_text(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
-        """Full-text search over canonical Arabic text (normalized and case-insensitive)."""
-        norm_query = normalize_arabic(query)
-        if not norm_query:
+    def search_text(self, query: str, lang: str = "all", limit: int = 30) -> List[Dict[str, Any]]:
+        """
+        Universal Multi-Language Full-Text Search across:
+        1. Canonical Arabic text (normalized)
+        2. Latin Transliteration
+        3. 7-Language Translations (kk, ru, en, ar, tr, uz, id)
+        4. Coordinate queries (e.g. '2:255', '112:1')
+        """
+        if not query or not query.strip():
             return []
 
+        q_clean = query.strip()
+        q_lower = q_clean.lower()
+        norm_arabic_q = normalize_arabic(q_clean)
+        
+        # Check coordinate pattern (e.g. 2:255 or 2 255)
+        coord_match = re.match(r'^(\d{1,3})[:\s\-](\d{1,3})$', q_clean)
+        if coord_match:
+            s_num = int(coord_match.group(1))
+            a_num = int(coord_match.group(2))
+            if 1 <= s_num <= 114:
+                ayah_data = self.get_ayah(s_num, a_num)
+                if ayah_data:
+                    return [{
+                        "id": f"{s_num}:{a_num}",
+                        "sura": s_num,
+                        "ayah": a_num,
+                        "surah_name_ru": self.SURAH_NAMES_RU[s_num - 1],
+                        "text_uthmani": ayah_data.get("text_uthmani", ayah_data.get("text")),
+                        "transliteration": ayah_data.get("transliteration", ""),
+                        "translations": ayah_data.get("translations", {}),
+                        "match_type": "exact_coordinate"
+                    }]
+
         results = []
-        for ayah_id, norm_text in self.normalized_ayahs.items():
-            if norm_query in norm_text:
-                ayah_data = self.ayahs[ayah_id]
+        for ayah_id, ayah_data in self.ayahs.items():
+            sura = ayah_data['sura']
+            ayah = ayah_data['ayah']
+            ar_text = ayah_data.get("text_uthmani") or ayah_data.get("text", "")
+            norm_ar = self.normalized_ayahs.get(ayah_id, "")
+            translit = ayah_data.get("transliteration", "")
+            translations = ayah_data.get("translations", {})
+            
+            matched = False
+            match_source = ""
+            
+            # 1. Match Arabic
+            if norm_arabic_q and norm_arabic_q in norm_ar:
+                matched = True
+                match_source = "arabic"
+            # 2. Match Transliteration
+            elif q_lower in translit.lower():
+                matched = True
+                match_source = "transliteration"
+            # 3. Match Translations
+            else:
+                for t_lang, t_text in translations.items():
+                    if t_text and q_lower in t_text.lower():
+                        matched = True
+                        match_source = f"translation_{t_lang}"
+                        break
+
+            if matched:
                 results.append({
                     "id": ayah_id,
-                    "sura": ayah_data['sura'],
-                    "ayah": ayah_data['ayah'],
-                    "surah_name": self.SURAH_NAMES_RU[ayah_data['sura'] - 1],
-                    "text": ayah_data['text'],
-                    "tokens_count": len(ayah_data['tokens'])
+                    "sura": sura,
+                    "ayah": ayah,
+                    "surah_name_ru": self.SURAH_NAMES_RU[sura - 1],
+                    "text_uthmani": ar_text,
+                    "transliteration": translit,
+                    "translations": translations,
+                    "match_type": match_source
                 })
                 if len(results) >= limit:
                     break
+
         return results
 
     def get_stats(self) -> Dict[str, Any]:

@@ -1,17 +1,22 @@
 """
-Al-Furqan AI - Web API & Playground Server v2.0 (Hardened & Resilient)
-FastAPI server with enterprise-grade defensive security:
-- Security headers middleware (X-Content-Type-Options, X-Frame-Options, XSS, Referrer-Policy)
-- Strict Pydantic max_length bounds on all endpoints (Anti-OOM / DoS prevention)
+Al-Furqan AI - Web API & Playground Server v2.0 (Hardened Production)
+FastAPI server with enterprise defensive security & 100% real-world data pipelines:
+- Persistent disk-based analytics engine (analytics.json)
+- Universal multi-language full-text Quran search (6,236 Ayahs)
+- Real image OCR processing (Pillow + Tesseract) & Halal food compliance
+- Real PDF document parser (pypdf) & AAOIFI Shariah audit
+- Astronomical Namaz prayer times & Kaaba Qibla bearing
 - Live cryptographic SHA-256 integrity verification
-- Memory-bounded feedback queue and safe sanitization
+- Keep-Alive / health endpoints for 24/7 Render deployment
 """
 
 import os
 import sys
 import re
+import json
 import base64
 import hashlib
+import datetime
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
@@ -52,6 +57,38 @@ guard = QuranGuard(engine)
 ahkam = AhkamExtractor(engine)
 print(f"Engine Ready! Loaded {len(engine.ayahs)} Ayahs, {engine.total_tokens} tokens, {len(engine.all_roots)} roots.")
 
+# =========================================================================
+# PERSISTENT ANALYTICS DATABASE (analytics.json)
+# =========================================================================
+ANALYTICS_FILE = os.path.join(os.path.dirname(__file__), "analytics.json")
+
+def load_analytics() -> Dict[str, Any]:
+    default_stats = {
+        "total_visits": 1,
+        "unique_ips": [],
+        "total_queries_verified": 0,
+        "total_ayahs_read": 0,
+        "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    }
+    if os.path.exists(ANALYTICS_FILE):
+        try:
+            with open(ANALYTICS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return default_stats
+    return default_stats
+
+def save_analytics(data: Dict[str, Any]):
+    try:
+        data["last_updated"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        with open(ANALYTICS_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[Analytics] Save error: {e}")
+
+ANALYTICS_DATA = load_analytics()
+
 app = FastAPI(
     title="Al-Furqan AI — L0 Ground Truth & Anti-Hallucination API",
     description="Deterministic anti-hallucination guardrail, 1,651 roots analyzer, Halal screening, and AAOIFI Shariah compliance.",
@@ -78,13 +115,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 3. Live Analytics & Visitor Counter Store
-VISITOR_STATS = {
-    "total_visits": 14892,
-    "unique_ips": set()
-}
-
-# 4. Request Models with Defensive Payload Boundaries
+# 3. Request Models with Defensive Payload Boundaries
 class VerifyRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=100000, description="Input text to verify against Quranic ground truth")
 
@@ -158,6 +189,18 @@ TAFSIR_REGISTRY = {
 # V2.0 REST API ENDPOINTS
 # =========================================================================
 
+@app.get("/api/v1/health")
+async def health_check():
+    """Liveness & health endpoint for Keep-Alive and Render monitoring."""
+    return {
+        "status": "healthy",
+        "service": "al-furqan-ai",
+        "version": "2.0.0",
+        "total_ayahs": len(engine.ayahs),
+        "total_roots": len(engine.all_roots),
+        "timestamp": datetime.datetime.utcnow().isoformat()
+    }
+
 @app.get("/api/stats")
 @app.get("/api/v1/stats")
 async def get_stats():
@@ -178,13 +221,69 @@ async def verify_integrity():
         "timestamp_verified": True
     }
 
+@app.get("/api/v1/analytics/visitor-count")
+async def get_visitor_count(request: Request):
+    """Tracks and returns real persistent visitor metrics."""
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    # Salted SHA-256 for privacy
+    ip_hash = hashlib.sha256(f"alfurqan_salt_{client_ip}".encode()).hexdigest()[:16]
+    
+    unique_set = set(ANALYTICS_DATA.get("unique_ips", []))
+    if ip_hash not in unique_set:
+        unique_set.add(ip_hash)
+        ANALYTICS_DATA["unique_ips"] = list(unique_set)
+        ANALYTICS_DATA["total_visits"] = ANALYTICS_DATA.get("total_visits", 0) + 1
+        save_analytics(ANALYTICS_DATA)
+        
+    return {
+        "total_visitors": ANALYTICS_DATA.get("total_visits", 1),
+        "unique_visitors": len(unique_set),
+        "total_queries_verified": ANALYTICS_DATA.get("total_queries_verified", 0),
+        "status": "LIVE_PERSISTENT"
+    }
+
+@app.get("/api/v1/quran/surahs")
+async def get_surahs_list():
+    """Returns metadata for all 114 Surahs."""
+    surahs_list = []
+    for s_num in range(1, 115):
+        surahs_list.append({
+            "number": s_num,
+            "ayah_count": engine.CANONICAL_AYAH_COUNTS[s_num - 1],
+            "name_ar": engine.SURAH_NAMES.get("ar", [])[s_num - 1] if len(engine.SURAH_NAMES.get("ar", [])) >= s_num else f"سورة {s_num}",
+            "name_ru": engine.SURAH_NAMES.get("ru", [])[s_num - 1] if len(engine.SURAH_NAMES.get("ru", [])) >= s_num else f"Сура {s_num}",
+            "name_kk": engine.SURAH_NAMES.get("kk", [])[s_num - 1] if len(engine.SURAH_NAMES.get("kk", [])) >= s_num else f"Сүре {s_num}",
+            "name_en": engine.SURAH_NAMES.get("en", [])[s_num - 1] if len(engine.SURAH_NAMES.get("en", [])) >= s_num else f"Surah {s_num}"
+        })
+    return {"total_surahs": 114, "surahs": surahs_list}
+
+@app.get("/api/v1/quran/search")
+async def quran_search(q: str, lang: str = "all", limit: int = 30):
+    """Universal full-text search across Arabic text and 7 language translations."""
+    clean_q = q.strip()[:100]
+    if not clean_q:
+        return {"query": "", "total": 0, "results": []}
+    
+    results = engine.search_text(clean_q, lang=lang, limit=limit)
+    return {
+        "query": clean_q,
+        "total": len(results),
+        "results": results
+    }
+
 @app.post("/api/verify")
 @app.post("/api/v1/guard/validate")
 async def verify_text(req: VerifyRequest):
     """Full Anti-Hallucination verification of input text."""
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
+    
     result = guard.verify_full_text(req.text)
+    
+    # Increment query stats
+    ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
+    save_analytics(ANALYTICS_DATA)
+    
     return result
 
 @app.post("/api/verify/root")
@@ -201,7 +300,13 @@ async def screen_halal(req: HalalScreenRequest):
     input_text = (req.text or req.query or "").strip()
     if not input_text:
         return {"total_matches": 0, "matches": []}
+    
     matches = HalalKnowledgeBase.match_input(input_text)
+    
+    # Increment query stats
+    ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
+    save_analytics(ANALYTICS_DATA)
+    
     return {"query": input_text, "total_matches": len(matches), "matches": matches}
 
 @app.post("/api/v1/contracts/audit-aaoifi")
@@ -249,52 +354,52 @@ async def get_ayah(sura: int, ayah: int):
         "tafsir": tafsir_info
     }
 
-@app.get("/api/surah/{sura}")
 @app.get("/api/v1/surah/{sura}")
 async def get_surah_full(sura: int):
-    """Returns all Ayahs for the specified Surah with Uthmani text, transliteration, all translations, and audio URLs."""
+    """Retrieves all Ayahs of a Surah with translations, transliterations, and audio."""
     if not (1 <= sura <= 114):
         raise HTTPException(status_code=400, detail="Surah number must be between 1 and 114")
     
-    max_ayah = engine.CANONICAL_AYAH_COUNTS[sura - 1]
+    count = engine.CANONICAL_AYAH_COUNTS[sura - 1]
     ayahs_list = []
     
-    surah_name_ru = engine.SURAH_NAMES.get("ru", [])[sura - 1] if 1 <= sura <= 114 else ""
-    surah_name_kk = engine.SURAH_NAMES.get("kk", [])[sura - 1] if 1 <= sura <= 114 else ""
-    
     s_pad = f"{sura:03d}"
-    
-    for a in range(1, max_ayah + 1):
+    for a in range(1, count + 1):
         data = engine.get_ayah(sura, a)
         if data:
             a_pad = f"{a:03d}"
-            audio_urls = {
-                "alafasy": f"{RECITERS_CDN['alafasy']}/{s_pad}{a_pad}.mp3",
-                "husary": f"{RECITERS_CDN['husary']}/{s_pad}{a_pad}.mp3",
-                "abdulbasit": f"{RECITERS_CDN['abdulbasit']}/{s_pad}{a_pad}.mp3"
-            }
             ayahs_list.append({
-                "id": data.get("id"),
-                "sura": sura,
                 "ayah": a,
                 "text_uthmani": data.get("text_uthmani") or data.get("text"),
                 "transliteration": data.get("transliteration", ""),
                 "translations": data.get("translations", {}),
-                "audio_urls": audio_urls
+                "tokens": data.get("tokens", []),
+                "audio_urls": {
+                    "alafasy": f"{RECITERS_CDN['alafasy']}/{s_pad}{a_pad}.mp3",
+                    "husary": f"{RECITERS_CDN['husary']}/{s_pad}{a_pad}.mp3",
+                    "abdulbasit": f"{RECITERS_CDN['abdulbasit']}/{s_pad}{a_pad}.mp3"
+                }
             })
             
+    surah_name_ru = engine.SURAH_NAMES.get("ru", [])[sura - 1] if 1 <= sura <= 114 else ""
+    surah_name_kk = engine.SURAH_NAMES.get("kk", [])[sura - 1] if 1 <= sura <= 114 else ""
+    surah_name_ar = engine.SURAH_NAMES.get("ar", [])[sura - 1] if 1 <= sura <= 114 else ""
+    surah_name_en = engine.SURAH_NAMES.get("en", [])[sura - 1] if 1 <= sura <= 114 else ""
+
     return {
         "sura": sura,
+        "ayah_count": count,
         "surah_name_ru": surah_name_ru,
         "surah_name_kk": surah_name_kk,
-        "total_ayahs": max_ayah,
+        "surah_name_ar": surah_name_ar,
+        "surah_name_en": surah_name_en,
         "ayahs": ayahs_list
     }
 
-@app.get("/api/search/root/{root}")
-@app.get("/api/v1/roots/{root}")
-async def search_root(root: str):
-    """Searches all Ayahs containing the specified 3/4-letter root."""
+@app.get("/api/root/{root}")
+@app.get("/api/v1/root/{root}")
+async def get_root(root: str):
+    """Searches for verses containing the specified morphological root."""
     root_clean = root.strip()[:20]
     results = engine.search_by_root(root_clean)
     return {"root": root_clean, "total": len(results), "results": results}
@@ -320,67 +425,65 @@ async def get_ahkam(category: str):
     cat_clean = category.strip()[:30]
     return ahkam.get_category_ayahs(cat_clean)
 
+# =========================================================================
+# MULTI-MODAL OCR, PDF & PRAYER TIMES ENDPOINTS (100% REAL)
+# =========================================================================
+
+@app.post("/api/v1/images/audit-ocr")
 @app.post("/api/v1/halal/scan-image")
 async def scan_image_ocr(req: ImageScanRequest):
     """
-    Extracts text / E-codes from food packaging image and runs Halal screening safely.
+    Real OCR image processing using Pillow & Tesseract.
+    Extracts text, numbers, and E-codes and runs real Shariah screening.
     """
     try:
-        sample_text = req.image_base64[:1000]
-        matches = HalalKnowledgeBase.match_input(sample_text)
+        img_data = req.image_base64
+        if "," in img_data:
+            img_data = img_data.split(",")[1]
+        img_bytes = base64.b64decode(img_data)
+        
+        extracted_text = ImageOCRProcessor.extract_text(img_bytes)
+        matches = HalalKnowledgeBase.match_input(extracted_text)
+        guard_report = guard.verify_full_text(extracted_text[:20000])
+        
+        ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
+        save_analytics(ANALYTICS_DATA)
+        
         return {
             "status": "success",
-            "extracted_text_preview": "Изображение успешно обработано OCR-модулем.",
+            "extracted_text": extracted_text[:1200],
             "total_matches": len(matches),
-            "matches": matches
+            "matches": matches,
+            "guard_report": guard_report
         }
     except Exception as e:
-        return {"status": "error", "message": str(e), "matches": []}
+        return {
+            "status": "error",
+            "message": f"Ошибка обработки изображения: {str(e)}",
+            "extracted_text": "",
+            "matches": []
+        }
 
-@app.post("/api/v1/feedback")
-async def submit_feedback(req: FeedbackRequest):
-    """Submits user/scholar feedback with memory bounds protection."""
-    if not req.message or not req.message.strip():
-        raise HTTPException(status_code=400, detail="Message cannot be empty")
-    
-    global FEEDBACK_STORE
-    if len(FEEDBACK_STORE) >= MAX_FEEDBACK_ITEMS:
-        FEEDBACK_STORE.pop(0) # Evict oldest to protect RAM
+@app.post("/api/v1/documents/audit-pdf")
+async def audit_pdf_document(req: PDFScanRequest):
+    """Audits PDF contract or text for Quran quotes and AAOIFI compliance."""
+    try:
+        pdf_data = req.pdf_base64
+        if "," in pdf_data:
+            pdf_data = pdf_data.split(",")[1]
+        pdf_bytes = base64.b64decode(pdf_data)
         
-    entry = {
-        "id": len(FEEDBACK_STORE) + 1,
-        "name": req.name.strip()[:100],
-        "contact": req.email_or_phone.strip()[:150],
-        "category": req.category[:50],
-        "message": req.message.strip()[:10000]
-    }
-    FEEDBACK_STORE.append(entry)
-    print(f"[Feedback Received] ID: {entry['id']} | Category: {entry['category']}")
-    
-    return {
-        "status": "success",
-        "feedback_id": entry["id"],
-        "message_kk": "Пікіріңіз бен хабарламаңыз сәтті қабылданды! Рахмет.",
-        "message_ru": "Ваш отзыв и обращение успешно приняты! Спасибо.",
-        "message_en": "Your feedback has been successfully received! Thank you."
-    }
-
-# =========================================================================
-# MULTI-MODAL & REAL-TIME ANALYTICS ENDPOINTS
-# =========================================================================
-
-@app.get("/api/v1/analytics/visitor-count")
-async def get_visitor_count(request: Request):
-    """Tracks and returns live visitor metrics."""
-    client_ip = request.client.host if request.client else "127.0.0.1"
-    if client_ip not in VISITOR_STATS["unique_ips"]:
-        VISITOR_STATS["unique_ips"].add(client_ip)
-        VISITOR_STATS["total_visits"] += 1
-    return {
-        "total_visitors": VISITOR_STATS["total_visits"],
-        "unique_visitors": len(VISITOR_STATS["unique_ips"]) + 42,
-        "status": "LIVE_VERIFIED"
-    }
+        audit_result = PDFDocumentProcessor.audit_pdf(pdf_bytes, guard, HalalKnowledgeBase)
+        
+        ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
+        save_analytics(ANALYTICS_DATA)
+        
+        return {
+            "status": "success",
+            "audit": audit_result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"PDF Processing error: {str(e)}")
 
 @app.get("/api/v1/namaz/times")
 async def get_namaz_times(lat: float = 51.1694, lon: float = 71.4491):
@@ -414,18 +517,33 @@ async def search_theme(q: str):
     results = SemanticThemeEngine.find_ayahs_by_topic(clean_q, engine)
     return {"query": clean_q, "total_found": len(results), "results": results}
 
-@app.post("/api/v1/documents/audit-pdf")
-async def audit_pdf_document(req: PDFScanRequest):
-    """Audits PDF contract or text for Quran quotes and AAOIFI compliance."""
-    try:
-        pdf_bytes = base64.b64decode(req.pdf_base64)
-        audit_result = PDFDocumentProcessor.audit_pdf(pdf_bytes, guard, HalalKnowledgeBase)
-        return {
-            "status": "success",
-            "audit": audit_result
-        }
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"PDF Processing error: {str(e)}")
+@app.post("/api/v1/feedback")
+async def submit_feedback(req: FeedbackRequest):
+    """Submits user feedback with memory bounds protection."""
+    if not req.message or not req.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    
+    global FEEDBACK_STORE
+    if len(FEEDBACK_STORE) >= MAX_FEEDBACK_ITEMS:
+        FEEDBACK_STORE.pop(0)
+        
+    entry = {
+        "id": len(FEEDBACK_STORE) + 1,
+        "name": req.name.strip()[:100],
+        "contact": req.email_or_phone.strip()[:150],
+        "category": req.category[:50],
+        "message": req.message.strip()[:10000],
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+    }
+    FEEDBACK_STORE.append(entry)
+    
+    return {
+        "status": "success",
+        "feedback_id": entry["id"],
+        "message_kk": "Пікіріңіз бен хабарламаңыз сәтті қабылданды! Рахмет.",
+        "message_ru": "Ваш отзыв и обращение успешно приняты! Спасибо.",
+        "message_en": "Your feedback has been successfully received! Thank you."
+    }
 
 # Mount static UI
 app.mount("/", StaticFiles(directory=UI_DIR, html=True), name="ui")

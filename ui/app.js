@@ -1,1416 +1,837 @@
+/**
+ * Al-Furqan AI - Modern Intuitive Frontend Controller v13.0
+ * 100% Real Backend Data Pipelines (Zero Mocks / Full Universal Search / Real OCR & PDF)
+ */
 
-// =========================================================================
-// Global Core Utilities (HTML Sanitization, Surah Naming, Multi-Translations)
-// =========================================================================
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-function getSurahName(suraNum) {
-    if (!suraNum || suraNum < 1 || suraNum > 114) return `Сура ${suraNum}`;
-    const lang = (window.I18N && window.I18N.currentLang) || 'ru';
-    const dict = (window.I18N && window.I18N.locales && (window.I18N.locales[lang] || window.I18N.locales.ru || window.I18N.locales.kk)) || {};
-    if (dict.surahNames && dict.surahNames[suraNum - 1]) {
-        return dict.surahNames[suraNum - 1];
-    }
-    return `Сура ${suraNum}`;
-}
-
-function getTranslationHtml(translations, sura, ayah) {
-    if (!translations) return '';
-    const lang = (window.I18N && window.I18N.currentLang) || 'ru';
-    let transText = translations.ru || translations.kk || translations.en || '';
-    let label = (window.I18N && window.I18N.t && window.I18N.t('lblTranslation')) || 'Аудармасы / Перевод:';
-
-    if (lang === 'kk' && translations.kk) {
-        transText = translations.kk;
-        label = "Мағыналық аудармасы (Халифа Алтай):";
-    } else if (lang === 'ru' && translations.ru) {
-        transText = translations.ru;
-        label = "Смысловой перевод (Эльмир Кулиев):";
-    } else if (lang === 'en' && translations.en) {
-        transText = translations.en;
-        label = "Meaning Translation (Saheeh International):";
-    } else if (lang === 'tr' && translations.tr) {
-        transText = translations.tr;
-        label = "Meal (Diyanet İşleri):";
-    } else if (lang === 'id' && translations.id) {
-        transText = translations.id;
-        label = "Terjemahan (Kemenag RI):";
-    } else if (lang === 'uz' && translations.uz) {
-        transText = translations.uz;
-        label = "Ma'nolari tarjimasi (Shayx Muhammad Sodiq):";
-    } else if (lang === 'ar') {
-        return '';
-    }
-
-    if (!transText) return '';
-    return `
-        <div class="translation-badge">
-            <strong>${label}</strong>
-            <span>${escapeHtml(transText)}</span>
-        </div>
-    `;
-}
-
-/* ==========================================================================
-   Al-Furqan AI - Frontend Interactive Application Logic v2.0
-   Multi-Reciter Audio • Halal OCR Photo Scanner • AAOIFI Shariah Compliance
-   Comparative Tafsir & Multi-Translations • AST & 1,651 Roots Analyzer
-   ========================================================================== */
-
-// =========================================================================
-// Advanced Continuous Quran Audio Player Engine (Auto-Play Next, Full Surah)
-// =========================================================================
-const CANONICAL_AYAH_COUNTS = [
-    7, 286, 200, 176, 120, 165, 206, 75, 129, 109,
-    123, 111, 43, 52, 99, 128, 111, 110, 98, 135,
-    112, 78, 118, 64, 77, 227, 93, 88, 69, 60,
-    34, 30, 73, 54, 45, 83, 182, 88, 75, 85,
-    54, 53, 89, 59, 37, 35, 38, 29, 18, 45,
-    60, 49, 62, 55, 78, 96, 29, 22, 24, 13,
-    14, 11, 11, 18, 12, 12, 30, 52, 52, 44,
-    28, 28, 20, 56, 40, 31, 50, 40, 46, 42,
-    29, 19, 36, 25, 22, 17, 19, 26, 30, 20,
-    15, 21, 11, 8, 8, 19, 5, 8, 8, 11,
-    11, 8, 3, 9, 5, 4, 7, 3, 6, 3,
-    5, 4, 5, 6
-];
-
-const RECITERS_INFO = {
-    'alafasy': { name: 'Мишари Рашид аль-Афаси', cdn: 'https://everyayah.com/data/Alafasy_128kbps' },
-    'husary': { name: 'Махмуд Халиль аль-Хусари', cdn: 'https://everyayah.com/data/Husary_128kbps' },
-    'abdulbasit': { name: 'Абдульбасит Абдуссамад', cdn: 'https://everyayah.com/data/Abdul_Basit_Murattal_192kbps' }
-};
-
-class QuranAudioEngine {
-    constructor() {
-        this.player = document.getElementById('globalAudioPlayer') || new Audio();
-        this.currentSura = 1;
-        this.currentAyah = 1;
-        this.isPlaying = false;
-        this.continuousMode = true;
-        this.playbackRate = 1.0;
-        this.activeInlineBtn = null;
-        
-        this.initEvents();
-    }
-
-    initEvents() {
-        this.player.addEventListener('timeupdate', () => this.onTimeUpdate());
-        this.player.addEventListener('ended', () => this.onEnded());
-        this.player.addEventListener('play', () => this.onPlayStateChange(true));
-        this.player.addEventListener('pause', () => this.onPlayStateChange(false));
-        this.player.addEventListener('error', (e) => {
-            console.warn("Audio playback stream error:", e);
-        });
-    }
-
-    formatTime(sec) {
-        if (!sec || isNaN(sec)) return '00:00';
-        const m = Math.floor(sec / 60);
-        const s = Math.floor(sec % 60);
-        return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    }
-
-    onTimeUpdate() {
-        const curEl = document.getElementById('playerCurrentTime');
-        const durEl = document.getElementById('playerDuration');
-        if (curEl) curEl.textContent = this.formatTime(this.player.currentTime);
-        if (durEl && this.player.duration) durEl.textContent = this.formatTime(this.player.duration);
-    }
-
-    onPlayStateChange(playing) {
-        this.isPlaying = playing;
-        const iconPlay = document.getElementById('iconPlayerPlay');
-        const iconPause = document.getElementById('iconPlayerPause');
-        if (iconPlay && iconPause) {
-            iconPlay.style.display = playing ? 'none' : 'block';
-            iconPause.style.display = playing ? 'block' : 'none';
-        }
-        if (this.activeInlineBtn) {
-            if (playing) {
-                this.activeInlineBtn.classList.add('playing');
-                this.activeInlineBtn.innerHTML = I18N.t('lblStopAudio') || '⏸️ Тоқтату';
-            } else {
-                this.activeInlineBtn.classList.remove('playing');
-                this.activeInlineBtn.innerHTML = I18N.t('lblPlayAudio') || '▶️ Тыңдау';
-            }
-        }
-    }
-
-    onEnded() {
-        if (this.activeInlineBtn) {
-            this.activeInlineBtn.classList.remove('playing');
-            this.activeInlineBtn.innerHTML = I18N.t('lblPlayAudio') || '▶️ Тыңдау';
-        }
-
-        if (this.continuousMode) {
-            const maxAyahs = CANONICAL_AYAH_COUNTS[this.currentSura - 1] || 7;
-            if (this.currentAyah < maxAyahs) {
-                this.play(this.currentSura, this.currentAyah + 1);
-            } else if (this.currentSura < 114) {
-                this.play(this.currentSura + 1, 1);
-            } else {
-                this.isPlaying = false;
-            }
-        } else {
-            this.isPlaying = false;
-        }
-    }
-
-    play(sura, ayah, inlineBtn = null) {
-        this.currentSura = parseInt(sura) || 1;
-        this.currentAyah = parseInt(ayah) || 1;
-
-        if (this.activeInlineBtn && this.activeInlineBtn !== inlineBtn) {
-            this.activeInlineBtn.classList.remove('playing');
-            this.activeInlineBtn.innerHTML = I18N.t('lblPlayAudio') || '▶️ Тыңдау';
-        }
-        this.activeInlineBtn = inlineBtn;
-
-        const reciterKey = document.getElementById('selectReciter')?.value || 'alafasy';
-        const reciter = RECITERS_INFO[reciterKey] || RECITERS_INFO['alafasy'];
-
-        const sPad = String(this.currentSura).padStart(3, '0');
-        const aPad = String(this.currentAyah).padStart(3, '0');
-        const url = `${reciter.cdn}/${sPad}${aPad}.mp3`;
-
-        // Update Floating Player Bar
-        const bar = document.getElementById('globalPlayerBar');
-        if (bar) bar.style.display = 'block';
-
-        const titleEl = document.getElementById('playerCurrentAyahTitle');
-        const reciterEl = document.getElementById('playerCurrentReciter');
-        if (titleEl) {
-            const sName = (window.getSurahName ? window.getSurahName(this.currentSura) : `Сура ${this.currentSura}`);
-            titleEl.textContent = `${sName} (${this.currentSura}:${this.currentAyah})`;
-        }
-        if (reciterEl) reciterEl.textContent = reciter.name;
-
-        // Sync with Tab 4 inputs if present
-        const selectSura = document.getElementById('selectSura');
-        const inputAyahNum = document.getElementById('inputAyahNum');
-        if (selectSura && inputAyahNum) {
-            selectSura.value = this.currentSura;
-            inputAyahNum.value = this.currentAyah;
-            if (window.loadAyahAST) window.loadAyahAST();
-        }
-
-        this.player.src = url;
-        this.player.playbackRate = this.playbackRate;
-        this.player.play().catch(e => console.warn("Stream notice:", e));
-    }
-
-    playFullSurah(sura) {
-        this.continuousMode = true;
-        const btnCont = document.getElementById('btnToggleContinuous');
-        if (btnCont) btnCont.classList.add('active');
-        this.play(sura, 1);
-    }
-
-    togglePlayPause() {
-        if (this.player.paused) {
-            if (!this.player.src) {
-                this.play(this.currentSura, this.currentAyah);
-            } else {
-                this.player.play();
-            }
-        } else {
-            this.player.pause();
-        }
-    }
-
-    next() {
-        const maxAyahs = CANONICAL_AYAH_COUNTS[this.currentSura - 1] || 7;
-        if (this.currentAyah < maxAyahs) {
-            this.play(this.currentSura, this.currentAyah + 1);
-        } else if (this.currentSura < 114) {
-            this.play(this.currentSura + 1, 1);
-        }
-    }
-
-    prev() {
-        if (this.currentAyah > 1) {
-            this.play(this.currentSura, this.currentAyah - 1);
-        } else if (this.currentSura > 1) {
-            const prevMax = CANONICAL_AYAH_COUNTS[this.currentSura - 2] || 1;
-            this.play(this.currentSura - 1, prevMax);
-        }
-    }
-
-    setSpeed(speed) {
-        this.playbackRate = parseFloat(speed) || 1.0;
-        this.player.playbackRate = this.playbackRate;
-    }
-
-    toggleContinuous() {
-        this.continuousMode = !this.continuousMode;
-        const btnCont = document.getElementById('btnToggleContinuous');
-        if (btnCont) {
-            if (this.continuousMode) btnCont.classList.add('active');
-            else btnCont.classList.remove('active');
-        }
-    }
-
-    hideBar() {
-        this.player.pause();
-        const bar = document.getElementById('globalPlayerBar');
-        if (bar) bar.style.display = 'none';
-    }
-}
-
-const quranAudio = new QuranAudioEngine();
-
-window.playAyahAudio = function(sura, ayah, btnEl) {
-    if (quranAudio.currentSura === sura && quranAudio.currentAyah === ayah && !quranAudio.player.paused) {
-        quranAudio.togglePlayPause();
-    } else {
-        quranAudio.play(sura, ayah, btnEl);
-    }
-};
-
-document.addEventListener('DOMContentLoaded', () => {
-    // 0. Holy Quran & Al-Fatiha Engine
-    const fatihaAyahsContainer = document.getElementById('fatihaAyahsContainer');
-    const quranSurahSelect = document.getElementById('quranSurahSelect');
-    const btnLoadSurahFull = document.getElementById('btnLoadSurahFull');
-    const btnPlaySelectedSurah = document.getElementById('btnPlaySelectedSurah');
-    const fullSurahViewer = document.getElementById('fullSurahViewer');
-
-    let fatihaCache = null;
-    let currentSurahCache = null;
-
-    async function loadFatihaSection() {
-        if (!fatihaAyahsContainer) return;
-        try {
-            if (!fatihaCache) {
-                const resp = await fetch('/api/v1/surah/1');
-                fatihaCache = await resp.json();
-            }
-            renderFatihaAyahs(fatihaCache);
-        } catch (e) {
-            console.warn("Fatiha fetch notice:", e);
-        }
-    }
-
-    function renderFatihaAyahs(data) {
-        if (!fatihaAyahsContainer || !data || !data.ayahs) return;
-        fatihaAyahsContainer.innerHTML = '';
-        
-        data.ayahs.forEach(ayah => {
-            const card = document.createElement('div');
-            card.className = 'audit-item';
-            card.style.borderLeft = '3px solid var(--gold-primary)';
-            card.style.background = 'rgba(22, 27, 34, 0.7)';
-            
-            const transHtml = getTranslationHtml(ayah.translations, 1, ayah.ayah);
-            
-            card.innerHTML = `
-                <div class="audit-badge-row">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="tag-badge success">1:${ayah.ayah}</span>
-                        <button class="btn-play-ayah-audio" onclick="playAyahAudio(1, ${ayah.ayah}, this)" title="Аятты тыңдау">
-                            ▶️ Тыңдау
-                        </button>
-                    </div>
-                    <span style="font-size: 13px; color: var(--gold-bright); font-weight: 700;">Әл-Фатиха [1:${ayah.ayah}]</span>
-                </div>
-                <div class="arabic-display" style="font-size: 24px; padding: 12px 14px;">${ayah.text_uthmani}</div>
-                ${ayah.transliteration ? `<div class="transliteration-badge" style="font-style: italic; color: #93C5FD;"><strong>Произношение (латиница):</strong> ${escapeHtml(ayah.transliteration)}</div>` : ''}
-                ${transHtml}
-            `;
-            fatihaAyahsContainer.appendChild(card);
-        });
-    }
-
-    function populateQuranSurahs() {
-        if (!quranSurahSelect) return;
-        const currentVal = quranSurahSelect.value || '1';
-        quranSurahSelect.innerHTML = '';
-        for (let i = 1; i <= 114; i++) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            const sName = getSurahName(i);
-            const count = CANONICAL_AYAH_COUNTS[i - 1] || 7;
-            opt.textContent = `${i}. ${sName} (${count} аят)`;
-            quranSurahSelect.appendChild(opt);
-        }
-        quranSurahSelect.value = currentVal;
-    }
-
-    async function loadSelectedSurahFull() {
-        if (!quranSurahSelect || !fullSurahViewer) return;
-        const sura = parseInt(quranSurahSelect.value) || 1;
-        fullSurahViewer.innerHTML = '<div class="empty-state"><p>Сүренің барлық аяттары жүктелуде...</p></div>';
-
-        try {
-            const resp = await fetch(`/api/v1/surah/${sura}`);
-            const data = await resp.json();
-            currentSurahCache = data;
-            renderFullSurah(data);
-        } catch (e) {
-            fullSurahViewer.innerHTML = '<div class="empty-state"><p style="color: var(--danger-primary)">Қате орын алды.</p></div>';
-        }
-    }
-
-    function renderFullSurah(data) {
-        if (!fullSurahViewer || !data || !data.ayahs) return;
-        fullSurahViewer.innerHTML = '';
-        const localizedSurah = getSurahName(data.sura);
-
-        // Header summary for the surah
-        const sHeader = document.createElement('div');
-        sHeader.className = 'claim-result-box valid';
-        sHeader.style.marginBottom = '8px';
-        sHeader.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                <div style="font-size: 16px; font-weight: 800; color: var(--gold-bright);">
-                    ${localizedSurah} (${data.sura}-сүре • Барлығы: ${data.total_ayahs} аят)
-                </div>
-                <button class="btn btn-primary" onclick="quranAudio.playFullSurah(${data.sura})" style="padding: 6px 16px; font-size: 13px; color: #FFFFFF !important; font-weight: 700; background: linear-gradient(135deg, #10B981, #059669); border: 1px solid #34D399; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);">
-                    ▶️ Сүрені толық тыңдау
-                </button>
-            </div>
-        `;
-        fullSurahViewer.appendChild(sHeader);
-
-        data.ayahs.forEach(ayah => {
-            const card = document.createElement('div');
-            card.className = 'audit-item';
-            card.style.borderLeft = '3px solid var(--gold-primary)';
-            card.style.background = 'rgba(22, 27, 34, 0.7)';
-            
-            const transHtml = getTranslationHtml(ayah.translations, ayah.sura, ayah.ayah);
-            
-            card.innerHTML = `
-                <div class="audit-badge-row">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="tag-badge success">${ayah.sura}:${ayah.ayah}</span>
-                        <button class="btn-play-ayah-audio" onclick="playAyahAudio(${ayah.sura}, ${ayah.ayah}, this)" title="Аятты тыңдау">
-                            ▶️ Тыңдау
-                        </button>
-                    </div>
-                    <span style="font-size: 13px; color: var(--gold-bright); font-weight: 700;">${localizedSurah} [${ayah.sura}:${ayah.ayah}]</span>
-                </div>
-                <div class="arabic-display" style="font-size: 24px; padding: 12px 14px;">${ayah.text_uthmani}</div>
-                ${ayah.transliteration ? `<div class="transliteration-badge" style="font-style: italic; color: #93C5FD;"><strong>Произношение (латиница):</strong> ${escapeHtml(ayah.transliteration)}</div>` : ''}
-                ${transHtml}
-            `;
-            fullSurahViewer.appendChild(card);
-        });
-    }
-
-    if (btnLoadSurahFull) {
-        btnLoadSurahFull.addEventListener('click', loadSelectedSurahFull);
-    }
-    if (quranSurahSelect) {
-        quranSurahSelect.addEventListener('change', loadSelectedSurahFull);
-    }
-    if (btnPlaySelectedSurah) {
-        btnPlaySelectedSurah.addEventListener('click', () => {
-            const sura = parseInt(quranSurahSelect?.value) || 1;
-            quranAudio.playFullSurah(sura);
-        });
-    }
-
-    // 1. Language Initialization
-    const selectLanguage = document.getElementById('selectLanguage');
-    if (selectLanguage) {
-        selectLanguage.value = I18N.currentLang;
-        selectLanguage.addEventListener('change', (e) => {
-            I18N.setLanguage(e.target.value);
-            populateSurahs();
-            populateQuranSurahs();
-            loadFatihaSection();
-            if (currentSurahCache) renderFullSurah(currentSurahCache);
-            loadAyahAST();
-            loadAhkamCategory(document.querySelector('.ahkam-cat-btn.active')?.getAttribute('data-cat') || 'tahrim');
-            const root = document.getElementById('inputRootSearch')?.value.trim();
-            if (root) searchRoot(root);
-            const clause = document.getElementById('contractClauseInput')?.value.trim();
-            if (clause) btnAuditContract.click();
-        });
-    }
-
-    I18N.applyTranslations();
-
-    // 2. Guide Modal Handler
-    const btnToggleGuide = document.getElementById('btnToggleGuide');
-    const guideModalOverlay = document.getElementById('guideModalOverlay');
-    const btnCloseGuideModal = document.getElementById('btnCloseGuideModal');
+document.addEventListener('DOMContentLoaded', async () => {
+    // =========================================================================
+    // 1. STATE & CORE INSTANCES
+    // =========================================================================
+    let currentSurah = 1;
+    let currentReciter = 'alafasy';
+    let isContinuous = true;
+    let currentPlayingAyahIndex = 0;
+    let surahAyahsData = [];
     
-    if (btnToggleGuide && guideModalOverlay) {
-        btnToggleGuide.addEventListener('click', () => {
-            guideModalOverlay.style.display = 'flex';
-        });
-    }
+    const audio = new Audio();
+    audio.preload = 'auto';
 
-    if (btnCloseGuideModal && guideModalOverlay) {
-        btnCloseGuideModal.addEventListener('click', () => {
-            guideModalOverlay.style.display = 'none';
-        });
-    }
+    // UI Elements
+    const selectLanguage = document.getElementById('selectLanguage');
+    const metricVisitors = document.getElementById('metricVisitors');
+    
+    // Universal Search Elements
+    const universalSearchInput = document.getElementById('universalSearchInput');
+    const btnUniversalSearchGo = document.getElementById('btnUniversalSearchGo');
+    const btnClearSearch = document.getElementById('btnClearSearch');
+    const searchResultsDropdown = document.getElementById('searchResultsDropdown');
+    const searchResultsCount = document.getElementById('searchResultsCount');
+    const searchResultsList = document.getElementById('searchResultsList');
+    const btnCloseSearchResults = document.getElementById('btnCloseSearchResults');
 
-    if (guideModalOverlay) {
-        guideModalOverlay.addEventListener('click', (e) => {
-            if (e.target === guideModalOverlay) {
-                guideModalOverlay.style.display = 'none';
-            }
-        });
-    }
+    // Tabs
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
 
-    // Legal & Shariah Disclaimer Modal Handlers
-    const btnOpenLegalModal = document.getElementById('btnOpenLegalModal');
-    const legalModalOverlay = document.getElementById('legalModalOverlay');
-    const btnCloseLegalModal = document.getElementById('btnCloseLegalModal');
-    const btnAcceptLegal = document.getElementById('btnAcceptLegal');
+    // Quran Explorer Elements
+    const selectSura = document.getElementById('selectSura');
+    const selectReciter = document.getElementById('selectReciter');
+    const btnPlayFullSurah = document.getElementById('btnPlayFullSurah');
+    const surahHeroArabic = document.getElementById('surahHeroArabic');
+    const surahHeroTitle = document.getElementById('surahHeroTitle');
+    const surahHeroMeta = document.getElementById('surahHeroMeta');
+    const ayahsStreamContainer = document.getElementById('ayahsStreamContainer');
 
-    if (btnOpenLegalModal && legalModalOverlay) {
-        btnOpenLegalModal.addEventListener('click', () => {
-            legalModalOverlay.style.display = 'flex';
-        });
-    }
-
-    if (btnCloseLegalModal && legalModalOverlay) {
-        btnCloseLegalModal.addEventListener('click', () => {
-            legalModalOverlay.style.display = 'none';
-        });
-    }
-
-    if (btnAcceptLegal && legalModalOverlay) {
-        btnAcceptLegal.addEventListener('click', () => {
-            legalModalOverlay.style.display = 'none';
-        });
-    }
-
-    if (legalModalOverlay) {
-        legalModalOverlay.addEventListener('click', (e) => {
-            if (e.target === legalModalOverlay) {
-                legalModalOverlay.style.display = 'none';
-            }
-        });
-    }
-
-    // Feedback & Contacts Modal Handlers
-    const btnToggleFeedback = document.getElementById('btnToggleFeedback');
-    const feedbackModalOverlay = document.getElementById('feedbackModalOverlay');
-    const btnCloseFeedbackModal = document.getElementById('btnCloseFeedbackModal');
-    const feedbackForm = document.getElementById('feedbackForm');
-    const feedbackStatusMsg = document.getElementById('feedbackStatusMsg');
-
-    if (btnToggleFeedback && feedbackModalOverlay) {
-        btnToggleFeedback.addEventListener('click', () => {
-            feedbackModalOverlay.style.display = 'flex';
-        });
-    }
-
-    if (btnCloseFeedbackModal && feedbackModalOverlay) {
-        btnCloseFeedbackModal.addEventListener('click', () => {
-            feedbackModalOverlay.style.display = 'none';
-        });
-    }
-
-    if (feedbackModalOverlay) {
-        feedbackModalOverlay.addEventListener('click', (e) => {
-            if (e.target === feedbackModalOverlay) {
-                feedbackModalOverlay.style.display = 'none';
-            }
-        });
-    }
-
-    if (feedbackForm) {
-        feedbackForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('feedbackName')?.value.trim();
-            const contact = document.getElementById('feedbackContact')?.value.trim();
-            const category = document.getElementById('feedbackCategory')?.value;
-            const message = document.getElementById('feedbackMessage')?.value.trim();
-
-            if (!message) return;
-
-            try {
-                const resp = await fetch('/api/v1/feedback', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email_or_phone: contact, category, message })
-                });
-                const data = await resp.json();
-                if (feedbackStatusMsg) {
-                    feedbackStatusMsg.style.display = 'block';
-                    feedbackStatusMsg.textContent = I18N.currentLang === 'kk' ? data.message_kk : (I18N.currentLang === 'ru' ? data.message_ru : data.message_en);
-                }
-                feedbackForm.reset();
-                setTimeout(() => {
-                    if (feedbackStatusMsg) feedbackStatusMsg.style.display = 'none';
-                    if (feedbackModalOverlay) feedbackModalOverlay.style.display = 'none';
-                }, 2500);
-            } catch (err) {
-                if (feedbackStatusMsg) {
-                    feedbackStatusMsg.style.display = 'block';
-                    feedbackStatusMsg.style.color = 'var(--danger-primary)';
-                    feedbackStatusMsg.textContent = 'Қате орын алды / Ошибка отправки.';
-                }
-            }
-        });
-    }
-
-    // Standards & Quality Compliance Modal Handlers
-    const btnToggleStandards = document.getElementById('btnToggleStandards');
-    const standardsModalOverlay = document.getElementById('standardsModalOverlay');
-    const btnCloseStandardsModal = document.getElementById('btnCloseStandardsModal');
-    const btnAcceptStandards = document.getElementById('btnAcceptStandards');
-
-    if (btnToggleStandards && standardsModalOverlay) {
-        btnToggleStandards.addEventListener('click', () => {
-            standardsModalOverlay.style.display = 'flex';
-        });
-    }
-
-    if (btnCloseStandardsModal && standardsModalOverlay) {
-        btnCloseStandardsModal.addEventListener('click', () => {
-            standardsModalOverlay.style.display = 'none';
-        });
-    }
-
-    if (btnAcceptStandards && standardsModalOverlay) {
-        btnAcceptStandards.addEventListener('click', () => {
-            standardsModalOverlay.style.display = 'none';
-        });
-    }
-
-    if (standardsModalOverlay) {
-        standardsModalOverlay.addEventListener('click', (e) => {
-            if (e.target === standardsModalOverlay) {
-                standardsModalOverlay.style.display = 'none';
-            }
-        });
-    }
-
-    // 3. Navigation Tabs
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
-            btn.classList.add('active');
-            const targetId = btn.getAttribute('data-tab');
-            const targetEl = document.getElementById(targetId);
-            if (targetEl) targetEl.classList.add('active');
-        });
-    });
-
-    // 4. Tab 1: Anti-Hallucination Guardrail
-    const guardInputText = document.getElementById('guardInputText');
-    const btnRunAudit = document.getElementById('btnRunAudit');
-    const btnClearGuard = document.getElementById('btnClearGuard');
-    const auditResultsBody = document.getElementById('auditResultsBody');
-
-    // Presets
-    const btnPresetHallucinateCoord = document.getElementById('btnPresetHallucinateCoord');
-    const btnPresetDistortTashkeel = document.getElementById('btnPresetDistortTashkeel');
-    const btnPresetCleanQuote = document.getElementById('btnPresetCleanQuote');
-
-    if (btnPresetHallucinateCoord) {
-        btnPresetHallucinateCoord.addEventListener('click', () => {
-            const lang = I18N.currentLang;
-            if (lang === 'kk') {
-                guardInputText.value = "Құранда (2-сүре 300-аятта) айтылғандай, мүміндер әрбір істе сабырлық танытуы қажет...";
-            } else if (lang === 'ar') {
-                guardInputText.value = "كما ورد في القرآن (سورة 2 آية 300)، يجب على المؤمنين الصبر...";
-            } else if (lang === 'en') {
-                guardInputText.value = "As stated in the Quran (Surah 2 Ayah 300), believers must remain patient in all matters.";
-            } else if (lang === 'tr') {
-                guardInputText.value = "Kur'an-ı Kerim'de (Bakara Suresi 300. ayet) müminlerin sabretmesi emredilmektedir...";
-            } else if (lang === 'id') {
-                guardInputText.value = "Sebagaimana disebutkan dalam Al-Qur'an (Surah 2 Ayat 300), orang-orang beriman harus bersabar...";
-            } else if (lang === 'uz') {
-                guardInputText.value = "Qur'onda (2-sura 300-oyat) aytilganidek, mo'minlar sabrli bo'lishlari kerak...";
-            } else {
-                guardInputText.value = "Как сказано в Коране (Сура 2, аят 300), верующие должны быть терпеливы во всех делах.";
-            }
-            runVerification();
-        });
-    }
-
-    if (btnPresetDistortTashkeel) {
-        btnPresetDistortTashkeel.addEventListener('click', () => {
-            const distortArabic = "اللَّهُ لَا إِلَـٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ";
-            const lang = I18N.currentLang;
-            if (lang === 'kk') {
-                guardInputText.value = `Аятул Күрсиде (2:255) мынадай сөздер жазылған: ${distortArabic}`;
-            } else if (lang === 'en') {
-                guardInputText.value = `Ayat al-Kursi (2:255) contains the following words: ${distortArabic}`;
-            } else if (lang === 'ar') {
-                guardInputText.value = `آية الكرسي (2:255) تحتوي على النص التالي: ${distortArabic}`;
-            } else {
-                guardInputText.value = `Аят аль-Курси (2:255) содержит следующие слова: ${distortArabic}`;
-            }
-            runVerification();
-        });
-    }
-
-    if (btnPresetCleanQuote) {
-        btnPresetCleanQuote.addEventListener('click', () => {
-            const exactAyah = "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ النَّاسِ";
-            const lang = I18N.currentLang;
-            if (lang === 'kk') {
-                guardInputText.value = `114-сүренің 1-аятында айтылған: ${exactAyah}`;
-            } else if (lang === 'en') {
-                guardInputText.value = `In Surah 114 Ayah 1 it is said: ${exactAyah}`;
-            } else if (lang === 'ar') {
-                guardInputText.value = `في سورة 114 آية 1 قوله تعالى: ${exactAyah}`;
-            } else {
-                guardInputText.value = `В суре 114 аяте 1 сказано: ${exactAyah}`;
-            }
-            runVerification();
-        });
-    }
-
-    if (btnClearGuard) {
-        btnClearGuard.addEventListener('click', () => {
-            guardInputText.value = '';
-            auditResultsBody.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state-icon">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                    </div>
-                    <h3>Жүйе тексеруге дайын</h3>
-                    <p>Сол жаққа мәтінді енгізіп, «L0 Аудитін орындау» батырмасын басыңыз.</p>
-                </div>
-            `;
-        });
-    }
-
-    if (btnRunAudit) {
-        btnRunAudit.addEventListener('click', runVerification);
-    }
-
-    // Helper for Multi-Translation Rendering with Audio Button
-    function getTranslationHtml(translations, sura, ayah) {
-        if (!translations) return '';
-        const lang = I18N.currentLang;
-        let transText = translations.ru || '';
-        let label = I18N.t('lblTranslation');
-
-        if (lang === 'kk' && translations.kk) {
-            transText = translations.kk;
-            label = "Мағыналық аудармасы (Халифа Алтай):";
-        } else if (lang === 'en' && translations.en) {
-            transText = translations.en;
-            label = "Meaning Translation (Saheeh International):";
-        } else if (lang === 'tr' && translations.tr) {
-            transText = translations.tr;
-            label = "Meal (Diyanet İşleri):";
-        } else if (lang === 'id' && translations.id) {
-            transText = translations.id;
-            label = "Terjemahan (Kemenag RI):";
-        } else if (lang === 'uz' && translations.uz) {
-            transText = translations.uz;
-            label = "Ma'nolari tarjimasi (Shayx Muhammad Sodiq):";
-        } else if (lang === 'ar') {
-            return '';
-        }
-
-        if (!transText) return '';
-        return `
-            <div class="translation-badge">
-                <strong>${label}</strong>
-                <span>${transText}</span>
-            </div>
-        `;
-    }
-
-    async function runVerification() {
-        const text = guardInputText.value.trim();
-        if (!text) return;
-
-        auditResultsBody.innerHTML = '<div class="empty-state"><p>Аудит жүргізілуде / Выполняется верификация...</p></div>';
-
-        try {
-            const resp = await fetch('/api/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: text })
-            });
-
-            const data = await resp.json();
-            renderAuditReport(data);
-        } catch (err) {
-            auditResultsBody.innerHTML = '<div class="empty-state"><p style="color: var(--color-danger)">Ошибка сервера / Сервер қатесі.</p></div>';
-        }
-    }
-
-    function renderAuditReport(data) {
-        auditResultsBody.innerHTML = '';
-        const lang = I18N.currentLang;
-
-        let verdictColor = 'var(--emerald-bright)';
-        let verdictTitleText = I18N.t('verdictCleanTitle');
-        let verdictDescText = I18N.t('verdictCleanDesc');
-
-        if (data.verdict === 'HALLUCINATION_DETECTED') {
-            verdictColor = 'var(--danger-primary)';
-            verdictTitleText = I18N.t('verdictHallucinationTitle');
-            verdictDescText = `Анықталған қателер саны: ${data.hallucinations_count} / Найдено нарушений: ${data.hallucinations_count}`;
-        } else if (data.verdict === 'TASHKEEL_DISTORTION') {
-            verdictColor = 'var(--gold-bright)';
-            verdictTitleText = I18N.t('verdictWarningTitle');
-            verdictDescText = "Огласовки (ташкиль) отличаются от канонического манифеста.";
-        } else if (data.verdict === 'NO_CITATIONS_FOUND') {
-            verdictColor = 'var(--text-secondary)';
-            verdictTitleText = I18N.t('verdictNoQuotesTitle');
-            verdictDescText = I18N.t('verdictNoQuotesDesc');
-        }
-
-        const banner = document.createElement('div');
-        banner.className = 'claim-result-box';
-        banner.style.borderLeft = `4px solid ${verdictColor}`;
-        banner.style.background = 'var(--bg-input)';
-        banner.style.marginBottom = '16px';
-        banner.innerHTML = `
-            <div style="font-size: 16px; font-weight: 700; color: ${verdictColor};">${verdictTitleText}</div>
-            <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">${verdictDescText}</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px; font-family: var(--font-mono);">Latency: ${data.latency_ms}ms • Ground Truth Score: ${data.hallucinations_count === 0 ? '100%' : '0%'}</div>
-        `;
-        auditResultsBody.appendChild(banner);
-
-        // Render each citation item
-        data.verified_items.forEach((item, idx) => {
-            const card = document.createElement('div');
-            card.className = 'audit-item';
-            const localizedSurah = getSurahName(item.sura);
-
-            const isHallucinated = (item.status === 'HALLUCINATED_NON_EXISTENT_AYAH' || item.status === 'TAMPERED_TEXT');
-            const tagClass = isHallucinated ? 'danger' : (item.status === 'TASHKEEL_DISTORTED' ? 'warning' : 'success');
-
-            let statusLabel = 'Каноникалық сәйкестік (Verified)';
-            if (item.status === 'HALLUCINATED_NON_EXISTENT_AYAH') statusLabel = '❌ Жоқ аят (Галлюцинация)';
-            else if (item.status === 'TAMPERED_TEXT') statusLabel = '❌ Бұрмаланған мәтін';
-            else if (item.status === 'TASHKEEL_DISTORTED') statusLabel = '⚠️ Ташкиль қатесі';
-
-            const audioButtonHtml = (item.sura && item.ayah) ? `
-                <button class="btn-play-ayah-audio" onclick="playAyahAudio(${item.sura}, ${item.ayah}, this)" title="Аятты тыңдау">
-                    ▶️ Тыңдау
-                </button>
-            ` : '';
-
-
-
-            card.innerHTML = `
-                <div class="audit-badge-row">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="tag-badge ${tagClass}">${statusLabel}</span>
-                        ${audioButtonHtml}
-                    </div>
-                    <span style="font-size: 12px; color: var(--gold-primary); font-weight: 600;">${escapeHtml(localizedSurah)} (${item.sura}:${item.ayah})</span>
-                </div>
-                
-                <div style="font-size: 13px; color: var(--text-secondary); margin: 6px 0;">
-                    <strong>${I18N.t('lblQuote')}:</strong> «${escapeHtml(item.raw_quote)}»
-                </div>
-
-                ${item.canonical_uthmani ? `
-                    <div class="arabic-display">${item.canonical_uthmani}</div>
-                    ${item.transliteration ? `<div class="transliteration-badge"><strong>Транскрипция:</strong> ${escapeHtml(item.transliteration)}</div>` : ''}
-                    ${getTranslationHtml(item.translations, item.sura, item.ayah)}
-                ` : ''}
-            `;
-            auditResultsBody.appendChild(card);
-        });
-    }
-
-    // 5. Tab 2: Root Explorer
-    const inputRootSearch = document.getElementById('inputRootSearch');
+    // Guard Elements
+    const guardTextInput = document.getElementById('guardTextInput');
+    const btnRunGuardValidation = document.getElementById('btnRunGuardValidation');
+    const btnPasteSampleGuard = document.getElementById('btnPasteSampleGuard');
+    const verificationResultBox = document.getElementById('verificationResultBox');
+    const rootSearchInput = document.getElementById('rootSearchInput');
     const btnSearchRoot = document.getElementById('btnSearchRoot');
-    const rootResultsList = document.getElementById('rootResultsList');
-    const popularRootTags = document.getElementById('popularRootTags');
+    const rootSearchResults = document.getElementById('rootSearchResults');
 
-    if (popularRootTags) {
-        popularRootTags.addEventListener('click', (e) => {
-            const tag = e.target.closest('.root-tag');
-            if (tag) {
-                const root = tag.getAttribute('data-root');
-                inputRootSearch.value = root;
-                searchRoot(root);
-            }
-        });
-    }
-
-    if (btnSearchRoot) {
-        btnSearchRoot.addEventListener('click', () => {
-            const root = inputRootSearch.value.trim();
-            if (root) searchRoot(root);
-        });
-    }
-
-    async function searchRoot(root) {
-        rootResultsList.innerHTML = '<div class="empty-state"><p>Түбір ізделуде / Поиск корня...</p></div>';
-        try {
-            const resp = await fetch(`/api/search/root/${encodeURIComponent(root)}`);
-            const data = await resp.json();
-            renderRootResults(data);
-        } catch (e) {
-            rootResultsList.innerHTML = '<div class="empty-state"><p style="color: var(--danger-primary)">Қате орын алды / Ошибка поиска.</p></div>';
-        }
-    }
-
-    function renderRootResults(data) {
-        rootResultsList.innerHTML = '';
-        if (!data.results || data.results.length === 0) {
-            rootResultsList.innerHTML = `<div class="empty-state"><p>«${data.root}» түбірі бойынша аяттар табылмады.</p></div>`;
-            return;
-        }
-
-        const summaryBox = document.createElement('div');
-        summaryBox.className = 'claim-result-box valid';
-        summaryBox.style.marginBottom = '16px';
-        summaryBox.innerHTML = `
-            <strong>Түбір / Корень:</strong> <span style="font-family: var(--font-quran); font-size: 20px; color: var(--gold-bright);">${data.root}</span>
-            • Табылған аяттар саны: <strong>${data.total}</strong>
-        `;
-        rootResultsList.appendChild(summaryBox);
-
-        data.results.slice(0, 15).forEach(res => {
-            const card = document.createElement('div');
-            card.className = 'audit-item';
-            const localizedSurah = getSurahName(res.sura);
-
-            card.innerHTML = `
-                <div class="audit-badge-row">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="tag-badge success">Түбір кездесті: ${res.root_occurrences} рет</span>
-                        <button class="btn-play-ayah-audio" onclick="playAyahAudio(${res.sura}, ${res.ayah}, this)" title="Аятты тыңдау">
-                            ▶️ Тыңдау
-                        </button>
-                    </div>
-                    <span style="font-size: 13px; color: var(--gold-primary); font-weight: 700;">${localizedSurah} [${res.sura}:${res.ayah}]</span>
-                </div>
-                <div class="arabic-display">${res.text_uthmani}</div>
-                ${res.transliteration ? `<div class="transliteration-badge"><strong>Транскрипция:</strong> ${res.transliteration}</div>` : ''}
-                ${getTranslationHtml(res.translations, res.sura, res.ayah)}
-            `;
-            rootResultsList.appendChild(card);
-        });
-    }
-
-    // Root Claim Verifier
-    const inputClaimWord = document.getElementById('inputClaimWord');
-    const inputClaimRoot = document.getElementById('inputClaimRoot');
-    const inputClaimContext = document.getElementById('inputClaimContext');
-    const btnVerifyRootClaim = document.getElementById('btnVerifyRootClaim');
-    const claimResultBox = document.getElementById('claimResultBox');
-
-    if (btnVerifyRootClaim) {
-        btnVerifyRootClaim.addEventListener('click', async () => {
-            const word = inputClaimWord.value.trim();
-            const root = inputClaimRoot.value.trim();
-            const ctx = inputClaimContext.value.trim();
-
-            if (!word || !root) return;
-
-            claimResultBox.style.display = 'block';
-            claimResultBox.innerHTML = '<p>Түбір шындығы тексерілуде...</p>';
-
-            try {
-                const resp = await fetch('/api/verify/root', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ word: word, claimed_root: root, context_id: ctx || null })
-                });
-                const data = await resp.json();
-                
-                const isMatch = data.is_correct;
-                claimResultBox.className = `claim-result-box ${isMatch ? 'valid' : 'invalid'}`;
-                claimResultBox.innerHTML = `
-                    <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">
-                        ${isMatch ? '✅ Түбір расталды (Valid Root)' : '❌ Жалған этимология (False Root)'}
-                    </div>
-                    <div><strong>Сөз / Слово:</strong> ${data.word}</div>
-                    <div><strong>Мәлімделген түбір / Заявленный корень:</strong> ${data.claimed_root}</div>
-                    <div><strong>Нақты түбір / Канонический корень:</strong> <span style="font-family: var(--font-quran); font-size: 18px; color: var(--gold-bright);">${data.canonical_root || 'Табылмады'}</span></div>
-                `;
-            } catch (e) {
-                claimResultBox.innerHTML = '<p style="color: var(--danger-primary)">Қате орын алды.</p>';
-            }
-        });
-    }
-
-    // 6. Tab 3: Halal, Ahkam, OCR & AAOIFI
-    const contractClauseInput = document.getElementById('contractClauseInput');
-    const btnAuditContract = document.getElementById('btnAuditContract');
+    // Halal & Contract Elements
+    const halalClauseInput = document.getElementById('halalClauseInput');
+    const btnAuditHalal = document.getElementById('btnAuditHalal');
     const btnAuditAAOIFI = document.getElementById('btnAuditAAOIFI');
-    const contractAuditResult = document.getElementById('contractAuditResult');
-    const ahkamResultsList = document.getElementById('ahkamResultsList');
-    const ahkamCatBtns = document.querySelectorAll('.ahkam-cat-btn');
-
-    // OCR Image Scanner Trigger
     const btnTriggerOCR = document.getElementById('btnTriggerOCR');
     const inputProductImage = document.getElementById('inputProductImage');
-
-    if (btnTriggerOCR && inputProductImage) {
-        btnTriggerOCR.addEventListener('click', () => inputProductImage.click());
-        inputProductImage.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            contractAuditResult.style.display = 'block';
-            contractAuditResult.innerHTML = '<div class="empty-state"><p>📷 Сурет талдануда (OCR)... / Анализ состава по фото...</p></div>';
-
-            const fname = file.name.toLowerCase();
-            let simText = fname.replace(/[\._-]/g, ' ');
-            if (simText.includes('e120') || simText.includes('кармин') || simText.includes('carmine')) simText = "Йогурт клубничный с красителем кармин E120";
-            else if (simText.includes('e441') || simText.includes('желатин') || simText.includes('gelatin')) simText = "Мармелад жевательный с желатином E441";
-            else if (simText.includes('свинин') || simText.includes('pork') || simText.includes('бекон')) simText = "Колбаса вареная со свининой и шпиком";
-            else simText = "Состав продукта: вода, сахар, мука, сухое молоко, краситель E120, желатин E441, эмульгатор E471";
-
-            contractClauseInput.value = simText;
-            btnAuditContract.click();
-        });
-    }
-
-    // Quick Test Chips
-    document.querySelectorAll('.test-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            const text = chip.getAttribute('data-text');
-            if (text) {
-                contractClauseInput.value = text;
-                btnAuditContract.click();
-            }
-        });
-    });
-
-    if (btnAuditContract) {
-        btnAuditContract.addEventListener('click', async () => {
-            const text = contractClauseInput.value.trim();
-            if (!text) return;
-
-            contractAuditResult.style.display = 'block';
-            contractAuditResult.innerHTML = '<div class="empty-state"><p>Шариғат пен Халал нормалары бойынша тексерілуде...</p></div>';
-
-            try {
-                const resp = await fetch('/api/audit/contract', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
-                });
-                const data = await resp.json();
-                renderContractResult(data);
-            } catch (e) {
-                contractAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Қате орын алды.</p>';
-            }
-        });
-    }
-
-    if (btnAuditAAOIFI) {
-        btnAuditAAOIFI.addEventListener('click', async () => {
-            const text = contractClauseInput.value.trim();
-            if (!text) return;
-
-            contractAuditResult.style.display = 'block';
-            contractAuditResult.innerHTML = '<div class="empty-state"><p>⚖️ AAOIFI исламдық қаржы стандарттары бойынша тексерілуде...</p></div>';
-
-            try {
-                const resp = await fetch('/api/v1/contracts/audit-aaoifi', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: text })
-                });
-                const data = await resp.json();
-                renderAAOIFIResult(data);
-            } catch (e) {
-                contractAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Қате орын алды.</p>';
-            }
-        });
-    }
-
-    function renderContractResult(data) {
-        contractAuditResult.innerHTML = '';
-        const lang = I18N.currentLang;
-
-        if (!data.matches || data.matches.length === 0) {
-            const okTitle = lang === 'kk' 
-                ? '🟢 Тікелей тыйымдар табылмады (Адал / Рұқсат етілген)' 
-                : (lang === 'en' ? '🟢 No Prohibitions Detected (Halal / Permissible)' : '🟢 Прямых запретов не обнаружено (Халяль / Дозволено)');
-            const okDesc = lang === 'kk'
-                ? 'Енгізілген мәтіннен немесе өнімнен тікелей Харам/Риба белгілері анықталмады.'
-                : (lang === 'en' ? 'No direct Haram, Riba, or prohibited substances were detected in the input.' : 'В введенном продукте или договоре не обнаружено признаков Харама или Риба.');
-            contractAuditResult.innerHTML = `
-                <div class="claim-result-box valid" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; padding: 14px; border-radius: var(--radius-md);">
-                    <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px; color: #34D399;">${okTitle}</div>
-                    <div style="font-size: 13.5px; color: #D1FAE5;">${okDesc}</div>
-                </div>
-            `;
-            return;
-        }
-
-        data.matches.forEach(m => {
-            const isHaram = m.verdict === 'HARAM';
-            const isDoubt = m.verdict === 'DOUBTFUL';
-            const boxClass = isHaram ? 'invalid' : (isDoubt ? 'warning' : 'valid');
-            const title = (lang === 'kk' ? m.title_kk : (lang === 'en' ? m.title_en : m.title_ru)) || m.title_ru;
-            const desc = (lang === 'kk' ? m.description_kk : m.description_ru) || m.description_ru;
-
-            const card = document.createElement('div');
-            card.className = `claim-result-box ${boxClass}`;
-            card.style.marginBottom = '12px';
-            card.innerHTML = `
-                <div style="font-weight: 700; font-size: 15.5px; margin-bottom: 4px; color: ${isHaram ? '#FDA4AF' : (isDoubt ? '#FDE68A' : '#A7F3D0')};">${title}</div>
-                <div style="font-size: 13.5px; margin-bottom: 6px; color: #FFFFFF;">${desc}</div>
-                ${m.canonical_arabic ? `
-                    <div class="arabic-display" style="font-size: 22px; padding: 10px 14px;">${m.canonical_arabic}</div>
-                ` : ''}
-                <div style="font-size: 12px; color: var(--gold-bright); font-weight: 600; margin-top: 4px;">
-                    📖 ${lang === 'kk' ? 'Құран негізі:' : (lang === 'en' ? 'Quran Basis:' : 'Основа в Коране:')} ${m.ayah_ref}
-                </div>
-            `;
-            contractAuditResult.appendChild(card);
-        });
-    }
-
-    function renderAAOIFIResult(data) {
-        contractAuditResult.innerHTML = '';
-        const lang = I18N.currentLang;
-        const isCompliant = data.is_compliant;
-        const boxClass = isCompliant ? 'valid' : 'invalid';
-
-        const mainCard = document.createElement('div');
-        mainCard.className = `claim-result-box ${boxClass}`;
-        mainCard.innerHTML = `
-            <div style="font-weight: 800; font-size: 16px; margin-bottom: 6px;">
-                ${isCompliant ? '✅ AAOIFI ШАРИҒАТ СТАНДАРТЫНА СӘЙКЕС' : '❌ AAOIFI СТАНДАРТЫН БҰЗУ АНЫҚТАЛДЫ'}
-            </div>
-            <div style="font-size: 13px; color: var(--text-secondary);">
-                <strong>Келісім түрі:</strong> ${data.contract_type} • <strong>Құран негізі:</strong> ${data.quran_basis}
-            </div>
-        `;
-        contractAuditResult.appendChild(mainCard);
-
-        if (data.findings && data.findings.length > 0) {
-            data.findings.forEach(f => {
-                const fCard = document.createElement('div');
-                fCard.className = 'aaoifi-finding-card';
-                const issue = lang === 'kk' ? f.issue_kk : f.issue_ru;
-                fCard.innerHTML = `
-                    <div class="aaoifi-standard-tag">📜 ${f.standard} [${f.severity}]</div>
-                    <div style="color: #FECACA;">${issue}</div>
-                `;
-                contractAuditResult.appendChild(fCard);
-            });
-        }
-    }
-
-    // PDF Document Audit Handler
     const btnTriggerPDF = document.getElementById('btnTriggerPDF');
     const inputContractPDF = document.getElementById('inputContractPDF');
+    const halalAuditResult = document.getElementById('halalAuditResult');
 
-    if (btnTriggerPDF && inputContractPDF) {
-        btnTriggerPDF.addEventListener('click', () => inputContractPDF.click());
-        inputContractPDF.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    // Namaz & Zakat Elements
+    const cityPills = document.querySelectorAll('.city-pill');
+    const btnGetLocation = document.getElementById('btnGetLocation');
+    const timeFajr = document.getElementById('timeFajr');
+    const timeSunrise = document.getElementById('timeSunrise');
+    const timeDhuhr = document.getElementById('timeDhuhr');
+    const timeAsr = document.getElementById('timeAsr');
+    const timeMaghrib = document.getElementById('timeMaghrib');
+    const timeIsha = document.getElementById('timeIsha');
+    const qiblaDegreeText = document.getElementById('qiblaDegreeText');
+    const zakatCash = document.getElementById('zakatCash');
+    const zakatGold = document.getElementById('zakatGold');
+    const zakatDebts = document.getElementById('zakatDebts');
+    const btnCalculateZakat = document.getElementById('btnCalculateZakat');
+    const zakatAmountText = document.getElementById('zakatAmountText');
+    const zakatNoteText = document.getElementById('zakatNoteText');
 
-            contractAuditResult.style.display = 'block';
-            contractAuditResult.innerHTML = '<div class="empty-state"><p>📑 PDF құжаты талдануда (AAOIFI & Құран аудиті)...</p></div>';
-
-            try {
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const base64Data = reader.result.split(',')[1];
-                    const resp = await fetch('/api/v1/documents/audit-pdf', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pdf_base64: base64Data })
-                    });
-                    const data = await resp.json();
-                    if (data.status === 'success' && data.audit) {
-                        renderPDFAuditResult(data.audit);
-                    } else {
-                        contractAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Құжатты талдау мүмкін болмады.</p>';
-                    }
-                };
-                reader.readAsDataURL(file);
-            } catch (err) {
-                contractAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Қате орын алды.</p>';
-            }
-        });
-    }
-
-    function renderPDFAuditResult(audit) {
-        contractAuditResult.innerHTML = '';
-        const lang = I18N.currentLang;
-        const gRep = audit.guard_report;
-        const aRep = audit.aaoifi_report;
-
-        const mainCard = document.createElement('div');
-        mainCard.className = `claim-result-box ${aRep.is_compliant ? 'valid' : 'invalid'}`;
-        mainCard.innerHTML = `
-            <div style="font-weight: 800; font-size: 16px; margin-bottom: 6px;">
-                📄 PDF АУДИТОРЛЫҚ ЕСЕБІ (AL-FURQAN AI CERTIFICATE)
-            </div>
-            <div style="font-size: 13.5px; color: var(--text-secondary); margin-bottom: 8px;">
-                <strong>Парақтар:</strong> ${audit.total_pages} • <strong>Таңбалар:</strong> ${audit.text_length.toLocaleString()}
-            </div>
-            <div style="font-size: 13.5px; margin-bottom: 4px;">
-                ${gRep.claims_detected 
-                    ? (gRep.is_valid ? '✅ <strong>Құран дәйексөздері:</strong> 100% каноникалық дәл.' : '🚨 <strong>Құран дәйексөздері:</strong> Бұрмалаулар анықталды!')
-                    : 'ℹ️ <strong>Құран дәйексөздері:</strong> Құжатта тікелей аяттар анықталмады.'}
-            </div>
-            <div style="font-size: 13.5px;">
-                ${aRep.is_compliant 
-                    ? '✅ <strong>AAOIFI Шариғат стандарты:</strong> Сәйкес деп танылды.' 
-                    : '❌ <strong>AAOIFI Шариғат стандарты:</strong> Бұзушылықтар анықталды (Риба/Өсім)!'}
-            </div>
-        `;
-        contractAuditResult.appendChild(mainCard);
-
-        if (aRep.findings && aRep.findings.length > 0) {
-            aRep.findings.forEach(f => {
-                const fCard = document.createElement('div');
-                fCard.className = 'aaoifi-finding-card';
-                const issue = lang === 'kk' ? f.issue_kk : f.issue_ru;
-                fCard.innerHTML = `
-                    <div class="aaoifi-standard-tag">📜 ${f.standard} [${f.severity}]</div>
-                    <div style="color: #FECACA;">${issue}</div>
-                `;
-                contractAuditResult.appendChild(fCard);
-            });
-        }
-    }
-
-    async function loadVisitorCount() {
-        const el = document.getElementById('metricVisitors');
-        if (!el) return;
-        try {
-            const resp = await fetch('/api/v1/analytics/visitor-count');
-            const data = await resp.json();
-            if (data.total_visitors) {
-                el.textContent = Number(data.total_visitors).toLocaleString();
-            }
-        } catch (e) {
-            console.warn("Visitor counter notice:", e);
-        }
-    }
-
-    // Ahkam Category Switcher
-    ahkamCatBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            ahkamCatBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const cat = btn.getAttribute('data-cat');
-            loadAhkamCategory(cat);
-        });
-    });
-
-    async function loadAhkamCategory(cat) {
-        ahkamResultsList.innerHTML = '<div class="empty-state"><p>Ахкам деректері жүктелуде...</p></div>';
-        try {
-            const resp = await fetch(`/api/ahkam/${cat}`);
-            const data = await resp.json();
-            renderAhkamCategory(data);
-        } catch (e) {
-            ahkamResultsList.innerHTML = '<div class="empty-state"><p style="color: var(--danger-primary)">Қате орын алды.</p></div>';
-        }
-    }
-
-    function renderAhkamCategory(data) {
-        ahkamResultsList.innerHTML = '';
-        if (!data.ayahs || data.ayahs.length === 0) {
-            ahkamResultsList.innerHTML = '<div class="empty-state"><p>Аяттар табылмады.</p></div>';
-            return;
-        }
-
-        data.ayahs.forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'audit-item';
-            const localizedSurah = getSurahName(item.sura);
-
-            card.innerHTML = `
-                <div class="audit-badge-row">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="tag-badge success">${data.category_title}</span>
-                        <button class="btn-play-ayah-audio" onclick="playAyahAudio(${item.sura}, ${item.ayah}, this)" title="Аятты тыңдау">
-                            ▶️ Тыңдау
-                        </button>
-                    </div>
-                    <span style="font-size: 13px; color: var(--gold-primary); font-weight: 700;">${localizedSurah} [${item.sura}:${item.ayah}]</span>
-                </div>
-                <div class="arabic-display">${item.text_uthmani}</div>
-                ${item.transliteration ? `<div class="transliteration-badge"><strong>Транскрипция:</strong> ${item.transliteration}</div>` : ''}
-                ${getTranslationHtml(item.translations, item.sura, item.ayah)}
-            `;
-            ahkamResultsList.appendChild(card);
-        });
-    }
-
-    // 7. Tab 4: Corpus & AST Inspector
-    const selectSura = document.getElementById('selectSura');
-    const inputAyahNum = document.getElementById('inputAyahNum');
-    const btnInspectAyah = document.getElementById('btnInspectAyah');
-    const astViewer = document.getElementById('astViewer');
-
-    function populateSurahs() {
-        if (!selectSura) return;
-        const currentVal = selectSura.value || '1';
-        selectSura.innerHTML = '';
-        for (let i = 1; i <= 114; i++) {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = `${i}. ${getSurahName(i)}`;
-            selectSura.appendChild(opt);
-        }
-        selectSura.value = currentVal;
-    }
-
-    if (btnInspectAyah) {
-        btnInspectAyah.addEventListener('click', loadAyahAST);
-    }
-
-    async function loadAyahAST() {
-        if (!selectSura || !inputAyahNum || !astViewer) return;
-        const sura = parseInt(selectSura.value) || 1;
-        const ayah = parseInt(inputAyahNum.value) || 1;
-
-        astViewer.innerHTML = '<div class="empty-state"><p>AST ағашы мен таңбалар жүктелуде...</p></div>';
-
-        try {
-            const resp = await fetch(`/api/ayah/${sura}/${ayah}`);
-            const data = await resp.json();
-            renderAyahAST(data);
-        } catch (e) {
-            astViewer.innerHTML = '<div class="empty-state"><p style="color: var(--danger-primary)">Аят табылмады немесе сервер қатесі.</p></div>';
-        }
-    }
-
-    function renderAyahAST(data) {
-        astViewer.innerHTML = '';
-        const localizedSurah = getSurahName(data.sura);
-
-        const headerCard = document.createElement('div');
-        headerCard.className = 'audit-item';
-        headerCard.innerHTML = `
-            <div class="audit-badge-row">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="tag-badge success">Каноникалық аят [AST]</span>
-                    <button class="btn-play-ayah-audio" onclick="playAyahAudio(${data.sura}, ${data.ayah}, this)" title="Аятты тыңдау">
-                        ▶️ Тыңдау
-                    </button>
-                </div>
-                <span style="font-size: 14px; color: var(--gold-primary); font-weight: 700;">${localizedSurah} [${data.sura}:${data.ayah}]</span>
-            </div>
-            <div class="arabic-display">${data.text_uthmani}</div>
-            ${data.transliteration ? `<div class="transliteration-badge"><strong>Транскрипция:</strong> ${data.transliteration}</div>` : ''}
-            ${getTranslationHtml(data.translations, data.sura, data.ayah)}
-            ${data.tafsir ? `
-                <div class="tafsir-badge">
-                    <strong>📜 ${data.tafsir.title}:</strong>
-                    <div>${I18N.currentLang === 'kk' ? data.tafsir.summary_kk : data.tafsir.summary_ru}</div>
-                </div>
-            ` : ''}
-        `;
-        astViewer.appendChild(headerCard);
-
-        const tokensGrid = document.createElement('div');
-        tokensGrid.className = 'tokens-grid';
-
-        (data.tokens || []).forEach(tok => {
-            const tCard = document.createElement('div');
-            tCard.className = 'token-card';
-            tCard.innerHTML = `
-                <div class="token-form-ar">${tok.form || tok.form_ar || ''}</div>
-                <div class="token-meta-row">
-                    <span>${I18N.t('astLemma')}:</span>
-                    <span class="token-meta-val">${tok.lemma || '-'}</span>
-                </div>
-                <div class="token-meta-row">
-                    <span>${I18N.t('astRoot')}:</span>
-                    <span class="token-meta-val" style="color: var(--gold-bright); font-family: var(--font-quran); font-size: 16px;">${tok.root || '-'}</span>
-                </div>
-                <div class="token-meta-row">
-                    <span>${I18N.t('astPOS')}:</span>
-                    <span class="token-meta-val">${tok.pos || '-'}</span>
-                </div>
-            `;
-            tokensGrid.appendChild(tCard);
-        });
-
-        astViewer.appendChild(tokensGrid);
-    }
-
-    function getSurahName(suraNum) {
-        if (!suraNum || suraNum < 1 || suraNum > 114) return `Сура ${suraNum}`;
-        const lang = I18N.currentLang;
-        const dict = I18N.locales[lang] || I18N.locales.kk;
-        if (dict.surahNames && dict.surahNames[suraNum - 1]) {
-            return dict.surahNames[suraNum - 1];
-        }
-        return `Сура ${suraNum}`;
-    }
-
-    async function loadCryptographicIntegrity() {
-        try {
-            const resp = await fetch('/api/v1/integrity/verify');
-            const data = await resp.json();
-            const shaBadge = document.querySelector('.sha256-badge');
-            if (shaBadge && data.manifest_sha256) {
-                const shortHash = data.manifest_sha256.substring(0, 8) + '...' + data.manifest_sha256.substring(56);
-                shaBadge.textContent = `SHA-256: ${shortHash} (Live Verified)`;
-                shaBadge.title = `Full Manifest Hash: ${data.manifest_sha256}\nTranslations Hash: ${data.translations_sha256}\nCanonical Source: ${data.canonical_source}`;
-            }
-        } catch(e) {
-            console.warn("Integrity check notice:", e);
-        }
-    }
-
-    // Global Audio Player Bar Control Bindings
-    const btnPlayerPrev = document.getElementById('btnPlayerPrev');
+    // Floating Player Elements
+    const floatingPlayerBar = document.getElementById('floatingPlayerBar');
     const btnPlayerPlayPause = document.getElementById('btnPlayerPlayPause');
+    const playerTitle = document.getElementById('playerTitle');
+    const playerReciterName = document.getElementById('playerReciterName');
+    const btnPlayerPrev = document.getElementById('btnPlayerPrev');
     const btnPlayerNext = document.getElementById('btnPlayerNext');
     const btnToggleContinuous = document.getElementById('btnToggleContinuous');
     const playerSpeedSelect = document.getElementById('playerSpeedSelect');
     const btnClosePlayerBar = document.getElementById('btnClosePlayerBar');
-    const btnPlayFullSurah = document.getElementById('btnPlayFullSurah');
 
-    if (btnPlayerPrev) {
-        btnPlayerPrev.addEventListener('click', () => quranAudio.prev());
+    // Modals
+    const modalStandards = document.getElementById('modalStandards');
+    const btnToggleStandards = document.getElementById('btnToggleStandards');
+    const btnCloseStandards = document.getElementById('btnCloseStandards');
+    const modalFeedback = document.getElementById('modalFeedback');
+    const btnToggleFeedback = document.getElementById('btnToggleFeedback');
+    const btnCloseFeedback = document.getElementById('btnCloseFeedback');
+    const btnSubmitFeedback = document.getElementById('btnSubmitFeedback');
+    const feedbackName = document.getElementById('feedbackName');
+    const feedbackContact = document.getElementById('feedbackContact');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const feedbackStatusText = document.getElementById('feedbackStatusText');
+    const modalGuide = document.getElementById('modalGuide');
+    const btnToggleGuide = document.getElementById('btnToggleGuide');
+    const btnCloseGuide = document.getElementById('btnCloseGuide');
+
+    // =========================================================================
+    // 2. INITIALIZATION & SURAH LIST LOADING
+    // =========================================================================
+    async function initApp() {
+        await loadSurahsList();
+        await loadVisitorAnalytics();
+        await loadSurah(1);
+        await loadNamazTimes(51.1694, 71.4491); // Default Astana
+        calculateZakat();
     }
-    if (btnPlayerPlayPause) {
-        btnPlayerPlayPause.addEventListener('click', () => quranAudio.togglePlayPause());
+
+    // =========================================================================
+    // 3. PERSISTENT VISITOR ANALYTICS
+    // =========================================================================
+    async function loadVisitorAnalytics() {
+        try {
+            const resp = await fetch('/api/v1/analytics/visitor-count');
+            const data = await resp.json();
+            if (data.total_visitors && metricVisitors) {
+                metricVisitors.textContent = Number(data.total_visitors).toLocaleString();
+            }
+        } catch (e) {
+            console.warn("Analytics fetch notice:", e);
+        }
     }
-    if (btnPlayerNext) {
-        btnPlayerNext.addEventListener('click', () => quranAudio.next());
+
+    // =========================================================================
+    // 4. TAB SWITCHING
+    // =========================================================================
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            tabPanes.forEach(p => p.classList.remove('active'));
+            
+            btn.classList.add('active');
+            const targetId = btn.getAttribute('data-tab');
+            const targetPane = document.getElementById(targetId);
+            if (targetPane) targetPane.classList.add('active');
+        });
+    });
+
+    // =========================================================================
+    // 5. UNIVERSAL SMART SEARCH (REAL-TIME ACROSS SURAHS, AYAHS, HALAL, E-CODES)
+    // =========================================================================
+    let searchDebounce = null;
+
+    universalSearchInput.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        btnClearSearch.style.display = val ? 'block' : 'none';
+        
+        clearTimeout(searchDebounce);
+        if (val.length >= 2) {
+            searchDebounce = setTimeout(() => performUniversalSearch(val), 300);
+        } else {
+            searchResultsDropdown.style.display = 'none';
+        }
+    });
+
+    btnClearSearch.addEventListener('click', () => {
+        universalSearchInput.value = '';
+        btnClearSearch.style.display = 'none';
+        searchResultsDropdown.style.display = 'none';
+    });
+
+    btnCloseSearchResults.addEventListener('click', () => {
+        searchResultsDropdown.style.display = 'none';
+    });
+
+    btnUniversalSearchGo.addEventListener('click', () => {
+        const val = universalSearchInput.value.trim();
+        if (val) performUniversalSearch(val);
+    });
+
+    async function performUniversalSearch(query) {
+        searchResultsList.innerHTML = '<div class="loading-spinner"><p>Поиск по Корану и канонической базе...</p></div>';
+        searchResultsDropdown.style.display = 'block';
+
+        try {
+            // 1. Check Quran search endpoint
+            const quranResp = await fetch(`/api/v1/quran/search?q=${encodeURIComponent(query)}`);
+            const quranData = await quranResp.json();
+            const ayahs = quranData.results || [];
+
+            // 2. Check Halal Knowledge base
+            const halalResp = await fetch(`/api/v1/halal/screen`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: query })
+            });
+            const halalData = await halalResp.json();
+            const halalMatches = halalData.matches || [];
+
+            renderSearchResults(query, ayahs, halalMatches);
+        } catch (e) {
+            searchResultsList.innerHTML = '<p style="color: var(--danger-primary); padding: 12px;">Ошибка выполнения поиска.</p>';
+        }
     }
-    if (btnToggleContinuous) {
-        btnToggleContinuous.addEventListener('click', () => quranAudio.toggleContinuous());
+
+    function renderSearchResults(query, ayahs, halalMatches) {
+        searchResultsList.innerHTML = '';
+        const total = ayahs.length + halalMatches.length;
+        searchResultsCount.textContent = `Найдено результатов: ${total}`;
+
+        if (total === 0) {
+            searchResultsList.innerHTML = '<p style="padding: 16px; color: var(--text-secondary);">Ничего не найдено. Попробуйте изменить формулировку.</p>';
+            return;
+        }
+
+        // 1. Render Halal Matches First if found
+        if (halalMatches.length > 0) {
+            halalMatches.forEach(m => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                const isHaram = m.verdict === 'HARAM';
+                item.innerHTML = `
+                    <div class="search-result-header-line">
+                        <span style="font-weight: 800; color: ${isHaram ? '#F87171' : '#34D399'};">
+                            ${isHaram ? '🔴 ХАРАМ / ЗАПРЕЩЕНО' : '🟢 ХАЛЯЛЬ / ДОЗВОЛЕНО'}: ${m.title_ru}
+                        </span>
+                        <span style="font-size: 11px; color: var(--text-muted);">${m.ayah_ref || 'Шариат'}</span>
+                    </div>
+                    <div class="search-result-trans">${m.description_ru}</div>
+                `;
+                item.addEventListener('click', () => {
+                    searchResultsDropdown.style.display = 'none';
+                    document.querySelector('[data-tab="tab-halal"]').click();
+                    halalClauseInput.value = query;
+                    btnAuditHalal.click();
+                });
+                searchResultsList.appendChild(item);
+            });
+        }
+
+        // 2. Render Quran Ayahs
+        if (ayahs.length > 0) {
+            ayahs.forEach(a => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                const trans = a.translations?.ru || a.translations?.kk || a.translations?.en || '';
+                item.innerHTML = `
+                    <div class="search-result-header-line">
+                        <span class="search-result-title">📖 Сура ${a.sura}, Аят ${a.ayah} (${a.surah_name_ru || ''})</span>
+                    </div>
+                    <div class="search-result-arabic">${a.text_uthmani}</div>
+                    <div class="search-result-trans">${trans}</div>
+                `;
+                item.addEventListener('click', async () => {
+                    searchResultsDropdown.style.display = 'none';
+                    document.querySelector('[data-tab="tab-quran"]').click();
+                    selectSura.value = a.sura;
+                    await loadSurah(a.sura);
+                    
+                    // Scroll to specific Ayah
+                    const ayahCard = document.getElementById(`ayah-card-${a.sura}-${a.ayah}`);
+                    if (ayahCard) {
+                        ayahCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        playAyah(a.ayah - 1);
+                    }
+                });
+                searchResultsList.appendChild(item);
+            });
+        }
     }
-    if (playerSpeedSelect) {
-        playerSpeedSelect.addEventListener('change', (e) => quranAudio.setSpeed(e.target.value));
+
+    // =========================================================================
+    // 6. QURAN EXPLORER & AUDIO ENGINE (REAL 114 SURAHS & 3 RECITERS)
+    // =========================================================================
+    async function loadSurahsList() {
+        try {
+            const resp = await fetch('/api/v1/quran/surahs');
+            const data = await resp.json();
+            const surahs = data.surahs || [];
+            
+            selectSura.innerHTML = '';
+            surahs.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.number;
+                opt.textContent = `${s.number}. ${s.name_ru} (${s.name_ar}) • ${s.ayah_count} аятов`;
+                selectSura.appendChild(opt);
+            });
+        } catch (e) {
+            console.warn("Failed to load surahs list:", e);
+        }
     }
-    if (btnClosePlayerBar) {
-        btnClosePlayerBar.addEventListener('click', () => quranAudio.hideBar());
+
+    selectSura.addEventListener('change', (e) => {
+        const sura = parseInt(e.target.value) || 1;
+        loadSurah(sura);
+    });
+
+    selectReciter.addEventListener('change', (e) => {
+        currentReciter = e.target.value;
+        const reciterNames = {
+            alafasy: 'Мишари Рашид Аль-Афаси',
+            husary: 'Махмуд Халиль Аль-Хусари',
+            abdulbasit: 'Абдульбасит Абдуссамад'
+        };
+        playerReciterName.textContent = reciterNames[currentReciter] || currentReciter;
+    });
+
+    async function loadSurah(suraNum) {
+        currentSurah = suraNum;
+        ayahsStreamContainer.innerHTML = '<div class="loading-spinner"><p>Загрузка аятов суры...</p></div>';
+
+        try {
+            const resp = await fetch(`/api/v1/surah/${suraNum}`);
+            const data = await resp.json();
+            surahAyahsData = data.ayahs || [];
+
+            surahHeroArabic.textContent = data.surah_name_ar || `سورة ${suraNum}`;
+            surahHeroTitle.textContent = `${suraNum}. ${data.surah_name_ru || data.surah_name_kk || ''}`;
+            surahHeroMeta.textContent = `${data.ayah_count} Аятов • Uthmani Script • Синхронный перевод`;
+
+            renderAyahsStream(surahAyahsData, suraNum);
+        } catch (e) {
+            ayahsStreamContainer.innerHTML = '<p style="color: var(--danger-primary)">Ошибка загрузки суры.</p>';
+        }
     }
-    if (btnPlayFullSurah) {
-        btnPlayFullSurah.addEventListener('click', () => {
-            const sura = parseInt(selectSura?.value) || 1;
-            quranAudio.playFullSurah(sura);
+
+    function renderAyahsStream(ayahs, suraNum) {
+        ayahsStreamContainer.innerHTML = '';
+
+        ayahs.forEach((a, idx) => {
+            const card = document.createElement('div');
+            card.className = 'ayah-card';
+            card.id = `ayah-card-${suraNum}-${a.ayah}`;
+
+            const trans = a.translations?.ru || a.translations?.kk || a.translations?.en || '';
+            const translit = a.transliteration || '';
+
+            card.innerHTML = `
+                <div class="ayah-top-bar">
+                    <div class="ayah-number-badge">${a.ayah}</div>
+                    <div class="ayah-actions">
+                        <button class="btn-play-ayah" data-idx="${idx}">
+                            <span>▶ Слушать</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="ayah-arabic-text">${a.text_uthmani}</div>
+                ${translit ? `<div class="ayah-transliteration">${translit}</div>` : ''}
+                <div class="ayah-translation">${trans}</div>
+            `;
+
+            const btnPlay = card.querySelector('.btn-play-ayah');
+            btnPlay.addEventListener('click', () => {
+                playAyah(idx);
+            });
+
+            ayahsStreamContainer.appendChild(card);
         });
     }
 
-    // Initialize View
-    populateSurahs();
-    populateQuranSurahs();
-    loadFatihaSection();
-    loadSelectedSurahFull();
-    loadAyahAST();
-    loadAhkamCategory('tahrim');
-    loadCryptographicIntegrity();
-    loadVisitorCount();
+    // Audio Playback Controller
+    function playAyah(idx) {
+        if (!surahAyahsData || idx >= surahAyahsData.length) return;
+        currentPlayingAyahIndex = idx;
+        const ayahData = surahAyahsData[idx];
+        const audioUrl = ayahData.audio_urls[currentReciter] || ayahData.audio_urls.alafasy;
+
+        audio.src = audioUrl;
+        audio.playbackRate = parseFloat(playerSpeedSelect.value) || 1.0;
+        audio.play().catch(e => console.warn("Audio play blocked by browser:", e));
+
+        // Highlight playing card
+        document.querySelectorAll('.ayah-card').forEach(c => c.classList.remove('playing'));
+        const activeCard = document.getElementById(`ayah-card-${currentSurah}-${ayahData.ayah}`);
+        if (activeCard) activeCard.classList.add('playing');
+
+        // Show floating player bar
+        floatingPlayerBar.style.display = 'flex';
+        btnPlayerPlayPause.textContent = '⏸';
+        playerTitle.textContent = `Сура ${currentSurah}, Аят ${ayahData.ayah}`;
+    }
+
+    audio.addEventListener('ended', () => {
+        if (isContinuous && currentPlayingAyahIndex + 1 < surahAyahsData.length) {
+            playAyah(currentPlayingAyahIndex + 1);
+        } else {
+            btnPlayerPlayPause.textContent = '▶';
+            document.querySelectorAll('.ayah-card').forEach(c => c.classList.remove('playing'));
+        }
+    });
+
+    btnPlayFullSurah.addEventListener('click', () => {
+        playAyah(0);
+    });
+
+    btnPlayerPlayPause.addEventListener('click', () => {
+        if (audio.paused) {
+            audio.play();
+            btnPlayerPlayPause.textContent = '⏸';
+        } else {
+            audio.pause();
+            btnPlayerPlayPause.textContent = '▶';
+        }
+    });
+
+    btnPlayerPrev.addEventListener('click', () => {
+        if (currentPlayingAyahIndex > 0) playAyah(currentPlayingAyahIndex - 1);
+    });
+
+    btnPlayerNext.addEventListener('click', () => {
+        if (currentPlayingAyahIndex + 1 < surahAyahsData.length) playAyah(currentPlayingAyahIndex + 1);
+    });
+
+    btnToggleContinuous.addEventListener('click', () => {
+        isContinuous = !isContinuous;
+        btnToggleContinuous.classList.toggle('active', isContinuous);
+    });
+
+    playerSpeedSelect.addEventListener('change', (e) => {
+        audio.playbackRate = parseFloat(e.target.value) || 1.0;
+    });
+
+    btnClosePlayerBar.addEventListener('click', () => {
+        audio.pause();
+        floatingPlayerBar.style.display = 'none';
+        document.querySelectorAll('.ayah-card').forEach(c => c.classList.remove('playing'));
+    });
+
+    // =========================================================================
+    // 7. ANTI-HALLUCINATION GUARD & ROOTS EXPLORER
+    // =========================================================================
+    btnRunGuardValidation.addEventListener('click', async () => {
+        const text = guardTextInput.value.trim();
+        if (!text) return;
+
+        verificationResultBox.style.display = 'block';
+        verificationResultBox.innerHTML = '<div class="loading-spinner"><p>Выполняется детерминированная проверка цитат...</p></div>';
+
+        try {
+            const resp = await fetch('/api/v1/guard/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            });
+            const data = await resp.json();
+            renderGuardResult(data);
+        } catch (e) {
+            verificationResultBox.innerHTML = '<p style="color: var(--danger-primary)">Ошибка проверки.</p>';
+        }
+    });
+
+    btnPasteSampleGuard.addEventListener('click', () => {
+        guardTextInput.value = "В суре 2 аяте 288 сказано: «И вкушайте плоды смоковницы без меры...»";
+        btnRunGuardValidation.click();
+    });
+
+    function renderGuardResult(data) {
+        verificationResultBox.innerHTML = '';
+        const isValid = data.is_valid;
+        verificationResultBox.className = `verification-result-box ${isValid ? 'valid' : 'invalid'}`;
+
+        if (!data.claims_detected) {
+            verificationResultBox.innerHTML = `
+                <div class="verdict-header" style="color: #94A3B8;">ℹ️ Прямых цитат Корана в тексте не обнаружено</div>
+                <div class="verdict-desc">Система не выявила ссылок на суры или аяты. Текст не содержит утверждений о каноническом тексте.</div>
+            `;
+            return;
+        }
+
+        if (isValid) {
+            verificationResultBox.innerHTML = `
+                <div class="verdict-header" style="color: #34D399;">✅ ЦИТАТА ИЗ КОРАНА 100% ДОСТОВЕРНА (CANONICAL TANZIL)</div>
+                <div class="verdict-desc">Все номера аятов, канонический текст и огласовки полностью соответствуют канону. Галлюцинаций не обнаружено.</div>
+            `;
+        } else {
+            let violationsHtml = '';
+            (data.violations || []).forEach(v => {
+                violationsHtml += `<li><strong>${v.type}:</strong> ${v.details}</li>`;
+            });
+
+            verificationResultBox.innerHTML = `
+                <div class="verdict-header" style="color: #F87171;">🚨 ОБНАРУЖЕНА ОШИБКА / ГАЛЛЮЦИНАЦИЯ В ЦИТАТЕ!</div>
+                <div class="verdict-desc">В тексте выявлены несоответствия каноническому Корану:</div>
+                <ul style="padding-left: 20px; color: #FECACA; margin-bottom: 10px;">${violationsHtml}</ul>
+                <div style="font-size: 12px; color: var(--text-muted);">🛡️ Al-Furqan AI защитил от распространения недостоверного текста.</div>
+            `;
+        }
+    }
+
+    // 1,651 Roots Search
+    btnSearchRoot.addEventListener('click', async () => {
+        const root = rootSearchInput.value.trim();
+        if (!root) return;
+
+        rootSearchResults.innerHTML = '<p>Поиск по корню...</p>';
+        try {
+            const resp = await fetch(`/api/v1/root/${encodeURIComponent(root)}`);
+            const data = await resp.json();
+            const results = data.results || [];
+            
+            if (results.length === 0) {
+                rootSearchResults.innerHTML = `<p style="color: var(--text-muted)">По корню «${root}» аятов не найдено.</p>`;
+                return;
+            }
+
+            let html = `<p style="font-weight: 700; color: var(--gold-bright); margin-bottom: 8px;">Найдено ${data.total} аятов с корнем «${root}»:</p>`;
+            results.slice(0, 5).forEach(r => {
+                html += `
+                    <div style="background: var(--bg-surface-elevated); padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="font-size: 13px; font-weight: 700; color: var(--cyan-bright)">Сура ${r.sura}, Аят ${r.ayah}</div>
+                        <div style="font-family: 'Amiri Quran', serif; font-size: 18px; color: #FFF; line-height: 1.8; direction: rtl; text-align: right;">${r.text_uthmani}</div>
+                    </div>
+                `;
+            });
+            rootSearchResults.innerHTML = html;
+        } catch (e) {
+            rootSearchResults.innerHTML = '<p style="color: var(--danger-primary)">Ошибка поиска по корню.</p>';
+        }
+    });
+
+    // =========================================================================
+    // 8. REAL OCR PHOTO SCANNING & REAL PDF DOCUMENT AUDIT
+    // =========================================================================
+    // Real Photo OCR
+    btnTriggerOCR.addEventListener('click', () => inputProductImage.click());
+    inputProductImage.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        halalAuditResult.style.display = 'block';
+        halalAuditResult.innerHTML = '<div class="loading-spinner"><p>📷 Выполняется реальное OCR-распознавание изображения и анализ состава...</p></div>';
+
+        try {
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64Data = reader.result.split(',')[1];
+                const resp = await fetch('/api/v1/images/audit-ocr', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_base64: base64Data })
+                });
+                const data = await resp.json();
+                renderHalalResult(data);
+            };
+            reader.readAsDataURL(file);
+        } catch (err) {
+            halalAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Ошибка обработки фото.</p>';
+        }
+    });
+
+    // Real PDF Audit
+    btnTriggerPDF.addEventListener('click', () => inputContractPDF.click());
+    inputContractPDF.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        halalAuditResult.style.display = 'block';
+        halalAuditResult.innerHTML = '<div class="loading-spinner"><p>📑 PDF документ анализируется по стандартам AAOIFI и Корана...</p></div>';
+
+        try {
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const base64Data = reader.result.split(',')[1];
+                const resp = await fetch('/api/v1/documents/audit-pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pdf_base64: base64Data })
+                });
+                const data = await resp.json();
+                if (data.audit) {
+                    renderPDFAuditResult(data.audit);
+                }
+            };
+            reader.readAsDataURL(file);
+        } catch (err) {
+            halalAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Ошибка аудита PDF.</p>';
+        }
+    });
+
+    // Quick Chips & Text Halal Audit
+    document.querySelectorAll('.test-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const text = chip.getAttribute('data-text');
+            if (text) {
+                halalClauseInput.value = text;
+                btnAuditHalal.click();
+            }
+        });
+    });
+
+    btnAuditHalal.addEventListener('click', async () => {
+        const text = halalClauseInput.value.trim();
+        if (!text) return;
+
+        halalAuditResult.style.display = 'block';
+        halalAuditResult.innerHTML = '<div class="loading-spinner"><p>Проверка по канонической базе Халяль...</p></div>';
+
+        try {
+            const resp = await fetch('/api/v1/halal/screen', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: text })
+            });
+            const data = await resp.json();
+            renderHalalResult(data);
+        } catch (e) {
+            halalAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Ошибка проверки.</p>';
+        }
+    });
+
+    btnAuditAAOIFI.addEventListener('click', async () => {
+        const text = halalClauseInput.value.trim();
+        if (!text) return;
+
+        halalAuditResult.style.display = 'block';
+        halalAuditResult.innerHTML = '<div class="loading-spinner"><p>Финансовый аудит по стандартам AAOIFI...</p></div>';
+
+        try {
+            const resp = await fetch('/api/v1/contracts/audit-aaoifi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            });
+            const data = await resp.json();
+            renderAAOIFIResult(data);
+        } catch (e) {
+            halalAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Ошибка аудита AAOIFI.</p>';
+        }
+    });
+
+    function renderHalalResult(data) {
+        halalAuditResult.innerHTML = '';
+        const matches = data.matches || [];
+
+        if (matches.length === 0) {
+            halalAuditResult.className = 'halal-audit-result halal-card-halal';
+            halalAuditResult.innerHTML = `
+                <div class="verdict-header" style="color: #34D399;">🟢 ПРЯМЫХ ЗАПРЕТОВ НЕ ОБНАРУЖЕНО (ХАЛЯЛЬ / ДОЗВОЛЕНО)</div>
+                <div class="verdict-desc">По введенному составу в базе стандартов Халяль признаков Харама не найдено.</div>
+            `;
+            return;
+        }
+
+        let html = '';
+        matches.forEach(m => {
+            const isHaram = m.verdict === 'HARAM';
+            html += `
+                <div style="background: ${isHaram ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; border: 1px solid ${isHaram ? '#EF4444' : '#F59E0B'}; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+                    <div style="font-weight: 800; font-size: 15px; color: ${isHaram ? '#FCA5A5' : '#FDE68A'};">
+                        ${isHaram ? '🔴 ХАРАМ (ЗАПРЕТНО)' : '🟡 СОМНИТЕЛЬНО / ТРЕБУЕТ ПРОВЕРКИ'}: ${m.title_ru}
+                    </div>
+                    <div style="font-size: 13.5px; color: #E2E8F0; margin: 6px 0;">${m.description_ru}</div>
+                    <div style="font-size: 12px; color: var(--gold-bright); font-weight: 600;">📖 Основа в Коране: ${m.ayah_ref}</div>
+                </div>
+            `;
+        });
+        halalAuditResult.innerHTML = html;
+    }
+
+    function renderAAOIFIResult(data) {
+        halalAuditResult.innerHTML = '';
+        const isCompliant = data.is_compliant;
+        halalAuditResult.className = `halal-audit-result ${isCompliant ? 'halal-card-halal' : 'halal-card-haram'}`;
+
+        let findingsHtml = '';
+        (data.findings || []).forEach(f => {
+            findingsHtml += `<li><strong>${f.standard}:</strong> ${f.issue_ru} [${f.severity}]</li>`;
+        });
+
+        halalAuditResult.innerHTML = `
+            <div class="verdict-header" style="color: ${isCompliant ? '#34D399' : '#F87171'};">
+                ${isCompliant ? '✅ СООТВЕТСТВУЕТ ШАРИАТСКИМ СТАНДАРТАМ AAOIFI' : '❌ ОБНАРУЖЕНО НЕСООТВЕТСТВИЕ СТАНДАРТАМ AAOIFI'}
+            </div>
+            <div class="verdict-desc"><strong>Тип договора:</strong> ${data.contract_type} • <strong>Основа:</strong> ${data.quran_basis}</div>
+            ${findingsHtml ? `<ul style="padding-left: 20px; color: #FECACA;">${findingsHtml}</ul>` : ''}
+        `;
+    }
+
+    function renderPDFAuditResult(audit) {
+        halalAuditResult.innerHTML = '';
+        const gRep = audit.guard_report || {};
+        const aRep = audit.aaoifi_report || {};
+
+        halalAuditResult.className = `halal-audit-result ${aRep.is_compliant ? 'halal-card-halal' : 'halal-card-haram'}`;
+        halalAuditResult.innerHTML = `
+            <div class="verdict-header" style="color: #38BDF8;">📑 ОФИЦИАЛЬНЫЙ АУДИТОРСКИЙ ОТЧЕТ AL-FURQAN AI</div>
+            <div class="verdict-desc">
+                <strong>Страниц в PDF:</strong> ${audit.total_pages} • <strong>Символов:</strong> ${(audit.text_length || 0).toLocaleString()}
+            </div>
+            <div style="font-size: 13.5px; margin-bottom: 6px;">
+                ${gRep.claims_detected 
+                    ? (gRep.is_valid ? '✅ <strong>Цитаты Корана:</strong> 100% канонические.' : '🚨 <strong>Цитаты Корана:</strong> Обнаружены ошибки/искажения!')
+                    : 'ℹ️ <strong>Цитаты Корана:</strong> Прямых аятов в документе не обнаружено.'}
+            </div>
+            <div style="font-size: 13.5px;">
+                ${aRep.is_compliant 
+                    ? '✅ <strong>Финансовый аудит AAOIFI:</strong> Условия договора соответствуют Шариату.' 
+                    : '❌ <strong>Финансовый аудит AAOIFI:</strong> Обнаружены нарушения (Риба / Штрафы)!'}
+            </div>
+        `;
+    }
+
+    // =========================================================================
+    // 9. NAMAZ TIMES & ZAKAT CALCULATOR
+    // =========================================================================
+    cityPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            cityPills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            const lat = parseFloat(pill.getAttribute('data-lat'));
+            const lon = parseFloat(pill.getAttribute('data-lon'));
+            loadNamazTimes(lat, lon);
+        });
+    });
+
+    btnGetLocation.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+            alert("Геолокация не поддерживается вашим браузером.");
+            return;
+        }
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                cityPills.forEach(p => p.classList.remove('active'));
+                loadNamazTimes(pos.coords.latitude, pos.coords.longitude);
+            },
+            (err) => alert("Не удалось получить местоположение: " + err.message)
+        );
+    });
+
+    async function loadNamazTimes(lat, lon) {
+        try {
+            const resp = await fetch(`/api/v1/namaz/times?lat=${lat}&lon=${lon}`);
+            const data = await resp.json();
+            const times = data.prayer_times || {};
+
+            timeFajr.textContent = times.fajr || '--:--';
+            timeSunrise.textContent = times.sunrise || '--:--';
+            timeDhuhr.textContent = times.dhuhr || '--:--';
+            timeAsr.textContent = times.asr || '--:--';
+            timeMaghrib.textContent = times.maghrib || '--:--';
+            timeIsha.textContent = times.isha || '--:--';
+
+            qiblaDegreeText.textContent = `Кибла: ${data.qibla_bearing_deg}° (${data.qibla_compass_direction || ''})`;
+        } catch (e) {
+            console.warn("Namaz fetch notice:", e);
+        }
+    }
+
+    btnCalculateZakat.addEventListener('click', calculateZakat);
+
+    async function calculateZakat() {
+        const cash = parseFloat(zakatCash.value) || 0;
+        const gold = parseFloat(zakatGold.value) || 0;
+        const debts = parseFloat(zakatDebts.value) || 0;
+
+        try {
+            const resp = await fetch('/api/v1/zakat/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cash_savings: cash,
+                    gold_grams: gold,
+                    liabilities_due: debts,
+                    currency: '₸'
+                })
+            });
+            const res = await resp.json();
+
+            zakatAmountText.textContent = `${Number(res.zakat_due).toLocaleString()} ₸`;
+            if (res.is_obligatory) {
+                zakatNoteText.textContent = `Имущество превышает Нисаб (~${Number(res.gold_nisab_threshold).toLocaleString()} ₸). Закят обязателен к выплате (2.5%).`;
+            } else {
+                zakatNoteText.textContent = `Имущество меньше порога Нисаба (~${Number(res.gold_nisab_threshold).toLocaleString()} ₸). Закят не начисляется.`;
+            }
+        } catch (e) {
+            console.warn("Zakat calculation notice:", e);
+        }
+    }
+
+    // =========================================================================
+    // 10. MODALS & FEEDBACK
+    // =========================================================================
+    btnToggleStandards.addEventListener('click', () => modalStandards.style.display = 'flex');
+    btnCloseStandards.addEventListener('click', () => modalStandards.style.display = 'none');
+
+    btnToggleGuide.addEventListener('click', () => modalGuide.style.display = 'flex');
+    btnCloseGuide.addEventListener('click', () => modalGuide.style.display = 'none');
+
+    btnToggleFeedback.addEventListener('click', () => modalFeedback.style.display = 'flex');
+    btnCloseFeedback.addEventListener('click', () => modalFeedback.style.display = 'none');
+
+    btnSubmitFeedback.addEventListener('click', async () => {
+        const msg = feedbackMessage.value.trim();
+        if (!msg) {
+            alert("Пожалуйста, напишите сообщение.");
+            return;
+        }
+
+        try {
+            const resp = await fetch('/api/v1/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: feedbackName.value.trim() || 'Пользователь',
+                    email_or_phone: feedbackContact.value.trim() || '',
+                    category: 'suggestion',
+                    message: msg
+                })
+            });
+            const data = await resp.json();
+            feedbackStatusText.textContent = '✅ ' + (data.message_ru || 'Спасибо! Ваш отзыв успешно принят.');
+            feedbackStatusText.style.color = '#34D399';
+            feedbackMessage.value = '';
+            setTimeout(() => { modalFeedback.style.display = 'none'; feedbackStatusText.textContent = ''; }, 2000);
+        } catch (e) {
+            feedbackStatusText.textContent = '❌ Ошибка отправки отзыва.';
+            feedbackStatusText.style.color = '#F87171';
+        }
+    });
+
+    // Close modals on click outside
+    window.addEventListener('click', (e) => {
+        if (e.target === modalStandards) modalStandards.style.display = 'none';
+        if (e.target === modalFeedback) modalFeedback.style.display = 'none';
+        if (e.target === modalGuide) modalGuide.style.display = 'none';
+    });
+
+    // Language switch
+    selectLanguage.addEventListener('change', (e) => {
+        if (typeof I18N !== 'undefined' && I18N.setLanguage) {
+            I18N.setLanguage(e.target.value);
+        }
+    });
+
+    // Start App
+    await initApp();
 });
