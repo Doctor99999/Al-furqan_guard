@@ -1,5 +1,5 @@
-// Al-Furqan AI - Progressive Web App (PWA) Service Worker v12.0
-const CACHE_NAME = 'alfurqan-v12.0-fresh-cache';
+// Al-Furqan AI - Progressive Web App (PWA) Service Worker v13.0
+const CACHE_NAME = 'alfurqan-v13.0-fresh-cache';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
