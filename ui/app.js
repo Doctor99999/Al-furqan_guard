@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const statCountAllTime = document.getElementById('statCountAllTime');
     const statCells = document.querySelectorAll('.stat-cell');
 
-    let visitorStatsData = { today: 348, week: 2410, month: 9840, year: 14892, all_time: 14892 };
+    let visitorStatsData = { today: 0, week: 0, month: 0, year: 0, all_time: 0 };
     let currentVisitorPeriod = 'all_time';
     const periodI18nKeys = {
         today: 'metricToday',
@@ -175,7 +175,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // =========================================================================
     function updateVisitorBadgeDisplay() {
         if (!metricVisitors) return;
-        const currentCount = visitorStatsData[currentVisitorPeriod] || visitorStatsData.all_time || 14892;
+        const currentCount = visitorStatsData[currentVisitorPeriod] !== undefined 
+            ? visitorStatsData[currentVisitorPeriod] 
+            : (visitorStatsData.all_time || 0);
         metricVisitors.textContent = Number(currentCount).toLocaleString();
         
         if (metricVisitorsLabel) {
@@ -199,11 +201,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const data = await resp.json();
             
             visitorStatsData = {
-                today: data.today || 348,
-                week: data.week || 2410,
-                month: data.month || 9840,
-                year: data.year || 14892,
-                all_time: data.all_time || data.total_visitors || 14892
+                today: data.today || 0,
+                week: data.week || 0,
+                month: data.month || 0,
+                year: data.year || 0,
+                all_time: data.all_time || data.total_visitors || 0
             };
 
             if (statCountToday) statCountToday.textContent = Number(visitorStatsData.today).toLocaleString();

@@ -64,7 +64,8 @@ ANALYTICS_FILE = os.path.join(os.path.dirname(__file__), "analytics.json")
 
 def load_analytics() -> Dict[str, Any]:
     default_stats = {
-        "total_visits": 14892,
+        "total_visits": 0,
+        "total_pageviews": 0,
         "daily_visits": {},
         "unique_ips": [],
         "total_queries_verified": 0,
@@ -78,13 +79,12 @@ def load_analytics() -> Dict[str, Any]:
                 data = json.load(f)
                 if "daily_visits" not in data:
                     data["daily_visits"] = {}
-                if data.get("total_visits", 0) < 14892:
-                    data["total_visits"] = 14892
+                if "total_pageviews" not in data:
+                    data["total_pageviews"] = data.get("total_visits", 0)
                 return data
         except Exception:
             return default_stats
     return default_stats
-
 
 def save_analytics(data: Dict[str, Any]):
     try:
@@ -95,6 +95,7 @@ def save_analytics(data: Dict[str, Any]):
         print(f"[Analytics] Save error: {e}")
 
 ANALYTICS_DATA = load_analytics()
+
 
 app = FastAPI(
     title="Al-Furqan AI — L0 Ground Truth & Anti-Hallucination API",
@@ -230,8 +231,14 @@ async def verify_integrity():
 
 @app.get("/api/v1/analytics/visitor-count")
 async def get_visitor_count(request: Request):
-    """Tracks and returns real persistent visitor metrics across all timeframes (today, week, month, year, all-time)."""
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    """Tracks and returns real, 100% authentic persistent visitor metrics across all timeframes."""
+    # Extract real client IP (supporting Render, Cloudflare, Nginx proxies)
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+    else:
+        client_ip = request.headers.get("cf-connecting-ip") or request.headers.get("x-real-ip") or (request.client.host if request.client else "127.0.0.1")
+
     now_utc = datetime.datetime.now(datetime.timezone.utc)
     today_str = now_utc.strftime("%Y-%m-%d")
     current_year_str = now_utc.strftime("%Y")
@@ -248,6 +255,10 @@ async def get_visitor_count(request: Request):
     today_ips_set = set(ANALYTICS_DATA.get(today_ips_key, []))
     unique_all_set = set(ANALYTICS_DATA.get("unique_ips", []))
 
+    # Increment pageviews on every hit
+    ANALYTICS_DATA["total_pageviews"] = ANALYTICS_DATA.get("total_pageviews", 0) + 1
+
+    # Record unique visitor for today
     if ip_hash not in today_ips_set:
         today_ips_set.add(ip_hash)
         ANALYTICS_DATA[today_ips_key] = list(today_ips_set)
@@ -257,40 +268,29 @@ async def get_visitor_count(request: Request):
             unique_all_set.add(ip_hash)
             ANALYTICS_DATA["unique_ips"] = list(unique_all_set)
             
-        ANALYTICS_DATA["total_visits"] = ANALYTICS_DATA.get("total_visits", 14892) + 1
+        ANALYTICS_DATA["total_visits"] = len(unique_all_set)
         save_analytics(ANALYTICS_DATA)
 
     daily = ANALYTICS_DATA.get("daily_visits", {})
-    recorded_today = daily.get(today_str, 0)
-    recorded_week = sum(v for d, v in daily.items() if d >= start_of_week)
-    recorded_month = sum(v for d, v in daily.items() if d.startswith(current_month_str))
-    recorded_year = sum(v for d, v in daily.items() if d.startswith(current_year_str))
-    recorded_all = ANALYTICS_DATA.get("total_visits", 14892)
-
-    # Baselines for realistic enterprise presentation
-    base_today = 348
-    base_week = 2410
-    base_month = 9840
-    base_year = 14892
-    base_all = 14892
-
-    today_val = base_today + recorded_today
-    week_val = base_week + recorded_week
-    month_val = base_month + recorded_month
-    year_val = base_year + recorded_year
-    all_time_val = max(base_all, recorded_all)
+    real_today = daily.get(today_str, 0)
+    real_week = sum(v for d, v in daily.items() if d >= start_of_week)
+    real_month = sum(v for d, v in daily.items() if d.startswith(current_month_str))
+    real_year = sum(v for d, v in daily.items() if d.startswith(current_year_str))
+    real_all_time = sum(daily.values()) if daily else len(unique_all_set)
 
     return {
-        "today": today_val,
-        "week": week_val,
-        "month": month_val,
-        "year": year_val,
-        "all_time": all_time_val,
-        "total_visitors": all_time_val,
+        "today": real_today,
+        "week": real_week,
+        "month": real_month,
+        "year": real_year,
+        "all_time": real_all_time,
+        "total_visitors": real_all_time,
         "unique_visitors": len(unique_all_set),
+        "total_pageviews": ANALYTICS_DATA.get("total_pageviews", real_all_time),
         "total_queries_verified": ANALYTICS_DATA.get("total_queries_verified", 0),
-        "status": "LIVE_PERSISTENT"
+        "status": "LIVE_PERSISTENT_REAL"
     }
+
 
 
 @app.get("/api/v1/quran/surahs")
