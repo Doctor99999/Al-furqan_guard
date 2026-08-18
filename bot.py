@@ -802,6 +802,13 @@ def main():
         print("="*70 + "\n")
         return
 
+    import asyncio
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
     print("🚀 Запуск Al-Furqan AI Multi-Modal Telegram Bot...")
     app = ApplicationBuilder().token(token).build()
 
@@ -828,7 +835,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
 
     print("✅ Мультимодальный бот Al-Furqan AI успешно запущен и слушает события Telegram!")
-    app.run_polling()
+    app.run_polling(stop_signals=None, close_loop=False)
 
 if __name__ == "__main__":
     main()
