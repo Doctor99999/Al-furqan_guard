@@ -782,9 +782,36 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 # ТОЧКА ВХОДА
 # =========================================================================
 
+def create_bot_app(token: str):
+    """Factory to build configured Telegram Application instance."""
+    app = ApplicationBuilder().token(token).build()
+
+    # Регистрация команд
+    app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("fatiha", fatiha_command))
+    app.add_handler(CommandHandler("ayah", ayah_command))
+    app.add_handler(CommandHandler("surah", ayah_command))
+    app.add_handler(CommandHandler("halal", halal_command))
+    app.add_handler(CommandHandler("root", root_command))
+    app.add_handler(CommandHandler("search", search_command))
+    app.add_handler(CommandHandler("zakat", zakat_command))
+    
+    # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
+    app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+    
+    # Кнопки
+    app.add_handler(CallbackQueryHandler(handle_callback_query))
+    
+    # Текстовые сообщения
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+
+    return app
+
 def main():
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    
     if not token and os.path.exists("bot_config.json"):
         try:
             with open("bot_config.json", "r", encoding="utf-8") as f:
@@ -818,30 +845,8 @@ def main():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
 
-            print("🚀 Запуск Al-Furqan AI Multi-Modal Telegram Bot...")
-            app = ApplicationBuilder().token(token).build()
-
-            # Регистрация команд
-            app.add_handler(CommandHandler("start", start_command))
-            app.add_handler(CommandHandler("help", help_command))
-            app.add_handler(CommandHandler("fatiha", fatiha_command))
-            app.add_handler(CommandHandler("ayah", ayah_command))
-            app.add_handler(CommandHandler("surah", ayah_command))
-            app.add_handler(CommandHandler("halal", halal_command))
-            app.add_handler(CommandHandler("root", root_command))
-            app.add_handler(CommandHandler("search", search_command))
-            app.add_handler(CommandHandler("zakat", zakat_command))
-            
-            # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация
-            app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
-            app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
-            app.add_handler(MessageHandler(filters.LOCATION, handle_location))
-            
-            # Кнопки
-            app.add_handler(CallbackQueryHandler(handle_callback_query))
-            
-            # Текстовые сообщения
-            app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text_message))
+            print("🚀 Запуск Al-Furqan AI Multi-Modal Telegram Bot (Polling mode)...")
+            app = create_bot_app(token)
 
             print("✅ Мультимодальный бот Al-Furqan AI успешно запущен и слушает события Telegram!")
             # drop_pending_updates=True drops stale updates / webhook remnants
@@ -861,4 +866,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 

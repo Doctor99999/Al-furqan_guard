@@ -97,11 +97,57 @@ def save_analytics(data: Dict[str, Any]):
 ANALYTICS_DATA = load_analytics()
 
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: If TELEGRAM_BOT_TOKEN and RENDER_EXTERNAL_URL are present, configure Telegram Webhook!
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    ext_url = os.environ.get("RENDER_EXTERNAL_URL", "").rstrip("/")
+    if token and ext_url:
+        try:
+            import bot
+            bot_app = bot.create_bot_app(token)
+            await bot_app.initialize()
+            webhook_url = f"{ext_url}/api/v1/telegram-webhook"
+            print(f"[Telegram Webhook] Registering webhook on Render: {webhook_url}")
+            await bot_app.bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+            app.state.bot_app = bot_app
+            print(f"[Telegram Webhook] ✅ Webhook successfully activated! (0% polling conflicts)")
+        except Exception as e:
+            print(f"[Telegram Webhook] Setup notice: {e}")
+    yield
+    # Shutdown
+    if hasattr(app.state, "bot_app"):
+        try:
+            await app.state.bot_app.shutdown()
+        except Exception:
+            pass
+
 app = FastAPI(
     title="Al-Furqan AI — L0 Ground Truth & Anti-Hallucination API",
     description="Deterministic anti-hallucination guardrail, 1,651 roots analyzer, Halal screening, and AAOIFI Shariah compliance.",
-    version="2.0.0"
+    version="2.0.0",
+    lifespan=lifespan
 )
+
+@app.post("/api/v1/telegram-webhook")
+async def telegram_webhook(request: Request):
+    """Processes incoming Telegram updates via Webhook with zero conflicts."""
+    if not hasattr(request.app.state, "bot_app"):
+        return {"status": "bot_not_initialized"}
+    
+    try:
+        from telegram import Update
+        data = await request.json()
+        update = Update.de_json(data, request.app.state.bot_app.bot)
+        if update:
+            await request.app.state.bot_app.process_update(update)
+        return {"status": "ok"}
+    except Exception as e:
+        print(f"[Telegram Webhook] Processing error: {e}")
+        return {"status": "error", "message": str(e)}
+
 
 # 1. Enterprise Security Headers Middleware
 @app.middleware("http")

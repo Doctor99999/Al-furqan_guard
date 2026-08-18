@@ -50,11 +50,19 @@ def run_keep_alive_daemon():
 
 def run_telegram_bot():
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    external_url = os.environ.get("RENDER_EXTERNAL_URL", "").strip()
+
+    # When running on Render with public URL, FastAPI handles Telegram updates natively via Webhook!
+    # This completely eliminates getUpdates polling and 100% prevents Conflict errors during deployment!
+    if external_url:
+        print("[Unified Runner] RENDER_EXTERNAL_URL detected. Telegram Bot is running in Webhook mode inside FastAPI (No polling conflicts!).")
+        return
+
     if not token:
         print("[Unified Runner] TELEGRAM_BOT_TOKEN not set. Telegram bot disabled.")
         return
     
-    print("[Unified Runner] Starting Telegram Bot (@alfurqan_quran_bot) in background supervisor thread...")
+    print("[Unified Runner] Starting Telegram Bot in Long-Polling mode (Local development)...")
     while True:
         try:
             import asyncio
@@ -67,6 +75,7 @@ def run_telegram_bot():
         except Exception as e:
             print(f"[Unified Runner] Telegram Bot supervisor notice: {e}. Auto-restarting in 10s...")
             time.sleep(10)
+
 
 
 def run_web_server():
