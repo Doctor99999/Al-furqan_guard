@@ -56,6 +56,10 @@ def run_telegram_bot():
     
     print("[Unified Runner] Starting Telegram Bot (@alfurqan_quran_bot) in background thread...")
     try:
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
         import bot
         bot.main()
     except Exception as e:
