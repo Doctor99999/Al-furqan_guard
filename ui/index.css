@@ -1803,15 +1803,18 @@ body::before {
 
 @media (max-width: 768px) {
     .app-container {
-        padding: 0 14px 110px;
+        padding: 0 12px 110px;
+        max-width: 100vw;
+        overflow-x: hidden;
     }
     
     .app-header {
-        margin: 0 -14px 20px;
-        padding: 8px 14px;
+        margin: 0 -12px 18px;
+        padding: 8px 12px;
         flex-direction: column;
         align-items: stretch;
         gap: 10px;
+        max-width: 100vw;
     }
     
     .header-left {
@@ -1823,14 +1826,15 @@ body::before {
         justify-content: flex-start;
         width: 100%;
         gap: 6px;
+        flex-wrap: wrap;
     }
     
     .brand-subtitle {
-        max-width: 240px;
+        max-width: 220px;
     }
 
     .welcome-guide-section {
-        padding: 24px 16px;
+        padding: 20px 14px;
         border-radius: var(--radius-xl);
     }
 
@@ -1857,6 +1861,16 @@ body::before {
         display: none; /* Hide subtext on phone for clean Apple pill look */
     }
 
+    .panel-card {
+        padding: 20px 14px;
+        border-radius: var(--radius-xl);
+    }
+
+    .panel-group {
+        min-width: 130px;
+        width: 100%;
+    }
+
     .grid-2-col {
         grid-template-columns: 1fr;
     }
@@ -1881,10 +1895,13 @@ body::before {
     .bottom-stats-row {
         justify-content: flex-start;
         gap: 6px;
+        flex-wrap: wrap;
     }
 
     .floating-player-bar {
         width: calc(100% - 16px);
+        max-width: calc(100vw - 16px);
+        left: 8px;
         bottom: 8px;
         padding: 8px 12px;
         border-radius: var(--radius-xl);
@@ -1899,16 +1916,53 @@ body::before {
     }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
     .main-tabs-bar {
         grid-template-columns: 1fr;
+        gap: 6px;
     }
-    
+
     .prayer-times-grid {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .universal-search-box {
+        padding: 4px 6px;
+    }
+
+    .btn-universal-search {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
+    .brand-title {
+        font-size: 16px;
+    }
+
+    .brand-subtitle {
+        display: none;
     }
     
     .btn-toggle-continuous {
         display: none;
+    }
+}
+
+@media (max-width: 360px) {
+    .app-container {
+        padding: 0 8px 110px;
+    }
+
+    .panel-card {
+        padding: 14px 10px;
+    }
+
+    .prayer-times-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .btn {
+        padding: 8px 12px;
+        font-size: 12.5px;
     }
 }

@@ -613,16 +613,17 @@ async def root_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    root = context.args[0].strip()
+    root = " ".join(context.args).strip()
     results = engine.search_by_root(root)
     
     if not results:
         await update.message.reply_markdown(f"❌ По корню `«{root}»` аятов не найдено.")
         return
 
+    canonical_root = results[0].get("root", root)
     total = len(results)
     msg_lines = [
-        f"🧬 *Корень:* `{root}`\n"
+        f"🧬 *Корень:* `{canonical_root}` (запрос: {root})\n"
         f"📊 *Найдено аятов:* {total} (показаны первые 5)\n"
     ]
     
@@ -634,7 +635,7 @@ async def root_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         trans = res.get("translations", {}).get(lang) or res.get("translations", {}).get("ru") or ""
         sura_name = engine.SURAH_NAMES.get(lang, engine.SURAH_NAMES["ru"])[sura - 1]
         
-        msg_lines.append(f"• *{sura_name} [{sura}:{ayah}]* (встретился {res['root_occurrences']} раз)")
+        msg_lines.append(f"• 📖 *{sura_name} [{sura}:{ayah}]*")
         msg_lines.append(f"  `{ar}`")
         if trans:
             msg_lines.append(f"  _{trans}_")

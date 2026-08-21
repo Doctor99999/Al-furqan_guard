@@ -76,6 +76,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const halalClauseInput = document.getElementById('halalClauseInput');
     const btnAuditHalal = document.getElementById('btnAuditHalal');
     const btnAuditAAOIFI = document.getElementById('btnAuditAAOIFI');
+    const inputBarcode = document.getElementById('inputBarcode');
+    const btnCheckBarcode = document.getElementById('btnCheckBarcode');
     const btnTriggerOCR = document.getElementById('btnTriggerOCR');
     const inputProductImage = document.getElementById('inputProductImage');
     const btnTriggerPDF = document.getElementById('btnTriggerPDF');
@@ -652,35 +654,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    window.playSpecificAyah = async (sura, ayah) => {
+        if (currentSurah !== sura) {
+            selectSura.value = sura;
+            await loadSurah(sura);
+        }
+        playAyah(ayah - 1);
+    };
+
     // 1,651 Roots Search
-    btnSearchRoot.addEventListener('click', async () => {
+    const performRootSearch = async () => {
         const root = rootSearchInput.value.trim();
         if (!root) return;
 
-        rootSearchResults.innerHTML = `<p>${I18N.t('rootSearchingText') || 'Поиск по корню...'}</p>`;
+        rootSearchResults.innerHTML = `<div class="loading-spinner"><p>${I18N.t('rootSearchingText') || 'Поиск по корню...'}</p></div>`;
         try {
             const resp = await fetch(`/api/v1/root/${encodeURIComponent(root)}`);
             const data = await resp.json();
             const results = data.results || [];
             
-            if (results.length === 0) {
-                rootSearchResults.innerHTML = `<p style="color: var(--text-muted)">${I18N.t('rootNotFoundText', { root: root }) || `По корню «${root}» аятов не найдено.`}</p>`;
+            if (!Array.isArray(results) || results.length === 0) {
+                rootSearchResults.innerHTML = `<p style="color: var(--text-secondary); padding: 12px 0;">${I18N.t('rootNotFoundText', { root: root }) || `По корню «${root}» аятов не найдено.`}</p>`;
                 return;
             }
 
-            const headerText = I18N.t('rootFoundText', { root: root, total: data.total }) || `Найдено ${data.total} аятов с корнем «${root}»:`;
-            let html = `<p style="font-weight: 700; color: var(--gold-bright); margin-bottom: 8px;">${headerText}</p>`;
-            results.slice(0, 5).forEach(r => {
+            const headerText = I18N.t('rootFoundText', { root: data.root || root, total: data.total || results.length }) || `Найдено ${data.total || results.length} аятов с корнем «${data.root || root}»:`;
+            let html = `<div style="font-weight: 700; color: var(--apple-gold); margin-bottom: 12px; font-size: 14px;">${headerText}</div>`;
+            
+            const currentLang = I18N.currentLang || 'ru';
+            results.slice(0, 15).forEach(r => {
+                const surahName = r[`surah_name_${currentLang}`] || r.surah_name_ru || `Сура ${r.sura}`;
+                const trans = (r.translations && (r.translations[currentLang] || r.translations.ru || r.translations.kk)) || '';
+                const translit = r.transliteration ? `<div class="ayah-translit" style="margin-bottom: 4px;">${r.transliteration}</div>` : '';
+                
                 html += `
-                    <div style="background: var(--bg-surface-elevated); padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;">
-                        <div style="font-size: 13px; font-weight: 700; color: var(--cyan-bright)">${I18N.t('playerTitlePrefix', { sura: r.sura, ayah: r.ayah })}</div>
-                        <div style="font-family: 'Amiri Quran', serif; font-size: 18px; color: #FFF; line-height: 1.8; direction: rtl; text-align: right;">${r.text_uthmani}</div>
+                    <div class="search-result-item" style="margin-bottom: 10px; padding: 16px;">
+                        <div class="search-result-header-line">
+                            <span class="search-result-title">📖 ${surahName} [${r.sura}:${r.ayah}]</span>
+                            <button class="btn-play-ayah" onclick="window.playSpecificAyah(${r.sura}, ${r.ayah})">▶ ${I18N.t('btnPlayAyah') || 'Слушать'}</button>
+                        </div>
+                        <div class="search-result-arabic" style="font-size: 22px; line-height: 2; margin-bottom: 6px;">${r.text_uthmani}</div>
+                        ${translit}
+                        <div class="search-result-trans" style="font-size: 13.5px; line-height: 1.5; color: var(--text-primary);">${trans}</div>
                     </div>
                 `;
             });
             rootSearchResults.innerHTML = html;
         } catch (e) {
-            rootSearchResults.innerHTML = '<p style="color: var(--danger-primary)">Ошибка поиска по корню.</p>';
+            rootSearchResults.innerHTML = '<p style="color: var(--apple-red); padding: 10px 0;">Ошибка поиска по корню.</p>';
+        }
+    };
+
+    btnSearchRoot.addEventListener('click', performRootSearch);
+    rootSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performRootSearch();
         }
     });
 
@@ -754,9 +783,110 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Barcode Search via Open Food Facts (2.5M+ products)
+    const performBarcodeSearch = async (customBarcode) => {
+        const rawCode = customBarcode || (inputBarcode ? inputBarcode.value : '') || (halalClauseInput ? halalClauseInput.value : '');
+        const barcode = (rawCode || '').trim();
+        if (!barcode) return;
+
+        halalAuditResult.style.display = 'block';
+        halalAuditResult.innerHTML = `<div class="loading-spinner"><p>${I18N.t('barcodeSearching') || 'Поиск товара в глобальной базе Open Food Facts и проверка состава...'}</p></div>`;
+
+        try {
+            const resp = await fetch(`/api/v1/halal/barcode/${encodeURIComponent(barcode)}`);
+            const data = await resp.json();
+            renderBarcodeResult(data);
+        } catch (e) {
+            halalAuditResult.innerHTML = `<p style="color: var(--apple-red); padding: 10px 0;">${I18N.t('barcodeNotFound') || 'Ошибка поиска по штрихкоду.'}</p>`;
+        }
+    };
+
+    if (btnCheckBarcode) btnCheckBarcode.addEventListener('click', () => performBarcodeSearch());
+    if (inputBarcode) {
+        inputBarcode.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performBarcodeSearch();
+            }
+        });
+    }
+
+    function renderBarcodeResult(data) {
+        halalAuditResult.innerHTML = '';
+        const currentLang = I18N.currentLang || 'ru';
+        
+        if (data.halal_verdict === 'NOT_FOUND') {
+            halalAuditResult.className = 'halal-audit-result';
+            halalAuditResult.innerHTML = `
+                <div style="padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;">
+                    <div style="font-weight: 700; font-size: 15px; color: var(--apple-gold); margin-bottom: 8px;">📦 ${data.name || 'Товар не найден'}</div>
+                    <div style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">${data.summary || I18N.t('barcodeNotFound')}</div>
+                </div>
+            `;
+            return;
+        }
+
+        const isHaram = data.halal_verdict === 'HARAM';
+        const isDoubtful = data.halal_verdict === 'DOUBTFUL' || data.halal_verdict === 'SHUBHA';
+
+        let badgeColor = '#34D399';
+        let badgeBg = 'rgba(52, 211, 153, 0.12)';
+        let badgeBorder = 'rgba(52, 211, 153, 0.3)';
+        let verdictLabel = I18N.t('verdictHalalDirectHeader') || '🟢 ХАЛЯЛЬ / ДОЗВОЛЕНО (HALAL)';
+
+        if (isHaram) {
+            badgeColor = '#F87171';
+            badgeBg = 'rgba(239, 68, 68, 0.12)';
+            badgeBorder = 'rgba(239, 68, 68, 0.3)';
+            verdictLabel = I18N.t('verdictHaramBadge') || '🔴 ХАРАМ (ЗАПРЕТНО / HARAM)';
+        } else if (isDoubtful) {
+            badgeColor = '#FBBF24';
+            badgeBg = 'rgba(245, 158, 11, 0.12)';
+            badgeBorder = 'rgba(245, 158, 11, 0.3)';
+            verdictLabel = I18N.t('verdictDoubtfulBadge') || '🟡 КҮМӘНДІ / ТРЕБУЕТ ПРОВЕРКИ (DOUBTFUL)';
+        }
+
+        const summaryText = data[`summary_${currentLang}`] || data.summary_ru || data.summary || '';
+        const ingredientsText = data.ingredients_text ? `
+            <div style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                <strong style="color: var(--text-primary);">${I18N.t('barcodeIngredientsTitle') || '📝 Состав:'}</strong> ${data.ingredients_text}
+            </div>
+        ` : '';
+
+        let additivesHtml = '';
+        if (data.haram_items && data.haram_items.length > 0) {
+            additivesHtml += `<div style="margin-top: 10px; font-size: 13px; color: #FCA5A5;"><strong>🔴 ${I18N.t('verdictHaramBadge') || 'Запрещенные компоненты'}:</strong> ${data.haram_items.join(', ')}</div>`;
+        }
+        if (data.doubtful_items && data.doubtful_items.length > 0) {
+            additivesHtml += `<div style="margin-top: 8px; font-size: 13px; color: #FDE68A;"><strong>🟡 ${I18N.t('verdictDoubtfulBadge') || 'Сомнительные добавки'}:</strong> ${data.doubtful_items.join(', ')}</div>`;
+        }
+
+        halalAuditResult.innerHTML = `
+            <div style="background: ${badgeBg}; border: 1px solid ${badgeBorder}; border-radius: 12px; padding: 18px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 16px; color: ${badgeColor};">${verdictLabel}</div>
+                        <div style="font-size: 14.5px; font-weight: 600; color: #FFF; margin-top: 4px;">📦 ${data.name || ''} ${data.brand ? '— ' + data.brand : ''}</div>
+                    </div>
+                    <span style="font-size: 11.5px; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">#${data.barcode}</span>
+                </div>
+                <div style="font-size: 13.5px; color: #E2E8F0; line-height: 1.5;">${summaryText}</div>
+                ${additivesHtml}
+                ${ingredientsText}
+            </div>
+        `;
+    }
+
     btnAuditHalal.addEventListener('click', async () => {
         const text = halalClauseInput.value.trim();
         if (!text) return;
+
+        // Auto-detect barcode if input is all digits (8 to 14 digits)
+        const cleanDigits = text.replace(/\D/g, '');
+        if (cleanDigits.length >= 8 && cleanDigits.length <= 14 && cleanDigits === text.trim()) {
+            performBarcodeSearch(cleanDigits);
+            return;
+        }
 
         halalAuditResult.style.display = 'block';
         halalAuditResult.innerHTML = `<div class="loading-spinner"><p>${I18N.t('halalChecking') || 'Проверка по канонической базе Халяль...'}</p></div>`;
@@ -830,47 +960,129 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function renderAAOIFIResult(data) {
         halalAuditResult.innerHTML = '';
+        const currentLang = I18N.currentLang || 'ru';
         const isCompliant = data.is_compliant;
-        halalAuditResult.className = `halal-audit-result ${isCompliant ? 'halal-card-halal' : 'halal-card-haram'}`;
+        const findings = data.findings || [];
 
         let findingsHtml = '';
-        (data.findings || []).forEach(f => {
-            findingsHtml += `<li><strong>${f.standard}:</strong> ${f.issue_ru} [${f.severity}]</li>`;
-        });
+        if (findings.length > 0) {
+            findings.forEach(f => {
+                const title = f[`risk_title_${currentLang}`] || f.risk_title_ru || f.standard;
+                const issue = f[`issue_${currentLang}`] || f.issue_ru || '';
+                const solution = f[`solution_${currentLang}`] || f.solution_ru || '';
+                const ayahTrans = f[`ayah_trans_${currentLang}`] || f.ayah_trans_ru || '';
+
+                findingsHtml += `
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; margin-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                            <div style="font-weight: 800; font-size: 15px; color: #FCA5A5;">${title}</div>
+                            <span style="font-size: 11px; background: rgba(239, 68, 68, 0.2); color: #FECACA; padding: 3px 8px; border-radius: 6px; font-weight: 700;">${f.severity || 'CRITICAL'}</span>
+                        </div>
+                        <div style="font-size: 13.5px; color: #F1F5F9; line-height: 1.5; margin-bottom: 8px;"><strong>⚠️ Нарушение:</strong> ${issue}</div>
+                        
+                        <!-- Quran Basis Card -->
+                        <div style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid var(--apple-gold); padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
+                            <div style="font-size: 12px; font-weight: 700; color: var(--apple-gold); margin-bottom: 4px;">📖 Противоречит Священному Корану: ${f.ayah_ref || 'Коран'}</div>
+                            ${f.ayah_arabic ? `<div style="font-family: 'Amiri Quran', serif; font-size: 19px; color: #FFF; line-height: 1.8; direction: rtl; text-align: right; margin-bottom: 4px;">${f.ayah_arabic}</div>` : ''}
+                            ${ayahTrans ? `<div style="font-size: 12.5px; color: #CBD5E1; font-style: italic;">${ayahTrans}</div>` : ''}
+                        </div>
+
+                        <div style="font-size: 12px; color: #38BDF8; margin-bottom: 4px;"><strong>⚖️ Стандарт:</strong> ${f.standard}</div>
+                        ${solution ? `<div style="font-size: 12.5px; color: #34D399; margin-top: 6px;"><strong>💡 Рекомендация по устранению риска:</strong> ${solution}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
 
         const headerText = isCompliant 
-            ? (I18N.t('aaoifiCompliantHeader') || '✅ СООТВЕТСТВУЕТ ШАРИАТСКИМ СТАНДАРТАМ AAOIFI')
-            : (I18N.t('aaoifiNonCompliantHeader') || '❌ ОБНАРУЖЕНО НЕСООТВЕТСТВИЕ СТАНДАРТАМ AAOIFI');
+            ? (I18N.t('aaoifiCompliantHeader') || '🟢 ДОГОВОР СООТВЕТСТВУЕТ ШАРИАТСКИМ СТАНДАРТАМ AAOIFI')
+            : (I18N.t('aaoifiNonCompliantHeader') || '🔴 В ДОГОВОРЕ ОБНАРУЖЕНЫ ШАРИАТСКИЕ РИСКИ И НАРУШЕНИЯ');
 
         halalAuditResult.innerHTML = `
-            <div class="verdict-header" style="color: ${isCompliant ? '#34D399' : '#F87171'};">
-                ${headerText}
+            <div style="padding: 18px; border-radius: 12px; background: ${isCompliant ? 'rgba(52, 211, 153, 0.08)' : 'rgba(239, 68, 68, 0.08)'}; border: 1px solid ${isCompliant ? 'rgba(52, 211, 153, 0.25)' : 'rgba(239, 68, 68, 0.25)'};">
+                <div class="verdict-header" style="color: ${isCompliant ? '#34D399' : '#F87171'}; font-size: 16px; font-weight: 800;">
+                    ${headerText}
+                </div>
+                <div class="verdict-desc" style="margin-top: 6px; font-size: 13px; color: var(--text-secondary);">
+                    <strong>Тип договора:</strong> ${data.contract_type} • <strong>Шариатский базис:</strong> ${data.quran_basis || 'AAOIFI'}
+                </div>
+                ${findingsHtml}
             </div>
-            <div class="verdict-desc"><strong>${I18N.t('aaoifiContractType', { type: data.contract_type }) || `Тип договора: ${data.contract_type}`}</strong> • <strong>${data.quran_basis}</strong></div>
-            ${findingsHtml ? `<ul style="padding-left: 20px; color: #FECACA;">${findingsHtml}</ul>` : ''}
         `;
     }
 
     function renderPDFAuditResult(audit) {
         halalAuditResult.innerHTML = '';
+        const currentLang = I18N.currentLang || 'ru';
         const gRep = audit.guard_report || {};
         const aRep = audit.aaoifi_report || {};
+        const findings = aRep.findings || [];
 
-        halalAuditResult.className = `halal-audit-result ${aRep.is_compliant ? 'halal-card-halal' : 'halal-card-haram'}`;
+        let findingsHtml = '';
+        if (findings.length > 0) {
+            findings.forEach(f => {
+                const title = f[`risk_title_${currentLang}`] || f.risk_title_ru || f.standard;
+                const issue = f[`issue_${currentLang}`] || f.issue_ru || '';
+                const solution = f[`solution_${currentLang}`] || f.solution_ru || '';
+                const ayahTrans = f[`ayah_trans_${currentLang}`] || f.ayah_trans_ru || '';
+
+                findingsHtml += `
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; margin-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                            <div style="font-weight: 800; font-size: 15px; color: #FCA5A5;">${title}</div>
+                            <span style="font-size: 11px; background: rgba(239, 68, 68, 0.2); color: #FECACA; padding: 3px 8px; border-radius: 6px; font-weight: 700;">${f.severity || 'CRITICAL'}</span>
+                        </div>
+                        <div style="font-size: 13.5px; color: #F1F5F9; line-height: 1.5; margin-bottom: 8px;"><strong>⚠️ Обнаруженный риск:</strong> ${issue}</div>
+                        
+                        <!-- Contradicting Quran Ayah Card -->
+                        <div style="background: rgba(0, 0, 0, 0.35); border-left: 3px solid var(--apple-gold); padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;">
+                            <div style="font-size: 12px; font-weight: 700; color: var(--apple-gold); margin-bottom: 4px;">📖 Противоречит Священному Корану: ${f.ayah_ref || 'Коран'}</div>
+                            ${f.ayah_arabic ? `<div style="font-family: 'Amiri Quran', serif; font-size: 19px; color: #FFF; line-height: 1.8; direction: rtl; text-align: right; margin-bottom: 4px;">${f.ayah_arabic}</div>` : ''}
+                            ${ayahTrans ? `<div style="font-size: 12.5px; color: #CBD5E1; font-style: italic;">${ayahTrans}</div>` : ''}
+                        </div>
+
+                        <div style="font-size: 12px; color: #38BDF8; margin-bottom: 4px;"><strong>⚖️ Стандарт:</strong> ${f.standard}</div>
+                        ${solution ? `<div style="font-size: 12.5px; color: #34D399; margin-top: 6px;"><strong>💡 Рекомендация аудитора:</strong> ${solution}</div>` : ''}
+                    </div>
+                `;
+            });
+        }
+
+        const isCompliant = aRep.is_compliant;
         halalAuditResult.innerHTML = `
-            <div class="verdict-header" style="color: #38BDF8;">${I18N.t('pdfReportHeader') || '📑 ОФИЦИАЛЬНЫЙ АУДИТОРСКИЙ ОТЧЕТ AL-FURQAN AI'}</div>
-            <div class="verdict-desc">
-                <strong>${I18N.t('pdfPagesLabel', { pages: audit.total_pages })}</strong> • <strong>${I18N.t('pdfCharsLabel', { chars: (audit.text_length || 0).toLocaleString() })}</strong>
-            </div>
-            <div style="font-size: 13.5px; margin-bottom: 6px;">
-                ${gRep.claims_detected 
-                    ? (gRep.is_valid ? I18N.t('pdfQuotesClean') : I18N.t('pdfQuotesError'))
-                    : I18N.t('pdfQuotesNone')}
-            </div>
-            <div style="font-size: 13.5px;">
-                ${aRep.is_compliant 
-                    ? I18N.t('pdfAaoifiClean')
-                    : I18N.t('pdfAaoifiError')}
+            <div style="padding: 18px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <div class="verdict-header" style="color: #38BDF8; font-size: 16px; font-weight: 800;">
+                        📑 АУДИТОРСКОЕ ЗАКЛЮЧЕНИЕ AL-FURQAN GUARD (PDF)
+                    </div>
+                    <span style="font-size: 12px; color: var(--text-secondary); background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 6px;">
+                        📄 Страниц: ${audit.total_pages || 1} • 🔤 Символов: ${(audit.text_length || 0).toLocaleString()}
+                    </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                    <div style="background: ${aRep.is_compliant ? 'rgba(52, 211, 153, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; border: 1px solid ${aRep.is_compliant ? 'rgba(52, 211, 153, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; border-radius: 8px; padding: 12px;">
+                        <div style="font-size: 12px; color: var(--text-secondary);">Шариатский комплаенс (AAOIFI):</div>
+                        <div style="font-weight: 800; font-size: 14px; color: ${aRep.is_compliant ? '#34D399' : '#F87171'}; margin-top: 4px;">
+                            ${aRep.is_compliant ? '🟢 Соответствует стандарту' : `🔴 Найдено рисков: ${findings.length}`}
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
+                        <div style="font-size: 12px; color: var(--text-secondary);">Цитаты из Корана (Ground Truth):</div>
+                        <div style="font-weight: 800; font-size: 14px; color: #38BDF8; margin-top: 4px;">
+                            ${gRep.claims_detected ? (gRep.is_valid ? '✅ Цитаты 100% достоверны' : '⚠️ Найдено искажение цитат') : 'ℹ️ Прямых цитат не обнаружено'}
+                        </div>
+                    </div>
+                </div>
+
+                ${findingsHtml}
+
+                ${audit.text_preview ? `
+                    <details style="margin-top: 14px; font-size: 12px; color: var(--text-muted); cursor: pointer;">
+                        <summary style="font-weight: 600; color: var(--text-secondary);">📄 Показать превью извлеченного текста PDF</summary>
+                        <pre style="margin-top: 8px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 6px; white-space: pre-wrap; font-family: monospace; font-size: 11.5px; color: #94A3B8; max-height: 200px; overflow-y: auto;">${audit.text_preview}</pre>
+                    </details>
+                ` : ''}
             </div>
         `;
     }

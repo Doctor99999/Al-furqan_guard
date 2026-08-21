@@ -266,16 +266,29 @@ class QuranEngine:
             return False, f"В суре {sura} ({surah_name}) всего {max_ayahs} аятов, запрошен аят {ayah}."
         return True, "OK"
 
-    def search_by_root(self, root: str) -> List[Dict[str, Any]]:
-        """Finds all Ayahs and specific words containing the given 3/4-letter root."""
-        root_norm = normalize_arabic(root).replace(" ", "")
-        # Exact root match
-        matches = []
+    def search_by_root(self, root: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Finds all Ayahs and specific words containing the given 3/4-letter root (or cross-lingual term)."""
+        clean_root = root.strip()
+        if not clean_root:
+            return []
+
+        # 1. Cross-lingual mapping check (e.g. сабыр, терпение, sbr -> صبر)
         target_root = None
-        for r in self.all_roots:
-            if normalize_arabic(r) == root_norm or r == root:
-                target_root = r
-                break
+        mapped_meta = self.find_roots_by_term(clean_root)
+        if mapped_meta:
+            target_root = mapped_meta[0]["root"]
+
+        # 2. Exact or normalized Arabic root matching
+        if not target_root:
+            root_norm = normalize_arabic(clean_root).replace(" ", "")
+            for r in self.all_roots:
+                if normalize_arabic(r) == root_norm or r == clean_root:
+                    target_root = r
+                    break
+
+        # 3. Direct key in root_index fallback
+        if not target_root and clean_root in self.root_index:
+            target_root = clean_root
 
         if not target_root or target_root not in self.root_index:
             return []
@@ -285,19 +298,28 @@ class QuranEngine:
         for ayah_id, word_i, sub_j in self.root_index[target_root]:
             if ayah_id not in seen_ayahs:
                 seen_ayahs.add(ayah_id)
-                ayah_data = self.ayahs[ayah_id]
-                # Extract specific matching tokens
-                matching_tokens = [t for t in ayah_data['tokens'] if t.get('root') == target_root]
+                ayah_data = self.ayahs.get(ayah_id)
+                if not ayah_data:
+                    continue
+                matching_tokens = [t for t in ayah_data.get('tokens', []) if t.get('root') == target_root]
+                sura_num = ayah_data['sura']
                 results.append({
                     "id": ayah_id,
-                    "sura": ayah_data['sura'],
+                    "sura": sura_num,
                     "ayah": ayah_data['ayah'],
-                    "surah_name": self.SURAH_NAMES_RU[ayah_data['sura'] - 1],
-                    "text": ayah_data['text'],
+                    "surah_name_ru": self.SURAH_NAMES_RU[sura_num - 1] if 1 <= sura_num <= 114 else "",
+                    "surah_name_kk": self.SURAH_NAMES.get("kk", self.SURAH_NAMES_RU)[sura_num - 1] if 1 <= sura_num <= 114 else "",
+                    "surah_name_en": self.SURAH_NAMES.get("en", self.SURAH_NAMES_RU)[sura_num - 1] if 1 <= sura_num <= 114 else "",
+                    "surah_name_ar": self.SURAH_NAMES.get("ar", self.SURAH_NAMES_RU)[sura_num - 1] if 1 <= sura_num <= 114 else "",
+                    "text_uthmani": ayah_data.get('text_uthmani') or ayah_data.get('text'),
+                    "text": ayah_data.get('text'),
                     "transliteration": ayah_data.get('transliteration', ''),
                     "translations": ayah_data.get('translations', {}),
+                    "root": target_root,
                     "matching_tokens": matching_tokens
                 })
+                if len(results) >= limit:
+                    break
         return results
 
     def search_by_lemma(self, lemma: str) -> List[Dict[str, Any]]:
@@ -426,9 +448,9 @@ class QuranEngine:
             "meaning_kk": "Жарату, жаратылыс, Жаратушы (Әл-Халық)",
             "patterns": [r"создан\w*", r"сотворен\w*", r"творец\w*", r"создатель\w*", r"жарат\w*", r"жаратушы\w*", r"жаратылыс\w*", r"create\w*", r"creator\w*"]
         },
-        "خنز": {
-            "root": "خنز",
-            "meaning_ru": "Свинья, свинина, нечистое животное",
+        "خنزر": {
+            "root": "خنزر",
+            "meaning_ru": "Свинья, свинина, нечистое животное (Хинзир)",
             "meaning_kk": "Доңыз, шошқа, арам мал",
             "patterns": [r"свин\w*", r"хряк\w*", r"кабан\w*", r"доңыз\w*", r"шошқ\w*", r"pork\w*", r"swine\w*", r"pig\w*"]
         },
@@ -500,44 +522,10 @@ class QuranEngine:
                     break
         return matched_roots
 
-    def search_by_root(self, root: str, limit: int = 50) -> Dict[str, Any]:
-        """
-        Looks up occurrences of an Arabic root across all 6,236 Ayahs.
-        Returns token coordinates, occurrences count, and full Ayah texts.
-        """
-        clean_root = root.strip()
-        occurrences = self.root_index.get(clean_root, [])
-        unique_ayah_ids = []
-        for item in occurrences:
-            ayah_id = item[0]
-            if ayah_id not in unique_ayah_ids:
-                unique_ayah_ids.append(ayah_id)
-
-        matched_ayahs = []
-        for aid in unique_ayah_ids[:limit]:
-            ayah_data = self.ayahs.get(aid)
-            if ayah_data:
-                matched_ayahs.append({
-                    "id": aid,
-                    "sura": ayah_data["sura"],
-                    "ayah": ayah_data["ayah"],
-                    "surah_name_ru": self.SURAH_NAMES_RU[ayah_data["sura"] - 1],
-                    "text_uthmani": ayah_data.get("text_uthmani") or ayah_data.get("text"),
-                    "transliteration": ayah_data.get("transliteration", ""),
-                    "translations": ayah_data.get("translations", {})
-                })
-
-        return {
-            "root": clean_root,
-            "total_tokens_with_root": len(occurrences),
-            "unique_ayahs_count": len(unique_ayah_ids),
-            "ayahs": matched_ayahs
-        }
-
     def search_cross_lingual(self, query: str, limit: int = 50) -> Dict[str, Any]:
         """
         End-to-end Cross-Language Semantic & Stemming Search:
-        Translates query (RU/KK) to Arabic Root -> retrieves canonical Ayahs.
+        Translates query (RU/KK/EN) to Arabic Root -> retrieves canonical Ayahs.
         """
         mapped_roots = self.find_roots_by_term(query)
         if not mapped_roots:
@@ -552,17 +540,18 @@ class QuranEngine:
             }
 
         primary_root_meta = mapped_roots[0]
-        root_results = self.search_by_root(primary_root_meta["root"], limit=limit)
+        target_root = primary_root_meta["root"]
+        root_results = self.search_by_root(target_root, limit=limit)
 
         return {
             "query": query,
             "type": "CROSS_LINGUAL_ROOT_MATCH",
-            "matched_root": primary_root_meta["root"],
+            "matched_root": target_root,
             "meaning_ru": primary_root_meta["meaning_ru"],
             "meaning_kk": primary_root_meta["meaning_kk"],
-            "total_occurrences": root_results["total_tokens_with_root"],
-            "results_count": root_results["unique_ayahs_count"],
-            "results": root_results["ayahs"]
+            "total_occurrences": len(self.root_index.get(target_root, [])),
+            "results_count": len(root_results),
+            "results": root_results
         }
 
     def get_stats(self) -> Dict[str, Any]:

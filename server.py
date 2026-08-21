@@ -485,11 +485,35 @@ async def verify_root(req: RootClaimRequest):
 @app.post("/api/audit/contract")
 @app.post("/api/v1/halal/screen")
 async def screen_halal(req: HalalScreenRequest):
-    """Universal Halal, food ingredients, and Shariah screener."""
+    """Universal Halal, food ingredients, and Shariah screener with barcode auto-detection."""
     input_text = (req.text or req.query or "").strip()
     if not input_text:
         return {"total_matches": 0, "matches": []}
     
+    # Check if input is a pure numeric barcode (8-14 digits)
+    clean_digits = re.sub(r"\D", "", input_text)
+    if 8 <= len(clean_digits) <= 14 and clean_digits == input_text:
+        try:
+            barcode_res = await check_halal_barcode(clean_digits)
+            if barcode_res.get("halal_verdict") != "NOT_FOUND":
+                return {
+                    "query": input_text,
+                    "barcode_data": barcode_res,
+                    "total_matches": 1,
+                    "matches": [{
+                        "category": "BARCODE_PRODUCT",
+                        "verdict": barcode_res["halal_verdict"],
+                        "title_ru": f"{barcode_res.get('name', 'Товар')} ({barcode_res.get('brand', '')})",
+                        "title_kk": f"{barcode_res.get('name', 'Тауар')} ({barcode_res.get('brand', '')})",
+                        "title_en": f"{barcode_res.get('name', 'Product')} ({barcode_res.get('brand', '')})",
+                        "description_ru": barcode_res.get("summary_ru") or barcode_res.get("summary", ""),
+                        "description_kk": barcode_res.get("summary_kk") or barcode_res.get("summary", ""),
+                        "ayah_ref": "SMIIC / Open Food Facts"
+                    }]
+                }
+        except Exception:
+            pass
+
     matches = HalalKnowledgeBase.match_input(input_text)
     return {"query": input_text, "total_matches": len(matches), "matches": matches}
 

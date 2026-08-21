@@ -216,6 +216,16 @@ const I18N = {
             footerSecurityNote: "SHA-256 Тексерілген • Tanzil Quran Project • Үммет игілігі үшін Open Source",
 
             // 114 Surah Names
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 Тауар штрихкоды бойынша іздеу (Open Food Facts 2,5 млн тауар):",
+            barcodePlaceholder: "Штрихкодты енгізіңіз (мыс: 4607001770014, 5449000000996)...",
+            btnCheckBarcode: "🔍 Штрихкодты тексеру",
+            barcodeSearching: "Глобалды базадан және Open Food Facts-тен штрихкод тексерілуде...",
+            barcodeNotFound: "Штрихкод Open Food Facts базасынан табылмады. Құрамын камерамен түсіріп жіберіңіз (OCR).",
+            barcodeFoundTitle: "📦 Тауар: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 Өнім құрамы:",
+            barcodeAdditivesTitle: "🧪 Анықталған E-кодтар мен қоспалар:",
+
             surahNames: ["Фатиха", "Бақара", "Әли Имран", "Ниса", "Мәида", "Әнғам", "Ағраф", "Әнфәл", "Тәубе", "Юнус", "Һуд", "Юсуф", "Рағыд", "Ибраһим", "Хижр", "Нахыл", "Исра", "Кәһф", "Мәриям", "Та Һа", "Әнбия", "Хаж", "Муминун", "Нұр", "Фурқан", "Шуғара", "Нәміл", "Қасас", "Әнкәбут", "Рум", "Лұқман", "Сәжде", "Ахзаб", "Сәбә", "Фатыр", "Йа Син", "Саффат", "Сад", "Зүмәр", "Ғафир", "Фуссиләт", "Шура", "Зухруф", "Духан", "Жасия", "Ахқаф", "Мұхаммед", "Фатх", "Хужурат", "Қаф", "Зарият", "Тур", "Нәжм", "Қамар", "Рахман", "Уақиға", "Хадид", "Мужәдәлә", "Хашыр", "Мумтәхина", "Саф", "Жұма", "Мунафиқун", "Тәғабун", "Талақ", "Тахрим", "Мүлік", "Қалам", "Хаққа", "Мағариж", "Нұх", "Жын", "Муззәммил", "Муддәссир", "Қиямет", "Инсан", "Мурсәләт", "Нәбә", "Назиғат", "Абаса", "Тәкуир", "Инфитар", "Мутаффифин", "Иншиқақ", "Буруж", "Тарық", "Ағлә", "Ғашия", "Фәжр", "Бәләд", "Шәмс", "Ләйіл", "Дұха", "Шәрх", "Тин", "Аләқ", "Қадір", "Бәйинә", "Зәлзәлә", "Ғадият", "Қариға", "Тәкәсур", "Асыр", "Һумәзә", "Фил", "Құрайыш", "Мағун", "Кәусәр", "Кәфирун", "Насыр", "Мәсәд", "Ықылас", "Фәләқ", "Нас"]
         },
 
@@ -427,6 +437,16 @@ const I18N = {
             footerSecurityNote: "SHA-256 Verified • Tanzil Quran Project • Open Source во благо уммы",
 
             // 114 Surah Names
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 Поиск по штрихкоду товара (2,5 млн товаров Open Food Facts):",
+            barcodePlaceholder: "Введите штрихкод (напр. 4607001770014, 5449000000996)...",
+            btnCheckBarcode: "🔍 Проверить штрихкод",
+            barcodeSearching: "Поиск товара в глобальной базе Open Food Facts и проверка состава...",
+            barcodeNotFound: "Штрихкод не найден в глобальной базе Open Food Facts. Пожалуйста, сфотографируйте состав камерой (OCR).",
+            barcodeFoundTitle: "📦 Продукт: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 Состав продукта:",
+            barcodeAdditivesTitle: "🧪 Анализ пищевых добавок и E-кодов:",
+
             surahNames: ["Аль-Фатиха (Открывающая)", "Аль-Бакара (Корова)", "Аль Имран (Семейство Имрана)", "Ан-Ниса (Женщины)", "Аль-Маида (Трапеза)", "Аль-Анам (Скот)", "Аль-Араф (Ограды)", "Аль-Анфаль (Трофеи)", "Ат-Тауба (Покаяние)", "Юнус (Иона)", "Худ (Худ)", "Юсуф (Иосиф)", "Ар-Раад (Гром)", "Ибрахим (Авраам)", "Аль-Хиджр (Хиджр)", "Ан-Нахль (Пчелы)", "Аль-Исра (Ночной перенос)", "Аль-Кахф (Пещера)", "Марьям (Мария)", "Та Ха (Та Ха)", "Аль-Анбия (Пророки)", "Аль-Хаджж (Паломничество)", "Аль-Муминун (Верующие)", "Ан-Нур (Свет)", "Аль-Фуркан (Различение)", "Аш-Шуара (Поэты)", "Ан-Намль (Муравьи)", "Аль-Касас (Рассказ)", "Аль-Анкабут (Паук)", "Ар-Рум (Римляне)", "Лукман (Лукман)", "Ас-Саджда (Земной поклон)", "Аль-Ахзаб (Союзники)", "Саба (Сава)", "Фатыр (Творец)", "Йа Син (Йа Син)", "Ас-Саффат (Выстроившиеся в ряды)", "Сад (Сад)", "Аз-Зумар (Толпы)", "Гафир (Прощающий)", "Фуссилат (Разъяснены)", "Аш-Шура (Совет)", "Аз-Зухруф (Украшения)", "Ад-Духан (Дым)", "Аль-Джасия (Коленопреклоненные)", "Аль-Ахкаф (Барханы)", "Мухаммад (Мухаммад)", "Аль-Фатх (Победа)", "Аль-Худжурат (Комнаты)", "Каф (Каф)", "Аз-Зарият (Рассеивающие)", "Ат-Тур (Гора)", "Ан-Наджм (Звезда)", "Аль-Камар (Месяц)", "Ар-Рахман (Милостивый)", "Аль-Вакиа (Событие)", "Аль-Хадид (Железо)", "Аль-Муджадила (Препирающаяся)", "Аль-Хашр (Сбор)", "Аль-Мумтахана (Испытуемая)", "Ас-Сафф (Ряды)", "Аль-Джумуа (Пятница)", "Аль-Мунафикун (Лицемеры)", "Ат-Тагабун (Взаимное обделение)", "Ат-Таляк (Развод)", "Ат-Тахрим (Запрещение)", "Аль-Мульк (Власть)", "Аль-Калям (Письменная трость)", "Аль-Хакка (Неминуемое)", "Аль-Мааридж (Ступени)", "Нух (Ной)", "Аль-Джинн (Джинны)", "Аль-Муззаммиль (Закутавшийся)", "Аль-Муддассир (Завернувшийся)", "Аль-Кияма (Воскресение)", "Аль-Инсан (Человек)", "Аль-Мурсалят (Посылаемые)", "Ан-Наба (Весть)", "Ан-Назиат (Исторгающие)", "Абаса (Нахмурился)", "Ат-Таквир (Скручивание)", "Аль-Инфитар (Раскалывание)", "Аль-Мутаффифин (Обвешивающие)", "Аль-Иншикак (Разверзание)", "Аль-Бурудж (Созвездия)", "Ат-Тарик (Ночной путник)", "Аль-Аля (Всевышний)", "Аль-Гашия (Покрывающее)", "Аль-Фаджр (Заря)", "Аль-Баляд (Город)", "Аш-Шамс (Солнце)", "Аль-Лейль (Ночь)", "Ад-Духа (Утро)", "Аш-Шарх (Раскрытие)", "Ат-Тин (Смоковница)", "Аль-Аляк (Сгусток)", "Аль-Кадр (Предопределение)", "Аль-Баййина (Ясное знамение)", "Аз-Зальзаля (Землетрясение)", "Аль-Адият (Скачущие)", "Аль-Кариа (Великое бедствие)", "Ат-Такасур (Охота к умножению)", "Аль-Аср (Предвечернее время)", "Аль-Хумаза (Хулитель)", "Аль-Филь (Слон)", "Курайш (Курайшиты)", "Аль-Маун (Подаяние)", "Аль-Каусар (Изобилие)", "Аль-Кафирун (Неверующие)", "Ан-Наср (Помощь)", "Аль-Масад (Пальмовые волокна)", "Аль-Ихлас (Искренность)", "Аль-Фаляк (Рассвет)", "Ан-Нас (Люди)"]
         },
 
@@ -638,6 +658,16 @@ const I18N = {
             footerSecurityNote: "SHA-256 Verified • Tanzil Quran Project • Open Source for the Ummah",
 
             // 114 Surah Names
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 Product Barcode Scanner (2.5M+ Open Food Facts Database):",
+            barcodePlaceholder: "Enter barcode (e.g. 4607001770014, 5449000000996)...",
+            btnCheckBarcode: "🔍 Check Barcode",
+            barcodeSearching: "Querying Open Food Facts global database & analyzing ingredients...",
+            barcodeNotFound: "Barcode not found in Open Food Facts database. Please snap a photo of ingredients with OCR.",
+            barcodeFoundTitle: "📦 Product: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 Ingredients List:",
+            barcodeAdditivesTitle: "🧪 Food Additives & E-Codes Analysis:",
+
             surahNames: ["Al-Fatiha (The Opener)", "Al-Baqarah (The Cow)", "Ali 'Imran (Family of Imran)", "An-Nisa (The Women)", "Al-Ma'idah (The Table Spread)", "Al-An'am (The Cattle)", "Al-A'raf (The Heights)", "Al-Anfal (The Spoils of War)", "At-Tawbah (The Repentance)", "Yunus (Jonah)", "Hud (Hud)", "Yusuf (Joseph)", "Ar-Ra'd (The Thunder)", "Ibrahim (Abraham)", "Al-Hijr (The Rocky Tract)", "An-Nahl (The Bee)", "Al-Isra (The Night Journey)", "Al-Kahf (The Cave)", "Maryam (Mary)", "Ta-Ha (Ta-Ha)", "Al-Anbiya (The Prophets)", "Al-Hajj (The Pilgrimage)", "Al-Mu'minun (The Believers)", "An-Nur (The Light)", "Al-Furqan (The Criterion)", "Ash-Shu'ara (The Poets)", "An-Naml (The Ant)", "Al-Qasas (The Stories)", "Al-'Ankabut (The Spider)", "Ar-Rum (The Romans)", "Luqman (Luqman)", "As-Sajdah (The Prostration)", "Al-Ahzab (The Combined Forces)", "Saba (Sheba)", "Fatir (Originator)", "Ya-Sin (Ya-Sin)", "As-Saffat (Those who set the Ranks)", "Sad (The Letter Sad)", "Az-Zumar (The Troops)", "Ghafir (The Forgiver)", "Fussilat (Explained in Detail)", "Ash-Shura (The Consultation)", "Az-Zukhruf (The Ornaments of Gold)", "Ad-Dukhan (The Smoke)", "Al-Jathiyah (The Crouching)", "Al-Ahqaf (The Wind-Curved Sandhills)", "Muhammad (Muhammad)", "Al-Fath (The Victory)", "Al-Hujurat (The Rooms)", "Qaf (The Letter Qaf)", "Adh-Dhariyat (The Winnowing Winds)", "At-Tur (The Mount)", "An-Najm (The Star)", "Al-Qamar (The Moon)", "Ar-Rahman (The Beneficent)", "Al-Waqi'ah (The Inevitable)", "Al-Hadid (The Iron)", "Al-Mujadila (The Pleading Woman)", "Al-Hashr (The Exile)", "Al-Mumtahanah (She That Is To Be Examined)", "As-Saff (The Ranks)", "Al-Jumu'ah (The Congregation)", "Al-Munafiqun (The Hypocrites)", "At-Taghabun (The Mutual Disillusion)", "At-Talaq (The Divorce)", "At-Tahrim (The Prohibition)", "Al-Mulk (The Sovereignty)", "Al-Qalam (The Pen)", "Al-Haqqah (The Reality)", "Al-Ma'arij (The Ascending Stairways)", "Nuh (Noah)", "Al-Jinn (The Jinn)", "Al-Muzzammil (The Enshrouded One)", "Al-Muddaththir (The Cloaked One)", "Al-Qiyamah (The Resurrection)", "Al-Insan (The Man)", "Al-Mursalat (The Emissaries)", "An-Naba (The Tidings)", "An-Nazi'at (Those Who Drag Forth)", "'Abasa (He Frowned)", "At-Takwir (The Overthrowing)", "Al-Infitar (The Cleaving)", "Al-Mutaffifin (The Defrauding)", "Al-Inshiqaq (The Sundering)", "Al-Buruj (The Mansions of the Stars)", "At-Tariq (The Nightcomer)", "Al-A'la (The Most High)", "Al-Ghashiyah (The Overwhelming)", "Al-Fajr (The Dawn)", "Al-Balad (The City)", "Ash-Shams (The Sun)", "Al-Layl (The Night)", "Ad-Duhaa (The Morning Hours)", "Ash-Sharh (The Relief)", "At-Tin (The Fig)", "Al-'Alaq (The Clot)", "Al-Qadr (The Power)", "Al-Bayyinah (The Clear Proof)", "Az-Zalzalah (The Earthquake)", "Al-'Adiyat (The Courser)", "Al-Qari'ah (The Calamity)", "At-Takathur (The Rivalry in World Increase)", "Al-'Asr (The Declining Day)", "Al-Humazah (The Traducer)", "Al-Fil (The Elephant)", "Quraysh (Quraysh)", "Al-Ma'un (The Small Kindnesses)", "Al-Kawthar (The Abundance)", "Al-Kafirun (The Disbelievers)", "An-Nasr (The Divine Support)", "Al-Masad (The Palm Fiber)", "Al-Ikhlas (The Sincerity)", "Al-Falaq (The Daybreak)", "An-Nas (Mankind)"]
         },
 
@@ -849,6 +879,16 @@ const I18N = {
             footerSecurityNote: "موثق بـ SHA-256 • مشروع تنزيل • مفتوح المصدر لخدمة الأمة",
 
             // 114 Surah Names
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 البحث عبر الباركود (قاعدة بيانات 2.5 مليون منتج Open Food Facts):",
+            barcodePlaceholder: "أدخل الباركود (مثال: 4607001770014، 5449000000996)...",
+            btnCheckBarcode: "🔍 فحص الباركود",
+            barcodeSearching: "جاري البحث في قاعدة بيانات Open Food Facts وتحليل المكونات...",
+            barcodeNotFound: "لم يتم العثور على الباركود في قاعدة البيانات. يرجى تصوير قائمة المكونات بالكاميرا.",
+            barcodeFoundTitle: "📦 المنتج: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 قائمة المكونات:",
+            barcodeAdditivesTitle: "🧪 تحليل المضافات الغذائية وأرقام E:",
+
             surahNames: ["الفاتحة", "البقرة", "آل عمران", "النساء", "المائدة", "الأنعام", "الأعراف", "الأنفال", "التوبة", "يونس", "هود", "يوسف", "الرعد", "إبراهيم", "الحجر", "النحل", "الإسراء", "الكهف", "مريم", "طه", "الأنبياء", "الحج", "المؤمنون", "النور", "الفرقان", "الشعراء", "النمل", "القصص", "العنكبوت", "الروم", "لقمان", "السجدة", "الأحزاب", "سبإ", "فاطر", "يس", "الصافات", "ص", "الزمر", "غافر", "فصلت", "الشورى", "الزخرف", "الدخان", "الجاثية", "الأحقاف", "محمد", "الفتح", "الحجرات", "ق", "الذاريات", "الطور", "النجم", "القمر", "الرحمن", "الواقعة", "الحديد", "المجادلة", "الحشر", "الممتحنة", "الصف", "الجمعة", "المنافقون", "التغابن", "الطلاق", "التحريم", "الملك", "القلم", "الحاقة", "المعارج", "نوح", "الجن", "المزمل", "المدثر", "القيامة", "الإنسان", "المرسلات", "النبإ", "النازعات", "عبس", "التكوير", "الانفطار", "المطففين", "الانشقاق", "البروج", "الطارق", "الأعلى", "الغاشية", "الفجر", "البلد", "الشمس", "الليل", "الضحى", "الشرح", "التين", "العلق", "القدر", "البينة", "الزلزلة", "العاديات", "القارعة", "التكاثر", "العصر", "الهمزة", "الفيل", "قريش", "الماعون", "الكوثر", "الكافرون", "النصر", "المسد", "الإخلاص", "الفلق", "الناس"]
         },
 
@@ -1058,6 +1098,16 @@ const I18N = {
             footerApiDocs: "API Dokümantasyonu",
             footerGithub: "GitHub",
             footerSecurityNote: "SHA-256 Doğrulandı • Tanzil Quran Project • Ümmet için Açık Kaynak",
+
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 Ürün Barkod Sorgulama (Open Food Facts 2.5 Milyon Ürün):",
+            barcodePlaceholder: "Barkod numarasını girin (örn. 4607001770014, 5449000000996)...",
+            btnCheckBarcode: "🔍 Barkod Kontrolü",
+            barcodeSearching: "Open Food Facts veritabanında aranıyor ve içerik analiz ediliyor...",
+            barcodeNotFound: "Barkod küresel veritabanında bulunamadı. Lütfen ürün içeriğinin fotoğrafını çekin (OCR).",
+            barcodeFoundTitle: "📦 Ürün: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 Ürün İçeriği:",
+            barcodeAdditivesTitle: "🧪 Katkı Maddeleri ve E-Kod Analizi:",
 
             // 114 Surah Names
             surahNames: ["Fatiha", "Bakara", "Âl-i İmrân", "Nisâ", "Mâide", "En'âm", "A'râf", "Enfâl", "Tevbe", "Yûnus", "Hûd", "Yûsuf", "Ra'd", "İbrâhîm", "Hicr", "Nahl", "İsrâ", "Kehf", "Meryem", "Tâhâ", "Enbiyâ", "Hac", "Mü'minûn", "Nûr", "Furkân", "Şuarâ", "Neml", "Kasas", "Ankebût", "Rûm", "Lokmân", "Secde", "Ahzâb", "Sebe'", "Fâtır", "Yâsîn", "Sâffât", "Sâd", "Zümer", "Mü'min (Gâfir)", "Fussilet", "Şûrâ", "Zuhruf", "Duhân", "Câsiye", "Ahkâf", "Muhammed", "Fetih", "Hucurât", "Kâf", "Zâriyât", "Tûr", "Necm", "Kamer", "Rahmân", "Vâkıa", "Hadîd", "Mücâdele", "Haşr", "Mümtehine", "Saff", "Cuma", "Münâfikûn", "Tegâbün", "Talâk", "Tahrîm", "Mülk", "Kalem", "Hâkka", "Meâric", "Nûh", "Cin", "Müzzemmil", "Müddessir", "Kıyâme", "İnsân", "Mürselât", "Nebe'", "Nâziât", "Abese", "Tekvîr", "İnfitâr", "Mutaffifîn", "İnşikâk", "Bürûc", "Târık", "A'lâ", "Gâşiye", "Fecr", "Beled", "Şems", "Leyl", "Duhâ", "İnşirâh", "Tîn", "Alak", "Kadir", "Beyyine", "Zilzâl", "Âdiyât", "Kâria", "Tekâsür", "Asr", "Hümeze", "Fîl", "Kureyş", "Mâûn", "Kevser", "Kâfirûn", "Nasr", "Tebbet (Mesed)", "İhlâs", "Felak", "Nâs"]
@@ -1271,6 +1321,16 @@ const I18N = {
             footerSecurityNote: "SHA-256 Tasdiqlangan • Tanzil Quran Project • Ummat manfaati uchun Open Source",
 
             // 114 Surah Names
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 Shtrix-kod bo'yicha qidirish (Open Food Facts 2,5 mln mahsulot):",
+            barcodePlaceholder: "Shtrix-kodni kiriting (masalan: 4607001770014, 5449000000996)...",
+            btnCheckBarcode: "🔍 Shtrix-kodni tekshirish",
+            barcodeSearching: "Open Food Facts global bazasidan qidirilmoqda va tarkibi tekshirilmoqda...",
+            barcodeNotFound: "Shtrix-kod bazadan topilmadi. Iltimos, mahsulot tarkibini rasmga olib yuboring (OCR).",
+            barcodeFoundTitle: "📦 Mahsulot: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 Mahsulot tarkibi:",
+            barcodeAdditivesTitle: "🧪 Oziq-ovqat qo'shimchalari va E-kodlar tahlili:",
+
             surahNames: ["Fotiha", "Baqara", "Oli Imron", "Niso", "Moida", "An'om", "A'rof", "Anfol", "Tavba", "Yunus", "Hud", "Yusuf", "Ra'd", "Ibrohim", "Hijr", "Nahl", "Isro", "Kahf", "Maryam", "Toho", "Anbiyo", "Haj", "Mo'minun", "Nur", "Furqon", "Shuaro", "Naml", "Qasas", "Ankabut", "Rum", "Luqmon", "Sajda", "Ahzob", "Saba'", "Fotir", "Yosin", "Soffot", "Sod", "Zumar", "G'ofir", "Fussilat", "Sho'ro", "Zuxruf", "Duxon", "Josiya", "Ahqof", "Muhammad", "Fath", "Hujurot", "Qof", "Zoriyot", "Tur", "Najm", "Qamar", "Rahmon", "Voqea", "Hadid", "Mujodala", "Hashr", "Mumtahana", "Saff", "Juma", "Munofiqun", "Tag'obun", "Taloq", "Tahrim", "Mulk", "Qalam", "Haqqa", "Maorij", "Nuh", "Jinn", "Muzzammil", "Muddassir", "Qiyomat", "Inson", "Mursalat", "Naba'", "Noziot", "Abasa", "Takvir", "Infitor", "Mutaffifun", "Inshiqoq", "Buruj", "Toriq", "A'lo", "G'oshiya", "Fajr", "Balad", "Shams", "Layl", "Zuho", "Sharh", "Tiyn", "Alaq", "Qadr", "Bayyina", "Zalzala", "Odiyot", "Qoria", "Takasur", "Asr", "Humaza", "Fil", "Quraysh", "Mo'un", "Kavsar", "Kofirun", "Nasr", "Masad", "Ixlos", "Falaq", "Nos"]
         },
 
@@ -1482,6 +1542,16 @@ const I18N = {
             footerSecurityNote: "Terverifikasi SHA-256 • Tanzil Quran Project • Open Source untuk Kemaslahatan Ummat",
 
             // 114 Surah Names
+            // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeSectionTitle: "📦 Pemindai Barcode Produk (Database 2.5 Juta+ Open Food Facts):",
+            barcodePlaceholder: "Masukkan nomor barcode (contoh: 4607001770014, 5449000000996)...",
+            btnCheckBarcode: "🔍 Periksa Barcode",
+            barcodeSearching: "Mencari di database global Open Food Facts dan menganalisis komposisi...",
+            barcodeNotFound: "Barcode tidak ditemukan di database global. Silakan foto daftar komposisi dengan kamera (OCR).",
+            barcodeFoundTitle: "📦 Produk: {name} ({brand})",
+            barcodeIngredientsTitle: "📝 Daftar Komposisi:",
+            barcodeAdditivesTitle: "🧪 Analisis Bahan Tambahan & Kode E:",
+
             surahNames: ["Al-Fatihah", "Al-Baqarah", "Ali 'Imran", "An-Nisa'", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Taubah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra'", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya'", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Asy-Syu'ara'", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba'", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Asy-Syura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jasiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Az-Zariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hasyr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Tagabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddassir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba'", "An-Nazi'at", "'Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Insyiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghasyiyah", "Al-Fajr", "Al-Balad", "Asy-Syams", "Al-Lail", "Ad-Duha", "Asy-Syarh", "At-Tin", "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat", "Al-Qari'ah", "At-Takasur", "Al-'Asr", "Al-Humazah", "Al-Fil", "Quraisy", "Al-Ma'un", "Al-Kausar", "Al-Kafirun", "An-Nasr", "Al-Lahab", "Al-Ikhlas", "Al-Falaq", "An-Nas"]
         }
     },
