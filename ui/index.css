@@ -1,55 +1,59 @@
 /* =========================================================================
-   Al-Furqan AI — Apple Inspired Design System (Apple.com / Apple KZ Edition)
-   Ultra-modern, minimalist, high-contrast, frosted glass & titanium dark UI
+   Al-Furqan Guard — Apple.com Master Design System (Authentic Apple UI/UX)
+   Ultra-pure Space Black, Liquid Frosted Glass, SF Pro Typography, Titanium Bezels
    ========================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-    /* 1. Apple Neutral Space Black Palette */
-    --apple-bg-base: #000000;
-    --apple-bg-surface: #161617;
-    --apple-bg-surface-elevated: #1d1d1f;
-    --apple-bg-surface-high: #2d2d2f;
-    --apple-bg-frosted: rgba(22, 22, 23, 0.8);
-    --apple-bg-frosted-heavy: rgba(10, 10, 12, 0.85);
+    /* 1. Apple Authentic Space Black & Obsidian Palette */
+    --apple-black: #000000;
+    --apple-card: #161617;
+    --apple-card-hover: #1c1c1e;
+    --apple-card-elevated: #242426;
+    --apple-nav-bg: rgba(0, 0, 0, 0.82);
+    --apple-glass-bg: rgba(22, 22, 23, 0.75);
 
-    /* 2. Apple Typography Hierarchy */
+    /* 2. Apple SF Pro Typography Colors */
     --text-primary: #f5f5f7;
     --text-secondary: #86868b;
     --text-tertiary: #6e6e73;
-    --text-inverted: #000000;
+    --text-muted: #424245;
 
-    /* 3. Apple Keynote Accents & Islamic Aesthetics */
+    /* 3. Apple Keynote Accents */
     --apple-blue: #2997ff;
     --apple-blue-hover: #0077ed;
-    --apple-blue-glow: rgba(41, 151, 255, 0.25);
-    
+    --apple-blue-solid: #0071e3;
+    --apple-blue-glow: rgba(41, 151, 255, 0.28);
+
     --apple-green: #30d158;
     --apple-green-hover: #34c759;
     --apple-green-glow: rgba(48, 209, 88, 0.25);
-    
+
     --apple-gold: #ffd60a;
     --apple-gold-glow: rgba(255, 214, 10, 0.25);
-    
+
     --apple-red: #ff453a;
     --apple-red-bg: rgba(255, 69, 58, 0.12);
 
-    /* 4. Apple Glass Borders & Shadows */
+    /* 4. Apple Hairline Glass Borders & Depth */
     --border-hairline: rgba(255, 255, 255, 0.08);
-    --border-subtle: rgba(255, 255, 255, 0.12);
-    --border-hover: rgba(255, 255, 255, 0.24);
-    --border-focused: rgba(41, 151, 255, 0.6);
+    --border-subtle: rgba(255, 255, 255, 0.14);
+    --border-hover: rgba(255, 255, 255, 0.28);
+    --border-focus: rgba(41, 151, 255, 0.65);
 
     --radius-pill: 980px;
-    --radius-xl: 28px;
-    --radius-lg: 20px;
-    --radius-md: 14px;
+    --radius-2xl: 32px;
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 12px;
     --radius-sm: 8px;
 
-    --shadow-apple-card: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 1px rgba(255, 255, 255, 0.1);
-    --shadow-apple-hover: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 1px rgba(255, 255, 255, 0.25);
-    --shadow-floating: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(41, 151, 255, 0.15);
+    /* Apple Soft Ambient Shadows */
+    --shadow-apple-ambient: 0 20px 60px rgba(0, 0, 0, 0.7);
+    --shadow-apple-card: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --shadow-apple-hover: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    --shadow-island: 0 30px 80px rgba(0, 0, 0, 0.92), 0 0 40px rgba(41, 151, 255, 0.18);
 
     --ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
     --ease-bounce: cubic-bezier(0.16, 1, 0.3, 1);
@@ -67,59 +71,60 @@
 
 html {
     scroll-behavior: smooth;
-    background-color: var(--apple-bg-base);
+    background-color: var(--apple-black);
 }
 
 body {
-    background-color: var(--apple-bg-base);
+    background-color: var(--apple-black);
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.47059;
     min-height: 100vh;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.022em;
 }
 
-/* Ambient Radial Lighting */
+/* Apple Ambient Radial Glow */
 body::before {
     content: "";
     position: fixed;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 1000px;
-    height: 600px;
-    background: radial-gradient(circle at 50% 0%, rgba(41, 151, 255, 0.08) 0%, rgba(48, 209, 88, 0.04) 40%, transparent 70%);
+    width: 1200px;
+    height: 700px;
+    background: radial-gradient(circle at 50% 0%, rgba(41, 151, 255, 0.1) 0%, rgba(48, 209, 88, 0.04) 35%, transparent 70%);
     pointer-events: none;
     z-index: 0;
 }
 
 .app-container {
-    max-width: 1200px;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 0 24px 120px;
+    padding: 0 24px 130px;
     position: relative;
     z-index: 1;
 }
 
 /* =========================================================================
-   1. APPLE FROSTED HEADER NAVIGATION
+   1. APPLE.COM GLOBAL NAVIGATION (GLOBALNAV)
    ========================================================================= */
 .app-header {
     position: sticky;
     top: 0;
     z-index: 999;
+    height: 52px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 24px;
-    margin: 0 -24px 32px;
-    background: var(--apple-bg-frosted-heavy);
-    backdrop-filter: blur(25px) saturate(180%);
-    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    padding: 0 24px;
+    margin: 0 -24px 36px;
+    background: var(--apple-nav-bg);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--border-hairline);
     transition: all 0.3s var(--ease-apple);
 }
@@ -127,28 +132,28 @@ body::before {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }
 
 .brand-logo-gem {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 12px;
+    border-radius: 9px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    transition: transform 0.3s var(--ease-apple);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: transform 0.25s var(--ease-apple);
 }
 
 .brand-logo-gem:hover {
-    transform: scale(1.05);
+    transform: scale(1.06);
 }
 
 .brand-logo-mark {
     font-family: 'Amiri Quran', serif;
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 700;
     color: #ffffff;
 }
@@ -165,16 +170,16 @@ body::before {
 }
 
 .brand-title {
-    font-size: 18px;
+    font-size: 16.5px;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
     color: var(--text-primary);
 }
 
 .badge-version {
     font-size: 10px;
     font-weight: 600;
-    padding: 2px 8px;
+    padding: 2px 7px;
     background: rgba(255, 255, 255, 0.08);
     color: var(--apple-blue);
     border: 1px solid rgba(41, 151, 255, 0.3);
@@ -183,7 +188,7 @@ body::before {
 }
 
 .brand-subtitle {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--text-secondary);
     font-weight: 400;
 }
@@ -192,21 +197,20 @@ body::before {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
 }
 
-/* Apple Header Buttons */
+/* Apple Header Capsule Buttons */
 .btn-header-action,
 .btn-telegram-header {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 7px 14px;
+    padding: 6px 13px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
     color: var(--text-primary);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 500;
     text-decoration: none;
     cursor: pointer;
@@ -216,7 +220,7 @@ body::before {
 
 .btn-header-action:hover,
 .btn-telegram-header:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.14);
     border-color: var(--border-hover);
     color: #ffffff;
     transform: translateY(-1px);
@@ -224,12 +228,12 @@ body::before {
 
 .btn-telegram-header {
     background: rgba(41, 151, 255, 0.12);
-    border-color: rgba(41, 151, 255, 0.25);
+    border-color: rgba(41, 151, 255, 0.3);
     color: var(--apple-blue);
 }
 
 .btn-telegram-header:hover {
-    background: rgba(41, 151, 255, 0.22);
+    background: rgba(41, 151, 255, 0.24);
     border-color: var(--apple-blue);
 }
 
@@ -247,14 +251,14 @@ body::before {
 
 .lang-selector-wrapper:hover {
     border-color: var(--border-hover);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .lang-select {
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 500;
     outline: none;
     cursor: pointer;
@@ -262,43 +266,43 @@ body::before {
 }
 
 .lang-select option {
-    background-color: var(--apple-bg-surface-elevated);
+    background-color: var(--apple-card);
     color: var(--text-primary);
 }
 
 /* =========================================================================
-   2. APPLE HERO & SPOTLIGHT SEARCH SECTION
+   2. APPLE HERO & SPOTLIGHT SEARCH SHOWCASE
    ========================================================================= */
 .hero-search-section {
     text-align: center;
-    padding: 40px 0 48px;
+    padding: 44px 0 48px;
     position: relative;
 }
 
 .hero-content {
-    max-width: 840px;
+    max-width: 860px;
     margin: 0 auto;
 }
 
 .hero-main-title {
-    font-size: clamp(32px, 5.5vw, 56px);
+    font-size: clamp(36px, 6vw, 64px);
     font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.08;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
     background: linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
 .hero-subtitle {
-    font-size: clamp(16px, 2.5vw, 20px);
+    font-size: clamp(17px, 2.4vw, 22px);
     color: var(--text-secondary);
-    line-height: 1.45;
+    line-height: 1.4;
     font-weight: 400;
-    max-width: 720px;
-    margin: 0 auto 36px;
-    letter-spacing: -0.01em;
+    max-width: 740px;
+    margin: 0 auto 34px;
+    letter-spacing: -0.015em;
 }
 
 /* Apple Spotlight Search Capsule */
@@ -310,17 +314,17 @@ body::before {
     -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: var(--radius-pill);
-    padding: 6px 8px 6px 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 6px 8px 6px 22px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     transition: all 0.3s var(--ease-apple);
     max-width: 720px;
     margin: 0 auto;
 }
 
 .universal-search-box:focus-within {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.11);
     border-color: var(--apple-blue);
-    box-shadow: 0 0 0 4px var(--apple-blue-glow), 0 16px 48px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 0 4px var(--apple-blue-glow), 0 18px 50px rgba(0, 0, 0, 0.85);
     transform: translateY(-1px);
 }
 
@@ -342,14 +346,14 @@ body::before {
     border: none;
     outline: none;
     color: #ffffff;
-    font-size: 15.5px;
+    font-size: 15px;
     font-family: inherit;
     font-weight: 400;
 }
 
 .universal-search-box input::placeholder {
     color: var(--text-tertiary);
-    font-size: 14.5px;
+    font-size: 14px;
 }
 
 .btn-clear-search {
@@ -377,11 +381,11 @@ body::before {
 /* Search Dropdown */
 .search-results-dropdown {
     margin-top: 14px;
-    background: var(--apple-bg-surface-elevated);
+    background: var(--apple-card);
     border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-apple-hover);
-    padding: 16px;
+    padding: 18px;
     text-align: left;
     max-height: 480px;
     overflow-y: auto;
@@ -391,7 +395,7 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border-hairline);
     font-size: 13px;
     color: var(--text-secondary);
@@ -407,13 +411,13 @@ body::before {
 }
 
 /* =========================================================================
-   3. APPLE BENTO ONBOARDING & VIDEO SECTION
+   3. APPLE BENTO ONBOARDING & VIDEO DISPLAY
    ========================================================================= */
 .welcome-guide-section {
-    background: var(--apple-bg-surface);
+    background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 40px 32px;
+    border-radius: var(--radius-2xl);
+    padding: 44px 36px;
     margin-bottom: 40px;
     box-shadow: var(--shadow-apple-card);
     position: relative;
@@ -432,7 +436,7 @@ body::before {
 
 .welcome-guide-header {
     text-align: center;
-    margin-bottom: 32px;
+    margin-bottom: 34px;
 }
 
 .welcome-badge {
@@ -440,9 +444,9 @@ body::before {
     align-items: center;
     gap: 6px;
     background: rgba(41, 151, 255, 0.1);
-    border: 1px solid rgba(41, 151, 255, 0.25);
+    border: 1px solid rgba(41, 151, 255, 0.28);
     color: var(--apple-blue);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -452,7 +456,7 @@ body::before {
 }
 
 .welcome-guide-title {
-    font-size: clamp(24px, 3.5vw, 34px);
+    font-size: clamp(24px, 3.5vw, 36px);
     font-weight: 700;
     letter-spacing: -0.025em;
     color: var(--text-primary);
@@ -466,7 +470,7 @@ body::before {
     margin: 0 auto;
 }
 
-/* Bento Step Grid */
+/* Bento Step Grid (Apple Bento Box) */
 .welcome-guide-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -475,10 +479,10 @@ body::before {
 }
 
 .guide-step-card {
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
-    padding: 24px 20px;
+    border-radius: var(--radius-xl);
+    padding: 26px 22px;
     cursor: pointer;
     transition: all 0.35s var(--ease-apple);
     display: flex;
@@ -487,7 +491,7 @@ body::before {
 }
 
 .guide-step-card:hover {
-    background: var(--apple-bg-surface-high);
+    background: #242426;
     border-color: var(--border-hover);
     transform: translateY(-4px);
     box-shadow: var(--shadow-apple-hover);
@@ -519,11 +523,11 @@ body::before {
     line-height: 1.45;
 }
 
-/* Apple Video Showcase Bezel */
+/* Apple Studio Display Video Frame */
 .presentation-video-container {
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: 24px;
     margin-top: 12px;
 }
@@ -551,10 +555,10 @@ body::before {
 .video-wrapper {
     position: relative;
     width: 100%;
-    border-radius: 16px;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(41, 151, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     background: #000000;
 }
 
@@ -597,10 +601,10 @@ body::before {
 }
 
 .usp-card {
-    background: var(--apple-bg-surface);
+    background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
-    padding: 26px 22px;
+    border-radius: var(--radius-xl);
+    padding: 28px 24px;
     transition: all 0.35s var(--ease-apple);
 }
 
@@ -640,9 +644,9 @@ body::before {
     align-items: center;
     gap: 14px;
     padding: 16px 20px;
-    background: var(--apple-bg-surface);
+    background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     color: var(--text-secondary);
     cursor: pointer;
     text-align: left;
@@ -651,7 +655,7 @@ body::before {
 }
 
 .tab-btn:hover {
-    background: var(--apple-bg-surface-elevated);
+    background: var(--apple-card-hover);
     border-color: var(--border-hover);
     color: var(--text-primary);
     transform: translateY(-2px);
@@ -661,7 +665,7 @@ body::before {
     background: #ffffff;
     border-color: #ffffff;
     color: #000000;
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
 }
 
 .tab-btn.active .tab-title {
@@ -725,10 +729,10 @@ body::before {
 }
 
 .panel-card {
-    background: var(--apple-bg-surface);
+    background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 32px;
+    border-radius: var(--radius-2xl);
+    padding: 34px 30px;
     margin-bottom: 24px;
     box-shadow: var(--shadow-apple-card);
 }
@@ -767,10 +771,10 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
-    padding: 16px 20px;
+    border-radius: var(--radius-xl);
+    padding: 18px 22px;
     margin-bottom: 24px;
     flex-wrap: wrap;
     gap: 16px;
@@ -794,7 +798,7 @@ body::before {
 
 .select-surah-custom,
 .select-reciter-custom {
-    background: var(--apple-bg-surface-high);
+    background: #242426;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     color: var(--text-primary);
@@ -814,10 +818,10 @@ body::before {
 }
 
 .surah-hero-card {
-    background: linear-gradient(135deg, rgba(22, 22, 23, 0.9) 0%, rgba(10, 10, 12, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(22, 22, 23, 0.95) 0%, rgba(10, 10, 12, 0.98) 100%);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 36px 28px;
+    border-radius: var(--radius-2xl);
+    padding: 40px 30px;
     margin-bottom: 24px;
     text-align: center;
     box-shadow: var(--shadow-apple-card);
@@ -825,7 +829,7 @@ body::before {
 
 .surah-hero-arabic {
     font-family: 'Amiri Quran', serif;
-    font-size: 42px;
+    font-size: 44px;
     color: var(--apple-gold);
     margin-bottom: 12px;
     line-height: 1.4;
@@ -852,17 +856,17 @@ body::before {
 }
 
 .ayah-card {
-    background: var(--apple-bg-surface);
+    background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
-    padding: 24px 28px;
+    border-radius: var(--radius-xl);
+    padding: 26px 30px;
     transition: all 0.3s var(--ease-apple);
     position: relative;
 }
 
 .ayah-card:hover {
     border-color: var(--border-hover);
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
 }
 
 .ayah-card.active-playing {
@@ -944,7 +948,7 @@ body::before {
 .custom-textarea,
 .custom-input {
     width: 100%;
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     color: var(--text-primary);
@@ -958,7 +962,7 @@ body::before {
 
 .custom-textarea:focus,
 .custom-input:focus {
-    background: var(--apple-bg-surface-high);
+    background: #242426;
     border-color: var(--apple-blue);
     box-shadow: 0 0 0 3px var(--apple-blue-glow);
 }
@@ -993,7 +997,7 @@ body::before {
 }
 
 .btn-primary {
-    background: var(--apple-blue);
+    background: var(--apple-blue-solid);
     color: #ffffff;
 }
 
@@ -1075,12 +1079,17 @@ body::before {
     border-color: rgba(255, 214, 10, 0.2);
 }
 
+.chip-success {
+    color: var(--apple-green);
+    border-color: rgba(48, 209, 88, 0.25);
+}
+
 /* Verification Result Box */
 .verification-result-box {
     margin-top: 20px;
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: 24px;
     box-shadow: var(--shadow-apple-card);
 }
@@ -1096,7 +1105,7 @@ body::before {
 }
 
 .prayer-box {
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     padding: 16px 12px;
@@ -1108,7 +1117,7 @@ body::before {
 }
 
 .prayer-box:hover {
-    background: var(--apple-bg-surface-high);
+    background: #242426;
     border-color: var(--border-hover);
     transform: translateY(-2px);
 }
@@ -1175,9 +1184,9 @@ body::before {
     display: flex;
     align-items: center;
     gap: 16px;
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: 20px;
 }
 
@@ -1205,9 +1214,9 @@ body::before {
 }
 
 .zakat-result-card {
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     padding: 20px;
     margin-top: 16px;
 }
@@ -1233,10 +1242,10 @@ body::before {
 }
 
 .bottom-stats-card {
-    background: var(--apple-bg-surface);
+    background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 24px 32px;
+    border-radius: var(--radius-2xl);
+    padding: 28px 34px;
     box-shadow: var(--shadow-apple-card);
 }
 
@@ -1276,7 +1285,7 @@ body::before {
 }
 
 .bottom-stat-item {
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     padding: 16px;
@@ -1288,7 +1297,7 @@ body::before {
 }
 
 .bottom-stat-item:hover {
-    background: var(--apple-bg-surface-high);
+    background: #242426;
     border-color: var(--border-hover);
 }
 
@@ -1316,7 +1325,7 @@ body::before {
 }
 
 /* =========================================================================
-   11. APPLE MUSIC STYLE FLOATING AUDIO PLAYER (DYNAMIC ISLAND PILL)
+   11. APPLE MUSIC STYLE FLOATING AUDIO PLAYER (DYNAMIC ISLAND)
    ========================================================================= */
 .floating-player-bar {
     position: fixed;
@@ -1324,12 +1333,12 @@ body::before {
     left: 50%;
     transform: translateX(-50%);
     width: min(840px, calc(100% - 32px));
-    background: var(--apple-bg-frosted-heavy);
-    backdrop-filter: blur(30px) saturate(190%);
-    -webkit-backdrop-filter: blur(30px) saturate(190%);
+    background: rgba(22, 22, 23, 0.85);
+    backdrop-filter: blur(35px) saturate(200%);
+    -webkit-backdrop-filter: blur(35px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: var(--radius-pill);
-    box-shadow: var(--shadow-floating);
+    box-shadow: var(--shadow-island);
     padding: 10px 22px;
     display: flex;
     align-items: center;
@@ -1469,13 +1478,13 @@ body::before {
 }
 
 /* =========================================================================
-   12. APPLE FOOTER
+   12. APPLE.COM GLOBAL FOOTER
    ========================================================================= */
 .app-footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 40px 0 20px;
+    padding: 44px 0 24px;
     color: var(--text-secondary);
-    font-size: 13px;
+    font-size: 12.5px;
     line-height: 1.6;
 }
 
@@ -1522,7 +1531,7 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.72);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex;
@@ -1534,9 +1543,9 @@ body::before {
 }
 
 .modal-window {
-    background: var(--apple-bg-surface-elevated);
+    background: #1c1c1e;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-2xl);
     width: min(640px, 100%);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
     overflow: hidden;
@@ -1604,58 +1613,7 @@ body::before {
 }
 
 /* =========================================================================
-   14. RESPONSIVE DESIGN (MOBILE & TABLET)
-   ========================================================================= */
-@media (max-width: 1024px) {
-    .welcome-guide-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .usp-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .main-tabs-bar {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .prayer-times-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .bottom-stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 680px) {
-    .app-container {
-        padding: 0 16px 120px;
-    }
-    .app-header {
-        margin: 0 -16px 24px;
-        padding: 12px 16px;
-    }
-    .welcome-guide-grid,
-    .usp-grid,
-    .main-tabs-bar,
-    .prayer-times-grid,
-    .bottom-stats-grid {
-        grid-template-columns: 1fr;
-    }
-    .zakat-form {
-        grid-template-columns: 1fr;
-    }
-    .floating-player-bar {
-        flex-direction: column;
-        gap: 10px;
-        border-radius: var(--radius-xl);
-        padding: 14px 18px;
-    }
-    .player-left, .player-center, .player-right {
-        width: 100%;
-        justify-content: center;
-    }
-}
-
-/* =========================================================================
-   15. DYNAMIC COMPONENT STYLING (APPLE ACCURACY)
+   14. DYNAMIC & HELPER COMPONENTS
    ========================================================================= */
 .grid-2-col {
     display: grid;
@@ -1713,7 +1671,7 @@ body::before {
 }
 
 .search-result-item {
-    background: var(--apple-bg-surface-high);
+    background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     padding: 16px;
@@ -1806,8 +1764,53 @@ body::before {
     color: var(--text-secondary);
 }
 
-.test-chip.chip-success {
-    color: var(--apple-green);
-    border-color: rgba(48, 209, 88, 0.25);
+/* =========================================================================
+   15. RESPONSIVE DESIGN (MOBILE & TABLET)
+   ========================================================================= */
+@media (max-width: 1024px) {
+    .welcome-guide-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .usp-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .main-tabs-bar {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .prayer-times-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .bottom-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
+@media (max-width: 680px) {
+    .app-container {
+        padding: 0 16px 120px;
+    }
+    .app-header {
+        margin: 0 -16px 24px;
+        padding: 0 16px;
+    }
+    .welcome-guide-grid,
+    .usp-grid,
+    .main-tabs-bar,
+    .prayer-times-grid,
+    .bottom-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .zakat-form {
+        grid-template-columns: 1fr;
+    }
+    .floating-player-bar {
+        flex-direction: column;
+        gap: 10px;
+        border-radius: var(--radius-2xl);
+        padding: 14px 18px;
+    }
+    .player-left, .player-center, .player-right {
+        width: 100%;
+        justify-content: center;
+    }
+}
