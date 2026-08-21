@@ -496,7 +496,19 @@ async def screen_halal(req: HalalScreenRequest):
     """Universal Halal, food ingredients, and Shariah screener with barcode auto-detection."""
     input_text = (req.text or req.query or "").strip()
     if not input_text:
-        return {"total_matches": 0, "matches": []}
+        return {
+            "query": "",
+            "total_matches": 0,
+            "matches": [],
+            "findings": [],
+            "findings_count": 0,
+            "overall_verdict": "UNKNOWN",
+            "status_message": "EMPTY_INPUT",
+            "is_compliant": True,
+            "disclaimer_ru": ahkam.DISCLAIMER_RU,
+            "disclaimer_kk": ahkam.DISCLAIMER_KK,
+            "disclaimer": ahkam.DISCLAIMER_RU
+        }
     
     # Check if input is a pure numeric barcode (8-14 digits)
     clean_digits = re.sub(r"\D", "", input_text)
@@ -504,26 +516,65 @@ async def screen_halal(req: HalalScreenRequest):
         try:
             barcode_res = await check_halal_barcode(clean_digits)
             if barcode_res.get("halal_verdict") != "NOT_FOUND":
+                v = barcode_res["halal_verdict"]
+                m = [{
+                    "category": "BARCODE_PRODUCT",
+                    "verdict": v,
+                    "title_ru": f"{barcode_res.get('name', 'Товар')} ({barcode_res.get('brand', '')})",
+                    "title_kk": f"{barcode_res.get('name', 'Тауар')} ({barcode_res.get('brand', '')})",
+                    "title_en": f"{barcode_res.get('name', 'Product')} ({barcode_res.get('brand', '')})",
+                    "description_ru": barcode_res.get("summary_ru") or barcode_res.get("summary", ""),
+                    "description_kk": barcode_res.get("summary_kk") or barcode_res.get("summary", ""),
+                    "ayah_ref": "SMIIC / Open Food Facts"
+                }]
                 return {
                     "query": input_text,
                     "barcode_data": barcode_res,
                     "total_matches": 1,
-                    "matches": [{
-                        "category": "BARCODE_PRODUCT",
-                        "verdict": barcode_res["halal_verdict"],
-                        "title_ru": f"{barcode_res.get('name', 'Товар')} ({barcode_res.get('brand', '')})",
-                        "title_kk": f"{barcode_res.get('name', 'Тауар')} ({barcode_res.get('brand', '')})",
-                        "title_en": f"{barcode_res.get('name', 'Product')} ({barcode_res.get('brand', '')})",
-                        "description_ru": barcode_res.get("summary_ru") or barcode_res.get("summary", ""),
-                        "description_kk": barcode_res.get("summary_kk") or barcode_res.get("summary", ""),
-                        "ayah_ref": "SMIIC / Open Food Facts"
-                    }]
+                    "matches": m,
+                    "findings": m,
+                    "findings_count": 1,
+                    "overall_verdict": v,
+                    "status_message": f"BARCODE_{v}",
+                    "is_compliant": (v != "HARAM"),
+                    "disclaimer_ru": ahkam.DISCLAIMER_RU,
+                    "disclaimer_kk": ahkam.DISCLAIMER_KK,
+                    "disclaimer": ahkam.DISCLAIMER_RU
                 }
         except Exception:
             pass
 
     matches = HalalKnowledgeBase.match_input(input_text)
-    return {"query": input_text, "total_matches": len(matches), "matches": matches}
+    is_haram = any(f.get("verdict") == "HARAM" for f in matches)
+    is_doubtful = any(f.get("verdict") == "DOUBTFUL" for f in matches)
+    is_halal = any(f.get("verdict") == "HALAL" for f in matches)
+
+    if is_haram:
+        overall_verdict = "HARAM"
+        status_message = "ТЫЙЫМ САЛЫНҒАН (ХАРАМ) / ОБНАРУЖЕНЫ ПРИЗНАКИ ХАРАМА"
+    elif is_doubtful:
+        overall_verdict = "DOUBTFUL"
+        status_message = "ШҮБӘЛІ / СОМНИТЕЛЬНОЕ (МУШТАБИХАТ - ҚҰРАМЫН ТЕКСЕРУ ҚАЖЕТ)"
+    elif is_halal:
+        overall_verdict = "HALAL"
+        status_message = "РҰҚСАТ ЕТІЛГЕН (ХАЛАЛ) / РАЗРЕШЕНО (ХАЛЯЛЬ)"
+    else:
+        overall_verdict = "HALAL_DEFAULT"
+        status_message = "ХАЛАЛ (НЕГІЗГІ ЕРЕЖЕ: ТЫЙЫМ БОЛМАҒАН БАРЛЫҚ НӘРСЕ АДАЛ)"
+
+    return {
+        "query": input_text,
+        "total_matches": len(matches),
+        "matches": matches,
+        "findings": matches,
+        "findings_count": len(matches),
+        "overall_verdict": overall_verdict,
+        "status_message": status_message,
+        "is_compliant": not is_haram,
+        "disclaimer_ru": ahkam.DISCLAIMER_RU,
+        "disclaimer_kk": ahkam.DISCLAIMER_KK,
+        "disclaimer": ahkam.DISCLAIMER_RU
+    }
 
 @app.get("/api/v1/halal/database")
 async def get_halal_master_database():

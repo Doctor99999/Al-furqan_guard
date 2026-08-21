@@ -1,7 +1,8 @@
 import json
 import unicodedata
 
-manifest_path = "f:/qoran/security_manifest.jsonl"
+import os
+manifest_path = os.path.join(os.path.dirname(__file__), "security_manifest.jsonl")
 
 bismillah_prefix = "بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ"
 bismillah_prefix_norm = "".join(c for c in bismillah_prefix if unicodedata.category(c) != 'Mn')

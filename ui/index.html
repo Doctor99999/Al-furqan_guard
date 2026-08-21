@@ -99,25 +99,25 @@
                 <p class="welcome-guide-subtitle" data-i18n="welcomeSubtitle">Детерминированный шариатский аудитор и канонический эталон Корана</p>
             </div>
             <div class="welcome-guide-grid">
-                <div class="guide-step-card" onclick="document.querySelector('[data-tab=\'tab-quran\']').click();">
+                <div class="guide-step-card" onclick="window.navigateToTabAndScroll('tab-quran', 'selectSura');">
                     <div class="guide-step-num">1</div>
                     <div class="guide-step-icon">📖</div>
                     <h3 class="guide-step-title" data-i18n="guideStep1Title">Чтение и аудио Корана</h3>
                     <p class="guide-step-desc" data-i18n="guideStep1Desc">114 сур, аудио 3 великих чтецов, пословный разбор и синхронные переводы.</p>
                 </div>
-                <div class="guide-step-card" onclick="document.querySelector('[data-tab=\'tab-guard\']').click();">
+                <div class="guide-step-card" onclick="window.navigateToTabAndScroll('tab-guard', 'guardTextInput');">
                     <div class="guide-step-num">2</div>
                     <div class="guide-step-icon">🛡️</div>
                     <h3 class="guide-step-title" data-i18n="guideStep2Title">Проверка цитат (ИИ)</h3>
                     <p class="guide-step-desc" data-i18n="guideStep2Desc">Детерминированная защита от галлюцинаций ChatGPT и искажения аятов.</p>
                 </div>
-                <div class="guide-step-card" onclick="document.querySelector('[data-tab=\'tab-halal\']').click();">
+                <div class="guide-step-card" onclick="window.navigateToTabAndScroll('tab-halal', 'inputBarcode');">
                     <div class="guide-step-num">3</div>
                     <div class="guide-step-icon">🥗</div>
                     <h3 class="guide-step-title" data-i18n="guideStep3Title">Халяль-сканер & Фото OCR</h3>
                     <p class="guide-step-desc" data-i18n="guideStep3Desc">Сфотографируйте состав продукта или введите E-код для проверки по SMIIC.</p>
                 </div>
-                <div class="guide-step-card" onclick="document.querySelector('[data-tab=\'tab-halal\']').click();">
+                <div class="guide-step-card" onclick="window.navigateToTabAndScroll('tab-halal', 'btnTriggerPDF');">
                     <div class="guide-step-num">4</div>
                     <div class="guide-step-icon">📑</div>
                     <h3 class="guide-step-title" data-i18n="guideStep4Title">Аудит PDF-договоров</h3>
@@ -179,23 +179,23 @@
                 <h3 class="usp-title" data-i18n="uspTitle">⚡ Почему Al-Furqan Guard? Наши ключевые отличия от других проектов:</h3>
             </div>
             <div class="usp-grid">
-                <div class="usp-card">
+                <div class="usp-card" onclick="window.navigateToTabAndScroll('tab-guard', 'guardTextInput');">
                     <h4 class="usp-card-title" data-i18n="usp1Title">🛡️ 0% AI Галлюцинаций (L0 Ground Truth)</h4>
                     <p class="usp-card-desc" data-i18n="usp1Desc">В отличие от ChatGPT и Claude: 6 236 аятов, 130 030 токенов и огласовки проверяются со 100% математической точностью по криптографической печати SHA-256.</p>
                 </div>
-                <div class="usp-card">
+                <div class="usp-card" onclick="window.navigateToTabAndScroll('tab-halal', 'btnTriggerPDF');">
                     <h4 class="usp-card-title" data-i18n="usp2Title">⚖️ Аудит исламских договоров по AAOIFI</h4>
                     <p class="usp-card-desc" data-i18n="usp2Desc">Первая в мире детерминированная проверка PDF-договоров на скрытую Риба (проценты), штрафы и соответствие стандартам Мурабаха/Иджара.</p>
                 </div>
-                <div class="usp-card">
+                <div class="usp-card" onclick="window.navigateToTabAndScroll('tab-halal', 'inputBarcode');">
                     <h4 class="usp-card-title" data-i18n="usp3Title">🥗 Халяль-скринер & Фото OCR (SMIIC)</h4>
                     <p class="usp-card-desc" data-i18n="usp3Desc">Распознавание этикеток по фото камерой, классификация 500+ пищевых добавок (E-кодов) и 2 000+ ингредиентов по регламенту SMIIC с аятами Корана.</p>
                 </div>
-                <div class="usp-card">
+                <div class="usp-card" onclick="window.navigateToTabAndScroll('tab-quran', 'selectSura');">
                     <h4 class="usp-card-title" data-i18n="usp4Title">📖 114 Сур, 1 651 Корень & 3 великих Чтеца</h4>
                     <p class="usp-card-desc" data-i18n="usp4Desc">Пословный морфологический разбор корней, латинская транслитерация и параллельные смысловые переводы на 7 мировых языков.</p>
                 </div>
-                <div class="usp-card">
+                <div class="usp-card" onclick="window.navigateToTabAndScroll('tab-namaz', 'prayerTimesGrid');">
                     <h4 class="usp-card-title" data-i18n="usp5Title">🕌 Точный Намаз по GPS & Нисаб Закята</h4>
                     <p class="usp-card-desc" data-i18n="usp5Desc">Астрономический расчет 5 молитв, точный компас направления на Каабу и расчет закята (2.5%) с привязкой к 85 г золота.</p>
                 </div>
@@ -957,7 +957,7 @@
                             <span class="ecosystem-badge">AAOIFI СТАНДАРТЫ</span>
                             <p class="ecosystem-desc" data-i18n="ecoCard4Desc">Аудит договоров на Рибу и штрафы с генерацией официального юридического PDF-сертификата.</p>
                         </div>
-                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-halal', 'btnUploadContractPDF')" data-i18n="btnGoFeature">⚡ Аудировать PDF</button>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-halal', 'btnTriggerPDF')" data-i18n="btnGoFeature">⚡ Аудировать PDF</button>
                     </div>
 
                     <!-- 5. Namaz Times & Qibla -->

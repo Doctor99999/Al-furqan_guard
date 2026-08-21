@@ -2,8 +2,12 @@ import json
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
+import os
+quran_txt_path = os.path.join(os.path.dirname(__file__), "quran.txt")
+manifest_path = os.path.join(os.path.dirname(__file__), "security_manifest.jsonl")
+
 quran_txt_map = {}
-with open('f:/qoran/quran.txt', 'r', encoding='utf-8') as f:
+with open(quran_txt_path, 'r', encoding='utf-8') as f:
     for line in f:
         parts = line.strip().split('|')
         if len(parts) == 3:
@@ -11,7 +15,7 @@ with open('f:/qoran/quran.txt', 'r', encoding='utf-8') as f:
             quran_txt_map[f"{s}:{a}"] = t
 
 manifest_map = {}
-with open('f:/qoran/security_manifest.jsonl', 'r', encoding='utf-8') as f:
+with open(manifest_path, 'r', encoding='utf-8') as f:
     for line in f:
         item = json.loads(line)
         manifest_map[item['id']] = item['text']

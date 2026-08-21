@@ -14,7 +14,7 @@ editions = {
     "id": "id.indonesian"
 }
 
-out_dir = "f:/qoran/translations"
+out_dir = os.path.join(os.path.dirname(__file__), "translations")
 os.makedirs(out_dir, exist_ok=True)
 all_translations = {}  # "sura:ayah" -> { "kk": "...", "ru": "...", "en": "...", ... }
 

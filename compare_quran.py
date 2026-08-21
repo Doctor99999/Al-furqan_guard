@@ -3,7 +3,9 @@ import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Check text consistency, token consistency, and compare with quran.txt if formatted
-with open('f:/qoran/quran.txt', 'r', encoding='utf-8') as f:
+import os
+quran_txt_path = os.path.join(os.path.dirname(__file__), "quran.txt")
+with open(quran_txt_path, 'r', encoding='utf-8') as f:
     quran_lines = [l.strip() for l in f if l.strip()]
 
 print(f"Total lines in quran.txt: {len(quran_lines)}")

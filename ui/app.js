@@ -30,27 +30,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // UI Elements
     const selectLanguage = document.getElementById('selectLanguage');
-    const metricVisitors = document.getElementById('metricVisitors');
-    const metricVisitorsLabel = document.getElementById('metricVisitorsLabel');
-    const btnToggleVisitorStats = document.getElementById('btnToggleVisitorStats');
-    const visitorCounterContainer = document.getElementById('visitorCounterContainer');
-    const visitorStatsPopover = document.getElementById('visitorStatsPopover');
     const statCountToday = document.getElementById('statCountToday');
     const statCountWeek = document.getElementById('statCountWeek');
     const statCountMonth = document.getElementById('statCountMonth');
     const statCountYear = document.getElementById('statCountYear');
     const statCountAllTime = document.getElementById('statCountAllTime');
-    const statCells = document.querySelectorAll('.stat-cell');
 
     let visitorStatsData = { today: 0, week: 0, month: 0, year: 0, all_time: 0 };
-    let currentVisitorPeriod = 'all_time';
-    const periodI18nKeys = {
-        today: 'metricToday',
-        week: 'metricWeek',
-        month: 'metricMonth',
-        year: 'metricYear',
-        all_time: 'metricAllTime'
-    };
     
     // Universal Search Elements
     const universalSearchInput = document.getElementById('universalSearchInput');
@@ -176,8 +162,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 4. Update Reciter Name in Player
         updateReciterDisplay();
 
-        // 5. Update Visitor Counter active period label
-        updateVisitorBadgeDisplay();
 
         // 6. Re-calculate Zakat note text
         calculateZakat();
@@ -186,28 +170,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // =========================================================================
     // 4. PERSISTENT MULTI-TIMEFRAME VISITOR ANALYTICS
     // =========================================================================
-    function updateVisitorBadgeDisplay() {
-        if (!metricVisitors) return;
-        const currentCount = visitorStatsData[currentVisitorPeriod] !== undefined 
-            ? visitorStatsData[currentVisitorPeriod] 
-            : (visitorStatsData.all_time || 0);
-        metricVisitors.textContent = Number(currentCount).toLocaleString();
-        
-        if (metricVisitorsLabel) {
-            const i18nKey = periodI18nKeys[currentVisitorPeriod] || 'metricAllTime';
-            metricVisitorsLabel.textContent = I18N.t(i18nKey) || 'За все время';
-        }
-
-        // Update active class in popup cells
-        statCells.forEach(cell => {
-            if (cell.getAttribute('data-period') === currentVisitorPeriod) {
-                cell.classList.add('active-stat-cell');
-            } else {
-                cell.classList.remove('active-stat-cell');
-            }
-        });
-    }
-
     async function loadVisitorAnalytics() {
         try {
             const resp = await fetch('/api/v1/analytics/visitor-count');
@@ -226,44 +188,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (statCountMonth) statCountMonth.textContent = Number(visitorStatsData.month).toLocaleString();
             if (statCountYear) statCountYear.textContent = Number(visitorStatsData.year).toLocaleString();
             if (statCountAllTime) statCountAllTime.textContent = Number(visitorStatsData.all_time).toLocaleString();
-
-            updateVisitorBadgeDisplay();
         } catch (e) {
             console.warn("Analytics fetch notice:", e);
         }
     }
-
-    // Toggle Popover
-    if (btnToggleVisitorStats && visitorStatsPopover) {
-        btnToggleVisitorStats.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = visitorStatsPopover.style.display === 'block';
-            visitorStatsPopover.style.display = isOpen ? 'none' : 'block';
-            if (visitorCounterContainer) visitorCounterContainer.classList.toggle('open', !isOpen);
-        });
-
-        // Close on click outside
-        document.addEventListener('click', (e) => {
-            if (visitorCounterContainer && !visitorCounterContainer.contains(e.target)) {
-                visitorStatsPopover.style.display = 'none';
-                visitorCounterContainer.classList.remove('open');
-            }
-        });
-    }
-
-    // Cell period switcher
-    statCells.forEach(cell => {
-        cell.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const period = cell.getAttribute('data-period');
-            if (period) {
-                currentVisitorPeriod = period;
-                updateVisitorBadgeDisplay();
-                if (visitorStatsPopover) visitorStatsPopover.style.display = 'none';
-                if (visitorCounterContainer) visitorCounterContainer.classList.remove('open');
-            }
-        });
-    });
 
 
     // =========================================================================
@@ -313,6 +241,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (val) performUniversalSearch(val);
     });
 
+    universalSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const val = universalSearchInput.value.trim();
+            if (val) performUniversalSearch(val);
+        }
+    });
+
     async function performUniversalSearch(query) {
         searchResultsList.innerHTML = `<div class="loading-spinner"><p>${I18N.t('searchingText') || 'Поиск по Корану и канонической базе...'}</p></div>`;
         searchResultsDropdown.style.display = 'block';
@@ -359,19 +294,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const verdictBadge = isHaram 
                     ? (I18N.t('verdictHaramBadge') || '🔴 ХАРАМ (ЗАПРЕТНО)')
                     : (I18N.t('verdictHalalDirectHeader') || '🟢 ХАЛЯЛЬ / ДОЗВОЛЕНО');
+                const title = m[`title_${currentLang}`] || m.title_ru || m.title_kk || m.title_en || '';
+                const desc = m[`description_${currentLang}`] || m.description_ru || m.description_kk || m.description_en || '';
 
                 item.innerHTML = `
                     <div class="search-result-header-line">
                         <span style="font-weight: 800; color: ${isHaram ? '#F87171' : '#34D399'};">
-                            ${verdictBadge}: ${m.title_ru}
+                            ${verdictBadge}: ${title}
                         </span>
                         <span style="font-size: 11px; color: var(--text-muted);">${m.ayah_ref || 'Шариат'}</span>
                     </div>
-                    <div class="search-result-trans">${m.description_ru}</div>
+                    <div class="search-result-trans">${desc}</div>
                 `;
                 item.addEventListener('click', () => {
                     searchResultsDropdown.style.display = 'none';
-                    document.querySelector('[data-tab="tab-halal"]').click();
+                    window.navigateToTabAndScroll('tab-halal', 'halalClauseInput');
                     halalClauseInput.value = query;
                     btnAuditHalal.click();
                 });
@@ -397,15 +334,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
                 item.addEventListener('click', async () => {
                     searchResultsDropdown.style.display = 'none';
-                    document.querySelector('[data-tab="tab-quran"]').click();
+                    window.navigateToTabAndScroll('tab-quran', 'selectSura');
                     selectSura.value = a.sura;
                     await loadSurah(a.sura);
                     
                     // Scroll to specific Ayah
+                    const ayahIdx = surahAyahsData ? surahAyahsData.findIndex(x => x.ayah === a.ayah) : -1;
+                    if (ayahIdx !== -1) {
+                        playAyah(ayahIdx);
+                    }
                     const ayahCard = document.getElementById(`ayah-card-${a.sura}-${a.ayah}`);
                     if (ayahCard) {
                         ayahCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        playAyah(a.ayah - 1);
+                        ayahCard.classList.add('nav-highlight-pulse');
+                        setTimeout(() => ayahCard.classList.remove('nav-highlight-pulse'), 1600);
                     }
                 });
                 searchResultsList.appendChild(item);
@@ -862,7 +804,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const text = chip.getAttribute('data-text');
             if (text) {
                 halalClauseInput.value = text;
-                btnAuditHalal.click();
+                if (text.includes('AAOIFI') || text.includes('Кредит') || text.includes('Мурабаха') || text.includes('договор')) {
+                    btnAuditAAOIFI.click();
+                } else {
+                    btnAuditHalal.click();
+                }
             }
         });
     });
@@ -1691,10 +1637,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (surahAyahsData && surahAyahsData.length > 0) {
                 ayahObj = surahAyahsData[currentPlayingAyahIndex || 0];
                 suraNum = currentSurah;
+            } else {
+                suraNum = 1;
+                ayahObj = {
+                    ayah: 1,
+                    text_uthmani: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+                    translations: {
+                        ru: "Во имя Аллаха, Милостивого, Милосердного",
+                        kk: "Аса қамқор, ерекше мейірімді Алланың атымен бастаймын",
+                        en: "In the name of Allah, the Entirely Merciful, the Especially Merciful."
+                    }
+                };
             }
         }
-        if (!ayahObj) return;
-        currentStoryAyah = { sura: suraNum, ...ayahObj };
+        currentStoryAyah = { sura: suraNum || 1, ...ayahObj };
         if (modalStoryGenerator) modalStoryGenerator.style.display = 'flex';
         drawStoryCanvas(currentStoryAyah);
     };
@@ -1830,13 +1786,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnCloseEcosystem) btnCloseEcosystem.addEventListener('click', () => modalEcosystemMap.style.display = 'none');
 
     window.navigateToTabAndScroll = (tabId, elementId) => {
-        if (modalEcosystemMap) modalEcosystemMap.style.display = 'none';
+        // 1. Close any open modals
+        document.querySelectorAll('.modal-backdrop').forEach(m => m.style.display = 'none');
+
+        // 2. Activate target tab
         const tabBtn = document.querySelector(`[data-tab="${tabId}"]`);
         if (tabBtn) tabBtn.click();
+
+        // 3. Smoothly scroll to target element
         setTimeout(() => {
-            const el = document.getElementById(elementId);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
+            const targetEl = document.getElementById(elementId) || document.getElementById(tabId);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetEl.classList.add('nav-highlight-pulse');
+                setTimeout(() => targetEl.classList.remove('nav-highlight-pulse'), 1600);
+            }
+        }, 120);
     };
 
     if (btnShareProject) {

@@ -16,7 +16,8 @@ canonical_ayah_counts = [
     5, 4, 5, 6
 ]
 
-manifest_path = "f:/qoran/security_manifest.jsonl"
+import os
+manifest_path = os.path.join(os.path.dirname(__file__), "security_manifest.jsonl")
 
 errors = []
 warnings = []

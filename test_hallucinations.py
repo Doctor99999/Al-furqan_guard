@@ -84,9 +84,9 @@ sample_clause = "Договор займа под 18% годовых с начи
 audit_result = ahkam.audit_contract_clause(sample_clause)
 
 print(f"Условие: \"{sample_clause}\"")
-print(f"Статус аудита: {audit_result['status']} (Compliant: {audit_result['is_compliant']})")
+print(f"Статус аудита: {audit_result['overall_verdict']} (Compliant: {audit_result['is_compliant']})")
 if not audit_result['is_compliant']:
-    print(f"🟢 УСПЕХ: Выявлены коранические триггеры: {audit_result['findings'][0]['canonical_reference']}")
+    print(f"🟢 УСПЕХ: Выявлены коранические триггеры: {audit_result['findings'][0]['ayah_ref']}")
     passed_tests += 1
 else:
     print("🔴 ОШИБКА: Ростовщический процент не был обнаружен!")

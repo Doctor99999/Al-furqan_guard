@@ -611,13 +611,15 @@ body::before {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-lg);
     padding: 22px 20px;
+    cursor: pointer;
     transition: all 0.3s var(--ease-apple);
 }
 
 .usp-card:hover {
     border-color: var(--border-hover);
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-apple-hover);
+    background: #242426;
 }
 
 .usp-card-title {
@@ -632,6 +634,26 @@ body::before {
     font-size: 12.5px;
     color: var(--text-secondary);
     line-height: 1.45;
+}
+
+/* Pulse Highlight when navigating from Guide / Bento cards */
+@keyframes navHighlightPulse {
+    0% {
+        outline: 3px solid rgba(217, 119, 6, 0.9);
+        box-shadow: 0 0 25px rgba(217, 119, 6, 0.5);
+    }
+    70% {
+        outline: 3px solid rgba(217, 119, 6, 0.4);
+        box-shadow: 0 0 15px rgba(217, 119, 6, 0.25);
+    }
+    100% {
+        outline: 3px solid transparent;
+        box-shadow: none;
+    }
+}
+
+.nav-highlight-pulse {
+    animation: navHighlightPulse 1.6s ease-out;
 }
 
 /* =========================================================================

@@ -6,7 +6,10 @@ sys.stdout.reconfigure(encoding='utf-8')
 sura_1_tokens = []
 sura_2_ayah_1_tokens = []
 
-with open('f:/qoran/security_manifest.jsonl', 'r', encoding='utf-8') as f:
+import os
+manifest_path = os.path.join(os.path.dirname(__file__), "security_manifest.jsonl")
+
+with open(manifest_path, 'r', encoding='utf-8') as f:
     for line in f:
         item = json.loads(line)
         if item['id'] == '1:1':
@@ -22,7 +25,7 @@ empty_forms = 0
 invalid_flags = 0
 pos_types = set()
 
-with open('f:/qoran/security_manifest.jsonl', 'r', encoding='utf-8') as f:
+with open(manifest_path, 'r', encoding='utf-8') as f:
     for line in f:
         item = json.loads(line)
         for t in item['tokens']:
