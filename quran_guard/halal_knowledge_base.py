@@ -8,8 +8,12 @@ Massive, multi-lingual ontology covering:
 Languages supported: Kazakh, Russian, English, Arabic, Turkish, Uzbek
 """
 
+import os
+import json
 import re
 from typing import Dict, List, Any, Optional, Tuple
+
+MASTER_DB_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "halal_master_database.json")
 
 class HalalKnowledgeBase:
     """

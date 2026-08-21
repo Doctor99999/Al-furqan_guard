@@ -517,6 +517,19 @@ async def screen_halal(req: HalalScreenRequest):
     matches = HalalKnowledgeBase.match_input(input_text)
     return {"query": input_text, "total_matches": len(matches), "matches": matches}
 
+@app.get("/api/v1/halal/database")
+async def get_halal_master_database():
+    """Returns the full standalone Master Halal/Haram Knowledge Base JSON dataset."""
+    db_path = os.path.join(os.path.dirname(__file__), "data", "halal_master_database.json")
+    if os.path.exists(db_path):
+        with open(db_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {
+        "title": "Al-Furqan Guard — Master Halal/Haram Knowledge Base",
+        "e_codes": HalalKnowledgeBase.E_CODES_REGISTRY,
+        "ontology_categories": list(HalalKnowledgeBase.ONTOLOGY.keys())
+    }
+
 @app.post("/api/v1/contracts/audit-aaoifi")
 async def audit_contract_aaoifi(req: ContractAuditRequest):
     """Deep AAOIFI Shariah contract compliance analysis."""
