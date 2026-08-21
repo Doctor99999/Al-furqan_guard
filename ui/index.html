@@ -245,24 +245,24 @@
             <!-- ========================================== -->
             <section class="tab-pane active" id="tab-quran">
                 <!-- Top Control Bar -->
-                <div class="quran-controls-panel" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; background: #1C1C1E; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
-                    <div class="panel-group" style="flex: 1; min-width: 160px;">
+                <div class="quran-controls-panel">
+                    <div class="panel-group">
                         <label for="selectSura" class="panel-label" data-i18n="lblSelectSurah">Выберите суру:</label>
-                        <select id="selectSura" class="select-surah-custom" style="width: 100%; padding: 8px 12px; background: #2C2C2E; color: #FFF; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;"></select>
+                        <select id="selectSura" class="select-surah-custom"></select>
                     </div>
 
-                    <div class="panel-group" style="flex: 1; min-width: 180px;">
+                    <div class="panel-group">
                         <label for="selectReciter" class="panel-label" data-i18n="lblSelectReciter">Чтец Корана:</label>
-                        <select id="selectReciter" class="select-reciter-custom" style="width: 100%; padding: 8px 12px; background: #2C2C2E; color: #FFF; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+                        <select id="selectReciter" class="select-reciter-custom">
                             <option value="alafasy" data-i18n="reciterAlafasy">🎙️ Мишари Рашид Аль-Афаси (Mishary Alafasy)</option>
                             <option value="husary" data-i18n="reciterHusary">🎙️ Махмуд Халиль Аль-Хусари (Husary)</option>
                             <option value="abdulbasit" data-i18n="reciterAbdulbasit">🎙️ Абдульбасит Абдуссамад (Abdulbasit)</option>
                         </select>
                     </div>
 
-                    <div class="panel-group" style="flex: 1; min-width: 130px;">
+                    <div class="panel-group">
                         <label for="selectHifzRepeat" class="panel-label" data-i18n="lblHifzMode">🔁 Заучивание (Хифз):</label>
-                        <select id="selectHifzRepeat" class="select-reciter-custom" style="width: 100%; padding: 8px 12px; background: #2C2C2E; color: #FFF; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+                        <select id="selectHifzRepeat" class="select-reciter-custom">
                             <option value="1" data-i18n="optRepeat1">1x (Обычно)</option>
                             <option value="3" data-i18n="optRepeat3">3x Повтора</option>
                             <option value="5" data-i18n="optRepeat5">5x Повторов</option>
@@ -270,7 +270,7 @@
                         </select>
                     </div>
 
-                    <div class="panel-actions" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <div class="panel-actions">
                         <button class="btn btn-emerald" id="btnPlayFullSurah">
                             <span data-i18n="btnPlayFullSurah">▶️ Слушать</span>
                         </button>
@@ -357,29 +357,55 @@
             <!-- ========================================== -->
             <!-- TAB 3: ХАЛЯЛЬ / ХАРАМ СКРИНЕР & ДОГОВОРЫ    -->
             <!-- ========================================== -->
+            <!-- ========================================== -->
+            <!-- TAB 3: ХАЛЯЛЬ / ХАРАМ СКРИНЕР & ДОГОВОРЫ    -->
+            <!-- ========================================== -->
             <section class="tab-pane" id="tab-halal">
-                <div class="panel-card">
+                
+                <!-- 1. BARCODE SCANNER CARD (2.5M PRODUCTS) -->
+                <div class="panel-card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                            <h3 class="card-title" data-i18n="barcodeCardTitle">📦 1. Сканер штрихкода товаров (2,5 млн товаров)</h3>
+                            <span class="ecosystem-badge">OPEN FOOD FACTS • 2.5M</span>
+                        </div>
+                        <p class="card-subtitle" data-i18n="barcodeCardDesc">Наведите камеру смартфона на штрихкод товара или введите цифры с упаковки для проверки состава.</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="barcode-input-row" style="display: flex; gap: 8px; flex-wrap: wrap; width: 100%;">
+                            <input type="text" id="inputBarcode" class="custom-input" style="flex: 1 1 180px; min-width: 0;" placeholder="Введите штрихкод (напр. 4607001770014, 5449000000996)..." data-i18n-placeholder="barcodePlaceholder">
+                            <button class="btn btn-emerald" id="btnCheckBarcode">
+                                <span data-i18n="btnCheckBarcode">🔍 Проверить</span>
+                            </button>
+                            <button class="btn btn-primary" id="btnLiveCameraBarcode">
+                                <span data-i18n="btnLiveCameraBarcode">📷 Сканер камеры</span>
+                            </button>
+                        </div>
+                        <!-- Quick Barcode Samples -->
+                        <div class="quick-chips-wrapper" style="margin-top: 12px;">
+                            <span class="chips-label" data-i18n="barcodePresetsLabel">Примеры:</span>
+                            <button class="test-chip chip-success" data-barcode="4870001001428">🍫 Шоколад Рахат (Халал)</button>
+                            <button class="test-chip chip-success" data-barcode="4870144000344">🍬 Баян Сулу (Халал)</button>
+                            <button class="test-chip chip-warning" data-barcode="5449000000996">🥤 Coca-Cola (Сомнительно)</button>
+                            <button class="test-chip chip-danger" data-barcode="4607001770014">🥓 Мясной продукт (E120)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. INGREDIENTS HALAL SCREENER & PHOTO OCR CARD -->
+                <div class="panel-card" style="margin-bottom: 20px;">
                     <div class="card-header-with-actions">
                         <div>
-                            <h3 class="card-title" data-i18n="halalCardTitle">🥗 Халяль / Харам Скринер & Аудит договоров (AAOIFI)</h3>
-                            <p class="card-subtitle" data-i18n="halalCardDesc">Проверяйте составы продуктов, пищевые добавки (E-коды), фотографии этикеток и финансовые договоры.</p>
+                            <h3 class="card-title" data-i18n="halalScreenCardTitle">🥗 2. Халяль-Скринер состава & 📷 Фото этикетки (OCR)</h3>
+                            <p class="card-subtitle" data-i18n="halalScreenCardDesc">Сфотографируйте блок с составом на упаковке или введите ингредиенты/E-коды (напр. Е120, желатин).</p>
                         </div>
-
                         <div class="upload-buttons-row">
-                            <!-- Real Image OCR Upload -->
                             <input type="file" id="inputProductImage" accept="image/*" style="display: none;">
                             <button class="btn btn-secondary" id="btnTriggerOCR" title="Сфотографировать состав продукта">
                                 <span data-i18n="btnPhotoOCR">📷 Фото состава (OCR)</span>
                             </button>
-
-                            <!-- Real PDF Upload -->
-                            <input type="file" id="inputContractPDF" accept="application/pdf" style="display: none;">
-                            <button class="btn btn-secondary" id="btnTriggerPDF" title="Загрузить договор в PDF">
-                                <span data-i18n="btnPDFContract">📑 PDF Договор (AAOIFI)</span>
-                            </button>
                         </div>
                     </div>
-
                     <div class="card-body">
                         <!-- Quick Test Preset Chips -->
                         <div class="quick-chips-wrapper">
@@ -390,40 +416,51 @@
                             <button class="test-chip chip-warning" data-text="Мармелад жевательный с желатином E441" data-i18n="chipGelatin">🟡 Желатин E-441</button>
                             <button class="test-chip chip-success" data-text="Говядина и баранина халяль" data-i18n="chipBeef">🟢 Говядина / Баранина</button>
                             <button class="test-chip chip-success" data-text="Свежая семга, судак и креветки" data-i18n="chipSeafood">🟢 Рыба и Морепродукты</button>
+                        </div>
+
+                        <div class="halal-input-group" style="margin-top: 12px;">
+                            <textarea id="halalClauseInput" rows="3" class="custom-textarea" placeholder="Введите название продукта, ингредиент (напр. Е120, свинина, желатин)..." data-i18n-placeholder="halalInputPlaceholder"></textarea>
+                            <div class="halal-btn-row">
+                                <button class="btn btn-primary" id="btnAuditHalal" style="width: 100%;">
+                                    <span data-i18n="btnAuditHalal">🔍 Проверить состав</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. AAOIFI FINANCIAL CONTRACT AUDITOR CARD -->
+                <div class="panel-card" style="margin-bottom: 20px;">
+                    <div class="card-header-with-actions">
+                        <div>
+                            <h3 class="card-title" data-i18n="aaoifiCardTitle">📑 3. Шариатский аудит финансовых договоров (AAOIFI)</h3>
+                            <p class="card-subtitle" data-i18n="aaoifiCardDesc">Загрузите PDF-договор или проверьте условия сделки на скрытую Рибу (проценты), штрафы и пени.</p>
+                        </div>
+                        <div class="upload-buttons-row">
+                            <input type="file" id="inputContractPDF" accept="application/pdf" style="display: none;">
+                            <button class="btn btn-secondary" id="btnTriggerPDF" title="Загрузить договор в PDF">
+                                <span data-i18n="btnPDFContract">📑 PDF Договор (AAOIFI)</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-chips-wrapper">
+                            <span class="chips-label" data-i18n="lblQuickCheck">Примеры:</span>
                             <button class="test-chip chip-danger" data-text="Кредит под 18.5% годовых с начислением пени в пользу банка" data-i18n="chipLoan">🔴 Кредит с процентами (Риба)</button>
                             <button class="test-chip chip-success" data-text="Договор Мурабаха с фиксированной наценкой и переходом права собственности" data-i18n="chipMurabaha">🟢 Мурабаха (AAOIFI 8)</button>
                         </div>
-
-                        <div class="halal-input-group">
-                            <textarea id="halalClauseInput" rows="2" class="custom-textarea" placeholder="Введите название продукта, ингредиент (напр. Е120, желатин) или условия договора..." data-i18n-placeholder="halalInputPlaceholder"></textarea>
+                        <div class="halal-input-group" style="margin-top: 12px;">
                             <div class="halal-btn-row">
-                                <button class="btn btn-primary" id="btnAuditHalal">
-                                    <span data-i18n="btnAuditHalal">🔍 Проверить состав</span>
-                                </button>
-                                <button class="btn btn-secondary" id="btnAuditAAOIFI">
+                                <button class="btn btn-secondary" id="btnAuditAAOIFI" style="width: 100%;">
                                     <span data-i18n="btnAuditAAOIFI">⚖️ Финансовый аудит AAOIFI</span>
                                 </button>
                             </div>
                         </div>
-
-                        <!-- Barcode Scanner Box (Open Food Facts 2.5M+ products) -->
-                        <div class="barcode-search-box" style="margin-top: 16px; padding: 14px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
-                            <div style="font-size: 13.5px; font-weight: 700; color: var(--apple-gold); margin-bottom: 8px;" data-i18n="barcodeSectionTitle">📦 Поиск по штрихкоду товара (2,5 млн товаров Open Food Facts):</div>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <input type="text" id="inputBarcode" class="custom-input" style="flex: 1; min-width: 200px;" placeholder="Введите штрихкод (напр. 4607001770014, 5449000000996)..." data-i18n-placeholder="barcodePlaceholder">
-                                <button class="btn btn-emerald" id="btnCheckBarcode">
-                                    <span data-i18n="btnCheckBarcode">🔍 Проверить</span>
-                                </button>
-                                <button class="btn btn-primary" id="btnLiveCameraBarcode">
-                                    <span data-i18n="btnLiveCameraBarcode">📷 Сканер камеры</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Halal & Contract Results -->
-                        <div class="halal-audit-result" id="halalAuditResult" style="display: none;"></div>
                     </div>
                 </div>
+
+                <!-- Unified Halal & Contract Results Box -->
+                <div class="halal-audit-result" id="halalAuditResult" style="display: none;"></div>
             </section>
 
             <!-- ========================================== -->
@@ -517,7 +554,7 @@
                                     <label class="form-label" data-i18n="lblMirasTotal">Общая сумма наследственной массы (тенге / валюта):</label>
                                     <input type="number" id="mirasTotalEstate" class="custom-input" placeholder="0" value="10000000">
                                 </div>
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div class="form-row-2col">
                                     <div class="form-group">
                                         <label class="form-label" data-i18n="lblMirasDeceasedGender">Пол умершего:</label>
                                         <select id="mirasDeceasedGender" class="custom-input">
@@ -533,7 +570,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div class="form-row-2col">
                                     <div class="form-group">
                                         <label class="form-label" data-i18n="lblMirasSons">Количество сыновей:</label>
                                         <input type="number" id="mirasSonsCount" class="custom-input" min="0" value="1">
@@ -543,7 +580,7 @@
                                         <input type="number" id="mirasDaughtersCount" class="custom-input" min="0" value="1">
                                     </div>
                                 </div>
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div class="form-row-2col">
                                     <div class="form-group">
                                         <label class="form-label" data-i18n="lblMirasFather">Отец (жив):</label>
                                         <select id="mirasHasFather" class="custom-input">
@@ -680,7 +717,7 @@
                         </div>
                         <div class="card-body">
                             <div class="zakat-form">
-                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                <div class="form-row-2col">
                                     <div class="form-group">
                                         <label class="form-label" data-i18n="lblMuraItemPrice">Стоимость товара (₸):</label>
                                         <input type="number" id="muraItemPrice" class="custom-input" value="300000">
@@ -865,22 +902,28 @@
 
     <!-- MODAL: LIVE CAMERA BARCODE SCANNER -->
     <div class="modal-backdrop" id="modalCameraScanner" style="display: none;">
-        <div class="modal-window" style="max-width: 440px; text-align: center;">
+        <div class="modal-window" style="max-width: 480px; text-align: center;">
             <div class="modal-header">
                 <h3 data-i18n="cameraScannerTitle">📷 Сканер штрихкодов</h3>
                 <button class="modal-close" id="btnCloseCameraScanner">&times;</button>
             </div>
             <div class="modal-body" style="padding: 16px;">
-                <div style="position: relative; width: 100%; height: 260px; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                <!-- HTML5 Barcode Reader Target -->
+                <div id="barcodeCameraReader" style="width: 100%; min-height: 240px; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative;">
                     <video id="barcodeVideo" playsinline autoplay muted style="width: 100%; height: 100%; object-fit: cover;"></video>
-                    <!-- Target Reticle Overlay -->
-                    <div style="position: absolute; width: 75%; height: 110px; border: 2px solid var(--apple-gold); border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none;">
-                        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #EF4444; opacity: 0.85;"></div>
-                    </div>
                 </div>
-                <div id="cameraScanStatus" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);" data-i18n="cameraScanInstruct">Наведите камеру на штрихкод товара...</div>
-                <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: center;">
-                    <button class="btn btn-secondary" id="btnStopCameraScan" data-i18n="btnStopCamera">Закрыть камеру</button>
+                
+                <div id="cameraScanStatus" style="margin-top: 12px; font-size: 13.5px; color: var(--apple-gold); font-weight: 600;" data-i18n="cameraScanInstruct">Наведите камеру на штрихкод товара...</div>
+                
+                <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <input type="file" id="inputBarcodeImageFile" accept="image/*" style="display: none;">
+                    <button class="btn btn-primary" id="btnSnapBarcodePhoto">
+                        <span data-i18n="btnSnapBarcode">📸 Сделать снимок</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btnUploadBarcodePhoto">
+                        <span data-i18n="btnUploadBarcodeImage">📁 Фото из галереи</span>
+                    </button>
+                    <button class="btn btn-secondary" id="btnStopCameraScan" data-i18n="btnStopCamera">Закрыть</button>
                 </div>
             </div>
         </div>
@@ -1145,7 +1188,10 @@
     <!-- GLOBAL TOAST NOTIFICATION CONTAINER -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Robust Web Barcode & OCR Engines (Runs in Browser, Zero Server Load) -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <!-- Scripts -->
-    <script src="app.js?v=18.0"></script>
+    <script src="app.js?v=20.0"></script>
 </body>
 </html>

@@ -333,6 +333,15 @@ const I18N = {
 
             // 114 Surah Names
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. Тауар штрихкодын сканерлеу (2,5 млн өнім)",
+            barcodeCardDesc: "Камераны тауардың штрихкодына бағыттаңыз немесе сандарын енгізіңіз.",
+            barcodePresetsLabel: "Үлгілер:",
+            halalScreenCardTitle: "🥗 2. Құрамды тексеру (SMIIC) & 📷 Құрам фотосы (OCR)",
+            halalScreenCardDesc: "Қаптамадағы құрам жазылған бөлікті суретке түсіріңіз немесе E-кодтарды енгізіңіз.",
+            aaoifiCardTitle: "📑 3. Келісімшарттарды шариғаттық аудиттеу (AAOIFI)",
+            aaoifiCardDesc: "PDF келісімшартты жүктеңіз немесе шарттарын тексеріңіз. Жүйе жасырын риба мен айыппұлдарды табады.",
+            btnSnapBarcode: "📸 Суретке түсіру",
+            btnUploadBarcodeImage: "📁 Галереядан фото",
             barcodeSectionTitle: "📦 Тауар штрихкоды бойынша іздеу (Open Food Facts 2,5 млн тауар):",
             barcodePlaceholder: "Штрихкодты енгізіңіз (мыс: 4607001770014, 5449000000996)...",
             btnCheckBarcode: "🔍 Штрихкодты тексеру",
@@ -676,6 +685,15 @@ const I18N = {
 
             // 114 Surah Names
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. Сканер штрихкода товаров (2,5 млн товаров)",
+            barcodeCardDesc: "Наведите камеру смартфона на штрихкод товара или введите цифры с упаковки для проверки состава.",
+            barcodePresetsLabel: "Примеры:",
+            halalScreenCardTitle: "🥗 2. Халяль-Скринер состава & 📷 Фото этикетки (OCR)",
+            halalScreenCardDesc: "Сфотографируйте блок с составом на упаковке или введите ингредиенты/E-коды (напр. Е120, желатин).",
+            aaoifiCardTitle: "📑 3. Шариатский аудит финансовых договоров (AAOIFI)",
+            aaoifiCardDesc: "Загрузите PDF-договор или проверьте условия сделки на скрытую Рибу (проценты), штрафы и пени.",
+            btnSnapBarcode: "📸 Сделать снимок",
+            btnUploadBarcodeImage: "📁 Фото из галереи",
             barcodeSectionTitle: "📦 Поиск по штрихкоду товара (2,5 млн товаров Open Food Facts):",
             barcodePlaceholder: "Введите штрихкод (напр. 4607001770014, 5449000000996)...",
             btnCheckBarcode: "🔍 Проверить штрихкод",
@@ -1019,6 +1037,15 @@ const I18N = {
 
             // 114 Surah Names
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. Product Barcode Scanner (2.5M+ Items)",
+            barcodeCardDesc: "Point camera at product barcode or type digits to verify ingredients and Halal compliance.",
+            barcodePresetsLabel: "Examples:",
+            halalScreenCardTitle: "🥗 2. Halal Ingredients Screener & 📷 Photo OCR",
+            halalScreenCardDesc: "Snap a photo of ingredients on packaging or enter E-codes (e.g. E120, gelatin).",
+            aaoifiCardTitle: "📑 3. Sharia Financial Contract Audit (AAOIFI)",
+            aaoifiCardDesc: "Upload PDF contract or check loan/lease terms for hidden Riba (interest) and penalties.",
+            btnSnapBarcode: "📸 Snap Photo",
+            btnUploadBarcodeImage: "📁 Upload Photo",
             barcodeSectionTitle: "📦 Product Barcode Scanner (2.5M+ Open Food Facts Database):",
             barcodePlaceholder: "Enter barcode (e.g. 4607001770014, 5449000000996)...",
             btnCheckBarcode: "🔍 Check Barcode",
@@ -1362,6 +1389,15 @@ const I18N = {
 
             // 114 Surah Names
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. ماسح باركود المنتجات (2.5 مليون منتج)",
+            barcodeCardDesc: "وجه الكاميرا نحو باركود المنتج أو أدخل الأرقام للتحقق من المكونات وحالة الحلال.",
+            barcodePresetsLabel: "أمثلة:",
+            halalScreenCardTitle: "🥗 2. فاحص المكونات والرموز E و 📷 تصوير الملصق (OCR)",
+            halalScreenCardDesc: "التقط صورة لبيان المكونات على العبوة أو أدخل المكونات ورموز E (مثل E120 والجيلاتين).",
+            aaoifiCardTitle: "📑 3. التدقيق الشرعي للعقود والمعاملات المالية (AAOIFI)",
+            aaoifiCardDesc: "ارفع عقد PDF أو افحص بنود التمويل للكشف عن الربا الخفي والغرامات الربوية.",
+            btnSnapBarcode: "📸 التقاط صورة",
+            btnUploadBarcodeImage: "📁 صورة من المعرض",
             barcodeSectionTitle: "📦 البحث عبر الباركود (قاعدة بيانات 2.5 مليون منتج Open Food Facts):",
             barcodePlaceholder: "أدخل الباركود (مثال: 4607001770014، 5449000000996)...",
             btnCheckBarcode: "🔍 فحص الباركود",
@@ -1704,6 +1740,15 @@ const I18N = {
             footerSecurityNote: "SHA-256 Doğrulandı • Tanzil Quran Project • Ümmet için Açık Kaynak",
 
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. Ürün Barkod Tarayıcı (2.5M+ Ürün)",
+            barcodeCardDesc: "Kamerayı ürün barkoduna tutun veya numarayı girin.",
+            barcodePresetsLabel: "Örnekler:",
+            halalScreenCardTitle: "🥗 2. Helal İçerik Tarayıcı & 📷 Etiket Fotoğrafı (OCR)",
+            halalScreenCardDesc: "Ambalajdaki içerik kısmını fotoğraflayın veya E-kodlarını girin.",
+            aaoifiCardTitle: "📑 3. Şeri Finansal Sözleşme Denetimi (AAOIFI)",
+            aaoifiCardDesc: "PDF sözleşmesini yükleyin veya faiz ve cezai şartlar için denetleyin.",
+            btnSnapBarcode: "📸 Fotoğraf Çek",
+            btnUploadBarcodeImage: "📁 Galeriden Yükle",
             barcodeSectionTitle: "📦 Ürün Barkod Sorgulama (Open Food Facts 2.5 Milyon Ürün):",
             barcodePlaceholder: "Barkod numarasını girin (örn. 4607001770014, 5449000000996)...",
             btnCheckBarcode: "🔍 Barkod Kontrolü",
@@ -2048,6 +2093,15 @@ const I18N = {
 
             // 114 Surah Names
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. Mahsulot shtrix-kod skaneri (2,5 mln mahsulot)",
+            barcodeCardDesc: "Kamerani shtrix-kodga qarating yoki raqamlarni kiriting.",
+            barcodePresetsLabel: "Namunalar:",
+            halalScreenCardTitle: "🥗 2. Tarkibni tekshirish (SMIIC) & 📷 Yorliq fotosi (OCR)",
+            halalScreenCardDesc: "Qadoqdagi tarkib qismini rasmga oling yoki E-kodlarni kiriting.",
+            aaoifiCardTitle: "📑 3. Moliyaviy shartnomalarni shariat auditi (AAOIFI)",
+            aaoifiCardDesc: "PDF shartnomani yuklang yoki kredit/ijara shartlarini foiz (Ribo) va jarimalarga tekshiring.",
+            btnSnapBarcode: "📸 Rasmga olish",
+            btnUploadBarcodeImage: "📁 Galereyadan rasm",
             barcodeSectionTitle: "📦 Shtrix-kod bo'yicha qidirish (Open Food Facts 2,5 mln mahsulot):",
             barcodePlaceholder: "Shtrix-kodni kiriting (masalan: 4607001770014, 5449000000996)...",
             btnCheckBarcode: "🔍 Shtrix-kodni tekshirish",
@@ -2391,6 +2445,15 @@ const I18N = {
 
             // 114 Surah Names
             // Barcode Scanner Keys (2.5M+ Open Food Facts)
+            barcodeCardTitle: "📦 1. Pemindai Barcode Produk (2.5 Juta+ Produk)",
+            barcodeCardDesc: "Arahkan kamera ke barcode produk atau masukkan nomor untuk memeriksa komposisi dan status Halal.",
+            barcodePresetsLabel: "Contoh:",
+            halalScreenCardTitle: "🥗 2. Pemeriksa Komposisi Halal & 📷 Foto Label (OCR)",
+            halalScreenCardDesc: "Foto bagian komposisi pada kemasan atau masukkan kode E (mis. E120, gelatin).",
+            aaoifiCardTitle: "📑 3. Audit Syariah Kontrak Keuangan (AAOIFI)",
+            aaoifiCardDesc: "Unggah kontrak PDF atau periksa syarat pinjaman/sewa dari riba tersembunyi dan denda.",
+            btnSnapBarcode: "📸 Ambil Foto",
+            btnUploadBarcodeImage: "📁 Unggah Foto",
             barcodeSectionTitle: "📦 Pemindai Barcode Produk (Database 2.5 Juta+ Open Food Facts):",
             barcodePlaceholder: "Masukkan nomor barcode (contoh: 4607001770014, 5449000000996)...",
             btnCheckBarcode: "🔍 Periksa Barcode",

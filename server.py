@@ -741,6 +741,7 @@ async def scan_image_ocr(req: ImageScanRequest, request: Request):
         extracted_text = ImageOCRProcessor.extract_text(img_bytes)
         analysis = HalalKnowledgeBase.analyze_ingredients_deep(extracted_text)
         guard_report = guard.verify_full_text(extracted_text[:20000])
+        screen_res = engine.screen_halal(extracted_text)
         
         return {
             "status": "success",
@@ -751,7 +752,8 @@ async def scan_image_ocr(req: ImageScanRequest, request: Request):
             "haram_items": analysis["haram_items"],
             "doubtful_items": analysis["doubtful_items"],
             "shubhat_details": analysis["shubhat_details"],
-            "guard_report": guard_report
+            "guard_report": guard_report,
+            "matches": screen_res.get("matches", [])
         }
     except Exception as e:
         return {

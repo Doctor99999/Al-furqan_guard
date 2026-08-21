@@ -742,16 +742,98 @@ document.addEventListener('DOMContentLoaded', async () => {
     // =========================================================================
     // 9. REAL OCR PHOTO SCANNING & REAL PDF DOCUMENT AUDIT
     // =========================================================================
-    // Real Photo OCR
+    // Real Photo OCR with Image Downscaling & Tesseract.js Web Worker + Server Fallback
     btnTriggerOCR.addEventListener('click', () => inputProductImage.click());
     inputProductImage.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         halalAuditResult.style.display = 'block';
-        halalAuditResult.innerHTML = `<div class="loading-spinner"><p>${I18N.t('halalScanningOCR') || '📷 Выполняется реальное OCR-распознавание изображения и анализ состава...'}</p></div>`;
+        halalAuditResult.innerHTML = `
+            <div class="loading-spinner">
+                <p id="ocrProgressStatus">${I18N.t('halalScanningOCR') || '📷 Подготовка и сканирование фото состава...'}</p>
+                <div style="width: 100%; max-width: 280px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; margin: 10px auto;">
+                    <div id="ocrProgressBar" style="width: 20%; height: 100%; background: var(--apple-gold); transition: width 0.3s;"></div>
+                </div>
+            </div>
+        `;
+
+        // Downscale image on canvas to avoid huge 10MB transfers and accelerate OCR
+        const downscaleImage = (fileToScale) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const maxDim = 1200;
+                    let w = img.width, h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    canvas.toBlob((blob) => resolve(blob || fileToScale), 'image/jpeg', 0.85);
+                };
+                img.onerror = () => resolve(fileToScale);
+                img.src = URL.createObjectURL(fileToScale);
+            });
+        };
 
         try {
+            const processedBlob = await downscaleImage(file);
+            let extractedText = '';
+
+            // 1. Try client-side Tesseract.js (100% in browser, fast)
+            if (typeof Tesseract !== 'undefined') {
+                try {
+                    const updateProgress = (pct) => {
+                        const pStatus = document.getElementById('ocrProgressStatus');
+                        const pBar = document.getElementById('ocrProgressBar');
+                        if (pStatus) pStatus.textContent = `📷 Распознавание текста состава: ${pct}%`;
+                        if (pBar) pBar.style.width = `${pct}%`;
+                    };
+                    updateProgress(35);
+
+                    const res = await Tesseract.recognize(processedBlob, 'rus+eng', {
+                        logger: (m) => {
+                            if (m.status === 'recognizing text') {
+                                const p = Math.min(95, Math.max(35, Math.round((m.progress || 0) * 100)));
+                                updateProgress(p);
+                            }
+                        }
+                    });
+                    if (res && res.data && res.data.text) {
+                        extractedText = res.data.text.trim();
+                    }
+                } catch (tErr) {
+                    console.warn("Client Tesseract notice:", tErr);
+                }
+            }
+
+            // 2. If client OCR text found, screen it immediately
+            if (extractedText) {
+                halalClauseInput.value = extractedText;
+                const pStatus = document.getElementById('ocrProgressStatus');
+                if (pStatus) pStatus.textContent = '🔍 Анализ ингредиентов по стандарту SMIIC...';
+                
+                const resp = await fetch('/api/v1/halal/screen', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: extractedText })
+                });
+                const data = await resp.json();
+                renderHalalResult(data);
+                return;
+            }
+
+            // 3. Fallback: Server-side OCR
             const reader = new FileReader();
             reader.onload = async () => {
                 const base64Data = reader.result.split(',')[1];
@@ -761,9 +843,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify({ image_base64: base64Data })
                 });
                 const data = await resp.json();
+                if (data.extracted_text) {
+                    halalClauseInput.value = data.extracted_text;
+                }
                 renderHalalResult(data);
             };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(processedBlob);
         } catch (err) {
             halalAuditResult.innerHTML = '<p style="color: var(--danger-primary)">Ошибка обработки фото.</p>';
         }
@@ -802,6 +887,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.test-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             const text = chip.getAttribute('data-text');
+            const barcode = chip.getAttribute('data-barcode');
+
+            if (barcode) {
+                if (inputBarcode) inputBarcode.value = barcode;
+                performBarcodeSearch(barcode);
+                return;
+            }
+
             if (text) {
                 halalClauseInput.value = text;
                 if (text.includes('AAOIFI') || text.includes('Кредит') || text.includes('Мурабаха') || text.includes('договор')) {
@@ -846,16 +939,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modalCameraScanner = document.getElementById('modalCameraScanner');
     const btnCloseCameraScanner = document.getElementById('btnCloseCameraScanner');
     const btnStopCameraScan = document.getElementById('btnStopCameraScan');
+    const btnSnapBarcodePhoto = document.getElementById('btnSnapBarcodePhoto');
+    const btnUploadBarcodePhoto = document.getElementById('btnUploadBarcodePhoto');
+    const inputBarcodeImageFile = document.getElementById('inputBarcodeImageFile');
     const barcodeVideo = document.getElementById('barcodeVideo');
     const cameraScanStatus = document.getElementById('cameraScanStatus');
 
+    let html5QrCodeScanner = null;
     let cameraStream = null;
-    let scanAnimationId = null;
 
-    const stopCameraScanner = () => {
-        if (scanAnimationId) {
-            cancelAnimationFrame(scanAnimationId);
-            scanAnimationId = null;
+    const onBarcodeSuccessfullyDetected = (detectedCode) => {
+        if (!detectedCode) return;
+        const cleanCode = String(detectedCode).replace(/\D/g, '');
+        if (cleanCode.length < 4) return;
+
+        if (navigator.vibrate) navigator.vibrate(120);
+        stopCameraScanner();
+        if (inputBarcode) inputBarcode.value = cleanCode;
+        performBarcodeSearch(cleanCode);
+    };
+
+    const stopCameraScanner = async () => {
+        if (html5QrCodeScanner) {
+            try {
+                await html5QrCodeScanner.stop();
+                await html5QrCodeScanner.clear();
+            } catch (e) {}
+            html5QrCodeScanner = null;
         }
         if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
@@ -868,49 +978,108 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnCloseCameraScanner) btnCloseCameraScanner.addEventListener('click', stopCameraScanner);
     if (btnStopCameraScan) btnStopCameraScan.addEventListener('click', stopCameraScanner);
 
+    if (btnSnapBarcodePhoto) {
+        btnSnapBarcodePhoto.addEventListener('click', async () => {
+            if (cameraScanStatus) cameraScanStatus.textContent = "⏳ Распознавание снимка штрихкода...";
+            const video = document.querySelector('#barcodeCameraReader video') || barcodeVideo;
+            if (video && video.videoWidth) {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(async (blob) => {
+                    if (typeof Html5Qrcode !== 'undefined') {
+                        try {
+                            const tempScanner = new Html5Qrcode("barcodeCameraReader");
+                            const code = await tempScanner.scanFile(blob, false);
+                            if (code) {
+                                onBarcodeSuccessfullyDetected(code);
+                                return;
+                            }
+                        } catch (e) {}
+                    }
+                    if (cameraScanStatus) cameraScanStatus.textContent = "Штрихкод не распознан. Попробуйте еще раз или введите цифры вручную.";
+                }, 'image/jpeg');
+            }
+        });
+    }
+
+    if (btnUploadBarcodePhoto && inputBarcodeImageFile) {
+        btnUploadBarcodePhoto.addEventListener('click', () => inputBarcodeImageFile.click());
+        inputBarcodeImageFile.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (cameraScanStatus) cameraScanStatus.textContent = "⏳ Сканирование загруженного фото...";
+            if (typeof Html5Qrcode !== 'undefined') {
+                try {
+                    const tempScanner = new Html5Qrcode("barcodeCameraReader");
+                    const code = await tempScanner.scanFile(file, true);
+                    if (code) {
+                        onBarcodeSuccessfullyDetected(code);
+                        return;
+                    }
+                } catch (e) {
+                    console.warn("Upload barcode error:", e);
+                }
+            }
+            if (cameraScanStatus) cameraScanStatus.textContent = "Штрихкод на фото не найден. Введите цифры вручную.";
+        });
+    }
+
     if (btnLiveCameraBarcode) {
         btnLiveCameraBarcode.addEventListener('click', async () => {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Камера не поддерживается вашим браузером или страница открыта без HTTPS.");
-                return;
-            }
-
             if (modalCameraScanner) modalCameraScanner.style.display = 'flex';
             if (cameraScanStatus) cameraScanStatus.textContent = I18N.t('cameraScanInstruct') || "Наведите камеру на штрихкод товара...";
 
+            // 1. Primary: Html5Qrcode (supports EAN-13, EAN-8, UPC, Code128 across all browsers)
+            if (typeof Html5Qrcode !== 'undefined') {
+                try {
+                    html5QrCodeScanner = new Html5Qrcode("barcodeCameraReader");
+                    await html5QrCodeScanner.start(
+                        { facingMode: "environment" },
+                        {
+                            fps: 15,
+                            qrbox: (viewfinderWidth, viewfinderHeight) => {
+                                return { width: Math.min(viewfinderWidth * 0.85, 320), height: Math.min(viewfinderHeight * 0.5, 180) };
+                            }
+                        },
+                        (decodedText) => onBarcodeSuccessfullyDetected(decodedText),
+                        (err) => {}
+                    );
+                    return;
+                } catch (e) {
+                    console.warn("Html5Qrcode init notice:", e);
+                }
+            }
+
+            // 2. Fallback: getUserMedia
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
                 });
                 if (barcodeVideo) {
+                    barcodeVideo.style.display = 'block';
                     barcodeVideo.srcObject = cameraStream;
                     await barcodeVideo.play();
                 }
-
-                // Barcode detection loop
                 if ('BarcodeDetector' in window) {
                     const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'qr_code'] });
-                    const detectLoop = async () => {
+                    const loop = async () => {
                         if (!cameraStream) return;
                         try {
-                            const barcodes = await detector.detect(barcodeVideo);
-                            if (barcodes.length > 0) {
-                                const detectedCode = barcodes[0].rawValue;
-                                if (navigator.vibrate) navigator.vibrate(100);
-                                stopCameraScanner();
-                                if (inputBarcode) inputBarcode.value = detectedCode;
-                                performBarcodeSearch(detectedCode);
+                            const codes = await detector.detect(barcodeVideo);
+                            if (codes.length > 0) {
+                                onBarcodeSuccessfullyDetected(codes[0].rawValue);
                                 return;
                             }
-                        } catch (err) {}
-                        scanAnimationId = requestAnimationFrame(detectLoop);
+                        } catch (e) {}
+                        requestAnimationFrame(loop);
                     };
-                    scanAnimationId = requestAnimationFrame(detectLoop);
-                } else {
-                    if (cameraScanStatus) cameraScanStatus.textContent = "Камера активна. Сделайте фото этикетки или введите штрихкод.";
+                    requestAnimationFrame(loop);
                 }
-            } catch (err) {
-                if (cameraScanStatus) cameraScanStatus.textContent = "Ошибка доступа к камере: " + err.message;
+            } catch (e) {
+                if (cameraScanStatus) cameraScanStatus.textContent = "Камера недоступна. Пожалуйста, введите штрихкод вручную.";
             }
         });
     }
@@ -1058,17 +1227,52 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderHalalResult(data) {
         halalAuditResult.innerHTML = '';
         const matches = data.matches || [];
+        const currentLang = I18N.currentLang || 'ru';
+        
+        let ocrBanner = '';
+        if (data.extracted_text) {
+            ocrBanner = `
+                <div style="padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; margin-bottom: 12px; font-size: 13px; color: #E2E8F0; line-height: 1.5;">
+                    <div style="font-weight: 700; color: var(--apple-gold); margin-bottom: 4px;">📝 Распознанный текст с фото:</div>
+                    <div style="font-style: italic; color: var(--text-secondary); max-height: 80px; overflow-y: auto;">"${data.extracted_text}"</div>
+                </div>
+            `;
+        }
 
-        if (matches.length === 0) {
+        if (matches.length === 0 && (!data.haram_items || data.haram_items.length === 0) && (!data.doubtful_items || data.doubtful_items.length === 0)) {
             halalAuditResult.className = 'halal-audit-result halal-card-halal';
             halalAuditResult.innerHTML = `
-                <div class="verdict-header" style="color: #34D399;">${I18N.t('verdictHalalDirectHeader') || '🟢 ПРЯМЫХ ЗАПРЕТОВ НЕ ОБНАРУЖЕНО (ХАЛЯЛЬ / ДОЗВОЛЕНО)'}</div>
-                <div class="verdict-desc">${I18N.t('verdictHalalDirectDesc') || 'По введенному составу в базе стандартов Халяль признаков Харама не найдено.'}</div>
+                ${ocrBanner}
+                <div class="verdict-header" style="color: #34D399; font-weight: 800; font-size: 16px;">${I18N.t('verdictHalalDirectHeader') || '🟢 ПРЯМЫХ ЗАПРЕТОВ НЕ ОБНАРУЖЕНО (ХАЛЯЛЬ / ДОЗВОЛЕНО)'}</div>
+                <div class="verdict-desc" style="font-size: 13.5px; margin-top: 6px; color: #E2E8F0;">${I18N.t('verdictHalalDirectDesc') || 'По проверенному составу в базе стандартов Халяль (SMIIC) признаков Харама не найдено.'}</div>
             `;
             return;
         }
 
-        let html = '';
+        let html = ocrBanner;
+        
+        if (data.haram_items && data.haram_items.length > 0) {
+            html += `
+                <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+                    <div style="font-weight: 800; font-size: 15px; color: #FCA5A5;">
+                        🔴 ${I18N.t('verdictHaramBadge') || 'ХАРАМ (ЗАПРЕТНО)'}: ${data.haram_items.join(', ')}
+                    </div>
+                    <div style="font-size: 13px; color: #E2E8F0; margin-top: 6px;">${data[`summary_${currentLang}`] || data.summary_ru || 'Обнаружены запрещенные в пищу компоненты.'}</div>
+                </div>
+            `;
+        }
+
+        if (data.doubtful_items && data.doubtful_items.length > 0) {
+            html += `
+                <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #F59E0B; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
+                    <div style="font-weight: 800; font-size: 15px; color: #FDE68A;">
+                        🟡 ${I18N.t('verdictDoubtfulBadge') || 'СОМНИТЕЛЬНО'}: ${data.doubtful_items.join(', ')}
+                    </div>
+                    <div style="font-size: 13px; color: #E2E8F0; margin-top: 6px;">${data[`summary_${currentLang}`] || data.summary_ru || 'Требуется уточнение происхождения сырья (животное/растительное).'}</div>
+                </div>
+            `;
+        }
+
         matches.forEach(m => {
             const isHaram = m.verdict === 'HARAM';
             const verdictLabel = isHaram 
@@ -1079,9 +1283,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             html += `
                 <div style="background: ${isHaram ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; border: 1px solid ${isHaram ? '#EF4444' : '#F59E0B'}; border-radius: 8px; padding: 14px; margin-bottom: 10px;">
                     <div style="font-weight: 800; font-size: 15px; color: ${isHaram ? '#FCA5A5' : '#FDE68A'};">
-                        ${verdictLabel}: ${m.title_ru}
+                        ${verdictLabel}: ${m[`title_${currentLang}`] || m.title_ru || m.title}
                     </div>
-                    <div style="font-size: 13.5px; color: #E2E8F0; margin: 6px 0;">${m.description_ru}</div>
+                    <div style="font-size: 13.5px; color: #E2E8F0; margin: 6px 0;">${m[`description_${currentLang}`] || m.description_ru || m.description}</div>
                     <div style="font-size: 12px; color: var(--gold-bright); font-weight: 600;">${quranRef}</div>
                 </div>
             `;
