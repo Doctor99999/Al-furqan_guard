@@ -100,7 +100,7 @@ I18N_MESSAGES = {
             "• 🔍 *ИИ-Поиск:* Поиск по темам (терпение, родители, торговля, пост)\n\n"
             "👇 *Используйте интерактивное меню ниже или просто отправьте текст/фото/PDF:*"
         ),
-        "btn_fatiha": "🌟 Сура Аль-Фатиха",
+        "btn_fatiha": "📖 114 Сур Корана",
         "btn_halal": "🥗 Халяль Скринер",
         "btn_roots": "🧬 Корни Корана (1 651)",
         "btn_namaz": "📍 Намаз & Кибла",
@@ -135,7 +135,7 @@ I18N_MESSAGES = {
             "• 🔍 *Тақырыптық іздеу:* Сабыр, ата-ана, адал сауда, ораза туралы аяттар\n\n"
             "👇 *Төмендегі батырмаларды қолданыңыз немесе мәтін/фото/PDF жіберіңіз:*"
         ),
-        "btn_fatiha": "🌟 Әл-Фатиха сүресі",
+        "btn_fatiha": "📖 114 Сүре каталогы",
         "btn_halal": "🥗 Халал сүзгісі",
         "btn_roots": "🧬 1 651 Түбір",
         "btn_namaz": "📍 Намаз & Құбыла",
@@ -170,7 +170,7 @@ I18N_MESSAGES = {
             "• 🔍 *Semantic Search:* Natural theme search (patience, parents, finance, fasting)\n\n"
             "👇 *Use the menu below or simply upload text/photo/PDF:*"
         ),
-        "btn_fatiha": "🌟 Surah Al-Fatiha",
+        "btn_fatiha": "📖 114 Surahs Catalog",
         "btn_halal": "🥗 Halal Screener",
         "btn_roots": "🧬 1,651 Roots",
         "btn_namaz": "📍 Prayer Times & Qibla",
@@ -215,7 +215,7 @@ def get_main_keyboard(lang: str) -> InlineKeyboardMarkup:
     t = I18N_MESSAGES.get(lang, I18N_MESSAGES["ru"])
     keyboard = [
         [
-            InlineKeyboardButton(t["btn_fatiha"], callback_data="cmd_fatiha"),
+            InlineKeyboardButton(t.get("btn_fatiha", "📖 114 Сур Корана"), callback_data="cmd_surah_catalog_1"),
             InlineKeyboardButton(t["btn_halal"], callback_data="cmd_halal_menu")
         ],
         [
@@ -236,6 +236,84 @@ def get_main_keyboard(lang: str) -> InlineKeyboardMarkup:
 # =========================================================================
 # КОМАНДЫ БОТА
 # =========================================================================
+
+
+async def send_surah_catalog(
+    update: Update, 
+    context: ContextTypes.DEFAULT_TYPE, 
+    page: int = 1, 
+    page_size: int = 12,
+    edit: bool = False
+):
+    """Отправляет интерактивный каталог всех 114 Сур Корана с пагинацией."""
+    user = update.effective_user
+    user_id = user.id if user else 0
+    lang = get_user_lang(user_id)
+    total_surahs = 114
+    total_pages = (total_surahs + page_size - 1) // page_size
+    page = max(1, min(page, total_pages))
+
+    start_sura = (page - 1) * page_size + 1
+    end_sura = min(page * page_size, total_surahs)
+
+    surah_names = engine.SURAH_NAMES.get(lang, engine.SURAH_NAMES["ru"])
+
+    keyboard = []
+    
+    # Быстрые популярные суры на первой странице
+    if page == 1:
+        keyboard.append([
+            InlineKeyboardButton("🌟 1. Фатиха", callback_data="open_surah_1"),
+            InlineKeyboardButton("👑 36. Йа Син", callback_data="open_surah_36"),
+        ])
+        keyboard.append([
+            InlineKeyboardButton("🛡️ 67. Мульк", callback_data="open_surah_67"),
+            InlineKeyboardButton("💎 112. Ихлас", callback_data="open_surah_112")
+        ])
+
+    # Список сур по 2 в ряд
+    current_row = []
+    for s in range(start_sura, end_sura + 1):
+        s_name = surah_names[s - 1]
+        if len(s_name) > 20:
+            s_name = s_name[:18] + "…"
+        btn_text = f"{s}. {s_name}"
+        current_row.append(InlineKeyboardButton(btn_text, callback_data=f"open_surah_{s}"))
+        if len(current_row) == 2:
+            keyboard.append(current_row)
+            current_row = []
+    if current_row:
+        keyboard.append(current_row)
+
+    # Навигация по страницам каталога
+    nav_row = []
+    if page > 1:
+        nav_row.append(InlineKeyboardButton("⬅️ Назад", callback_data=f"cmd_surah_catalog_{page - 1}"))
+    nav_row.append(InlineKeyboardButton(f"📄 {page}/{total_pages}", callback_data="noop"))
+    if page < total_pages:
+        nav_row.append(InlineKeyboardButton("Далее ➡️", callback_data=f"cmd_surah_catalog_{page + 1}"))
+    keyboard.append(nav_row)
+
+    title_text = (
+        f"📖 *Каталог Священного Корана (Все 114 Сур)*\n"
+        f"_Страница {page} из {total_pages} (Суры {start_sura}–{end_sura})_\n\n"
+        f"Нажмите на любую суру для чтения с переводом, транслитерацией и аудио, либо отправьте номер суры числом (например, `36` или `/surah 36`):"
+    )
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if edit and update.callback_query:
+        try:
+            await update.callback_query.edit_message_text(
+                text=title_text,
+                parse_mode="Markdown",
+                reply_markup=reply_markup
+            )
+        except Exception:
+            await update.callback_query.message.reply_markdown(title_text, reply_markup=reply_markup)
+    elif update.message:
+        await update.message.reply_markdown(title_text, reply_markup=reply_markup)
+    elif update.callback_query:
+        await update.callback_query.message.reply_markdown(title_text, reply_markup=reply_markup)
 
 async def send_surah_paginated(
     update: Update, 
@@ -293,10 +371,12 @@ async def send_surah_paginated(
 
     keyboard = [nav_row]
     
-    # Audio link button
+    # Audio link & Surah catalog return button
     s_pad = f"{sura:03d}"
+    cat_page = (sura - 1) // 12 + 1
     keyboard.append([
-        InlineKeyboardButton("🎧 Чтение суры целиком", url=f"https://server8.mp3quran.net/afs/{s_pad}.mp3")
+        InlineKeyboardButton("🎧 Аудио суры (MP3)", url=f"https://server8.mp3quran.net/afs/{s_pad}.mp3"),
+        InlineKeyboardButton("📚 Все 114 Сур", callback_data=f"cmd_surah_catalog_{cat_page}")
     ])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -313,16 +393,35 @@ async def send_surah_paginated(
         await update.callback_query.message.reply_markdown(full_text, reply_markup=reply_markup)
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Приветственное сообщение, ReplyKeyboardMarkup и Inline меню."""
+    """Приветственное сообщение с логотипом, ReplyKeyboardMarkup и Inline меню."""
     user = update.effective_user
     lang = get_user_lang(user.id)
     t = I18N_MESSAGES.get(lang, I18N_MESSAGES["ru"])
     
-    # 1. Send greeting with persistent ReplyKeyboardMarkup
-    await update.message.reply_markdown(
-        t["welcome"],
-        reply_markup=get_persistent_reply_keyboard(lang)
-    )
+    logo_path = None
+    for p in ["ui/logo.png", "ui/logo.jpg", "logo.png"]:
+        if os.path.exists(p):
+            logo_path = p
+            break
+            
+    # 1. Send greeting with logo if available
+    if logo_path:
+        try:
+            with open(logo_path, "rb") as photo:
+                await update.message.reply_photo(
+                    photo=photo,
+                    caption=t["welcome"],
+                    parse_mode="Markdown",
+                    reply_markup=get_persistent_reply_keyboard(lang)
+                )
+        except Exception:
+            await update.message.reply_markdown(t["welcome"], reply_markup=get_persistent_reply_keyboard(lang))
+    else:
+        await update.message.reply_markdown(
+            t["welcome"],
+            reply_markup=get_persistent_reply_keyboard(lang)
+        )
+        
     # 2. Provide inline quick actions
     await update.message.reply_markdown(
         "⚡ *Быстрый доступ к разделам Al-Furqan Guard:*",
@@ -749,8 +848,16 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     # 0. Обработка кнопок постоянного меню (ReplyKeyboardMarkup)
     if text in ["📖 Читать Коран", "📖 Құран оқу", "📖 Read Quran"]:
-        await send_surah_paginated(update, context, sura=1, page=1)
+        await send_surah_catalog(update, context, page=1)
         return
+
+    # 0.1 Автоматическое распознавание номера суры (например: 36, 112, 1, 114, "сура 36", "сүре 2")
+    cleaned_num_text = text.lower().replace("сура", "").replace("сүре", "").replace("surah", "").replace("sura", "").strip()
+    if cleaned_num_text.isdigit():
+        val = int(cleaned_num_text)
+        if 1 <= val <= 114:
+            await send_surah_paginated(update, context, sura=val, page=1)
+            return
     elif text in ["🥗 Халяль сканер", "🥗 Халал сүзгісі", "🥗 Halal Scanner"]:
         await update.message.reply_markdown(
             "🥗 *Халяль / Харам Скринер состава продуктов*\n\n"
@@ -841,8 +948,14 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         sura_num = int(parts[2])
         page_num = int(parts[3])
         await send_surah_paginated(update, context, sura=sura_num, page=page_num, edit=True)
-    elif data == "cmd_fatiha":
-        await fatiha_command(update, context)
+    elif data.startswith("open_surah_"):
+        sura_num = int(data.split("_")[2])
+        await send_surah_paginated(update, context, sura=sura_num, page=1, edit=True)
+    elif data.startswith("cmd_surah_catalog_"):
+        cat_page = int(data.split("_")[3])
+        await send_surah_catalog(update, context, page=cat_page, edit=True)
+    elif data in ["cmd_fatiha", "cmd_quran_catalog"]:
+        await send_surah_catalog(update, context, page=1, edit=False)
     elif data == "cmd_halal_menu":
         await query.message.reply_markdown(
             "🥗 *Халяль / Харам Скринер*\n\n"
@@ -934,6 +1047,7 @@ def create_bot_app(token: str):
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("fatiha", fatiha_command))
+    app.add_handler(CommandHandler(["quran", "surahs"], lambda u, c: send_surah_catalog(u, c, page=1)))
     app.add_handler(CommandHandler("ayah", ayah_command))
     app.add_handler(CommandHandler("surah", surah_command))
     app.add_handler(CommandHandler("halal", halal_command))

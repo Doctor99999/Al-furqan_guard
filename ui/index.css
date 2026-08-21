@@ -1,6 +1,7 @@
 /* =========================================================================
    Al-Furqan Guard — Apple.com Master Design System (Authentic Apple UI/UX)
    Ultra-pure Space Black, Liquid Frosted Glass, SF Pro Typography, Titanium Bezels
+   100% Mobile Responsive (iOS / Android Safari & Chrome optimized)
    ========================================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
@@ -11,7 +12,7 @@
     --apple-card: #161617;
     --apple-card-hover: #1c1c1e;
     --apple-card-elevated: #242426;
-    --apple-nav-bg: rgba(0, 0, 0, 0.82);
+    --apple-nav-bg: rgba(0, 0, 0, 0.85);
     --apple-glass-bg: rgba(22, 22, 23, 0.75);
 
     /* 2. Apple SF Pro Typography Colors */
@@ -43,17 +44,17 @@
     --border-focus: rgba(41, 151, 255, 0.65);
 
     --radius-pill: 980px;
-    --radius-2xl: 32px;
-    --radius-xl: 24px;
-    --radius-lg: 18px;
+    --radius-2xl: 28px;
+    --radius-xl: 20px;
+    --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 8px;
 
     /* Apple Soft Ambient Shadows */
     --shadow-apple-ambient: 0 20px 60px rgba(0, 0, 0, 0.7);
-    --shadow-apple-card: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    --shadow-apple-hover: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-    --shadow-island: 0 30px 80px rgba(0, 0, 0, 0.92), 0 0 40px rgba(41, 151, 255, 0.18);
+    --shadow-apple-card: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --shadow-apple-hover: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    --shadow-island: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(41, 151, 255, 0.15);
 
     --ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
     --ease-bounce: cubic-bezier(0.16, 1, 0.3, 1);
@@ -72,6 +73,8 @@
 html {
     scroll-behavior: smooth;
     background-color: var(--apple-black);
+    overflow-x: hidden;
+    width: 100%;
 }
 
 body {
@@ -79,12 +82,13 @@ body {
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Plus Jakarta Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 15px;
-    line-height: 1.47059;
+    line-height: 1.47;
     min-height: 100vh;
     overflow-x: hidden;
+    width: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.022em;
+    letter-spacing: -0.02em;
 }
 
 /* Apple Ambient Radial Glow */
@@ -94,19 +98,22 @@ body::before {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 1200px;
-    height: 700px;
-    background: radial-gradient(circle at 50% 0%, rgba(41, 151, 255, 0.1) 0%, rgba(48, 209, 88, 0.04) 35%, transparent 70%);
+    width: 100%;
+    max-width: 1100px;
+    height: 600px;
+    background: radial-gradient(circle at 50% 0%, rgba(41, 151, 255, 0.09) 0%, rgba(48, 209, 88, 0.03) 35%, transparent 70%);
     pointer-events: none;
     z-index: 0;
 }
 
 .app-container {
-    max-width: 1180px;
+    width: 100%;
+    max-width: 1160px;
     margin: 0 auto;
-    padding: 0 24px 130px;
+    padding: 0 20px 110px;
     position: relative;
     z-index: 1;
+    overflow-x: hidden;
 }
 
 /* =========================================================================
@@ -116,34 +123,37 @@ body::before {
     position: sticky;
     top: 0;
     z-index: 999;
-    height: 52px;
+    min-height: 52px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 24px;
-    margin: 0 -24px 36px;
+    padding: 6px 20px;
+    margin: 0 -20px 28px;
     background: var(--apple-nav-bg);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 1px solid var(--border-hairline);
     transition: all 0.3s var(--ease-apple);
+    gap: 12px;
 }
 
 .header-left {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .brand-logo-gem {
-    width: 34px;
-    height: 34px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-radius: 9px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
     transition: transform 0.25s var(--ease-apple);
 }
 
@@ -151,11 +161,11 @@ body::before {
     transform: scale(1.06);
 }
 
-.brand-logo-mark {
-    font-family: 'Amiri Quran', serif;
-    font-size: 17px;
-    font-weight: 700;
-    color: #ffffff;
+.brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .brand-text {
@@ -166,20 +176,21 @@ body::before {
 .brand-title-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .brand-title {
-    font-size: 16.5px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.025em;
     color: var(--text-primary);
+    white-space: nowrap;
 }
 
 .badge-version {
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 600;
-    padding: 2px 7px;
+    padding: 1px 6px;
     background: rgba(255, 255, 255, 0.08);
     color: var(--apple-blue);
     border: 1px solid rgba(41, 151, 255, 0.3);
@@ -191,12 +202,18 @@ body::before {
     font-size: 11px;
     color: var(--text-secondary);
     font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 340px;
 }
 
 .header-right {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 /* Apple Header Capsule Buttons */
@@ -204,18 +221,19 @@ body::before {
 .btn-telegram-header {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 13px;
+    gap: 5px;
+    padding: 5px 11px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
     color: var(--text-primary);
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 500;
     text-decoration: none;
     cursor: pointer;
-    transition: all 0.25s var(--ease-apple);
+    transition: all 0.2s var(--ease-apple);
     font-family: inherit;
+    white-space: nowrap;
 }
 
 .btn-header-action:hover,
@@ -240,13 +258,13 @@ body::before {
 .lang-selector-wrapper {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
+    gap: 4px;
+    padding: 3px 8px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
     color: var(--text-secondary);
-    transition: all 0.25s var(--ease-apple);
+    transition: all 0.2s var(--ease-apple);
 }
 
 .lang-selector-wrapper:hover {
@@ -258,7 +276,7 @@ body::before {
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 500;
     outline: none;
     cursor: pointer;
@@ -275,33 +293,35 @@ body::before {
    ========================================================================= */
 .hero-search-section {
     text-align: center;
-    padding: 44px 0 48px;
+    padding: 28px 0 36px;
     position: relative;
+    width: 100%;
 }
 
 .hero-content {
-    max-width: 860px;
+    max-width: 820px;
     margin: 0 auto;
+    width: 100%;
 }
 
 .hero-main-title {
-    font-size: clamp(36px, 6vw, 64px);
+    font-size: clamp(28px, 5.5vw, 54px);
     font-weight: 700;
-    letter-spacing: -0.035em;
-    line-height: 1.05;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
     background: linear-gradient(180deg, #ffffff 0%, #a1a1a6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .hero-subtitle {
-    font-size: clamp(17px, 2.4vw, 22px);
+    font-size: clamp(15px, 2.2vw, 19px);
     color: var(--text-secondary);
     line-height: 1.4;
     font-weight: 400;
-    max-width: 740px;
-    margin: 0 auto 34px;
+    max-width: 680px;
+    margin: 0 auto 24px;
     letter-spacing: -0.015em;
 }
 
@@ -314,17 +334,19 @@ body::before {
     -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: var(--radius-pill);
-    padding: 6px 8px 6px 22px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    transition: all 0.3s var(--ease-apple);
-    max-width: 720px;
+    padding: 4px 6px 4px 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.25s var(--ease-apple);
+    max-width: 680px;
+    width: 100%;
     margin: 0 auto;
+    gap: 8px;
 }
 
 .universal-search-box:focus-within {
     background: rgba(255, 255, 255, 0.11);
     border-color: var(--apple-blue);
-    box-shadow: 0 0 0 4px var(--apple-blue-glow), 0 18px 50px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 0 0 3px var(--apple-blue-glow), 0 14px 40px rgba(0, 0, 0, 0.8);
     transform: translateY(-1px);
 }
 
@@ -332,7 +354,8 @@ body::before {
     display: flex;
     align-items: center;
     flex: 1;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
 }
 
 .search-icon {
@@ -346,14 +369,15 @@ body::before {
     border: none;
     outline: none;
     color: #ffffff;
-    font-size: 15px;
+    font-size: 14.5px;
     font-family: inherit;
     font-weight: 400;
+    min-width: 0;
 }
 
 .universal-search-box input::placeholder {
     color: var(--text-tertiary);
-    font-size: 14px;
+    font-size: 13.5px;
 }
 
 .btn-clear-search {
@@ -362,42 +386,39 @@ body::before {
     color: var(--text-secondary);
     font-size: 18px;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: 2px 6px;
     border-radius: 50%;
-    transition: color 0.2s ease;
-}
-
-.btn-clear-search:hover {
-    color: #ffffff;
 }
 
 .btn-search-go {
     border-radius: var(--radius-pill) !important;
-    padding: 10px 22px !important;
-    font-size: 14px !important;
+    padding: 8px 18px !important;
+    font-size: 13.5px !important;
     font-weight: 600 !important;
+    flex-shrink: 0;
 }
 
 /* Search Dropdown */
 .search-results-dropdown {
-    margin-top: 14px;
+    margin-top: 12px;
     background: var(--apple-card);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-apple-hover);
-    padding: 18px;
+    padding: 16px;
     text-align: left;
-    max-height: 480px;
+    max-height: 420px;
     overflow-y: auto;
+    width: 100%;
 }
 
 .search-results-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border-hairline);
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-secondary);
     font-weight: 600;
 }
@@ -417,26 +438,17 @@ body::before {
     background: var(--apple-card);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-2xl);
-    padding: 44px 36px;
-    margin-bottom: 40px;
+    padding: 32px 24px;
+    margin-bottom: 32px;
     box-shadow: var(--shadow-apple-card);
     position: relative;
     overflow: hidden;
-}
-
-.welcome-guide-section::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    width: 100%;
 }
 
 .welcome-guide-header {
     text-align: center;
-    margin-bottom: 34px;
+    margin-bottom: 24px;
 }
 
 .welcome-badge {
@@ -446,27 +458,27 @@ body::before {
     background: rgba(41, 151, 255, 0.1);
     border: 1px solid rgba(41, 151, 255, 0.28);
     color: var(--apple-blue);
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 5px 14px;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
     border-radius: var(--radius-pill);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
 .welcome-guide-title {
-    font-size: clamp(24px, 3.5vw, 36px);
+    font-size: clamp(20px, 3.2vw, 30px);
     font-weight: 700;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .welcome-guide-subtitle {
-    font-size: 16px;
+    font-size: 14.5px;
     color: var(--text-secondary);
-    max-width: 640px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -474,51 +486,50 @@ body::before {
 .welcome-guide-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 32px;
+    gap: 14px;
+    margin-bottom: 24px;
 }
 
 .guide-step-card {
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 26px 22px;
+    border-radius: var(--radius-lg);
+    padding: 20px 18px;
     cursor: pointer;
-    transition: all 0.35s var(--ease-apple);
+    transition: all 0.3s var(--ease-apple);
     display: flex;
     flex-direction: column;
-    position: relative;
 }
 
 .guide-step-card:hover {
     background: #242426;
     border-color: var(--border-hover);
-    transform: translateY(-4px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-apple-hover);
 }
 
 .guide-step-num {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     color: var(--text-tertiary);
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
 
 .guide-step-icon {
-    font-size: 28px;
-    margin-bottom: 14px;
+    font-size: 24px;
+    margin-bottom: 10px;
 }
 
 .guide-step-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
-    letter-spacing: -0.015em;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
 }
 
 .guide-step-desc {
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-secondary);
     line-height: 1.45;
 }
@@ -528,36 +539,35 @@ body::before {
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-xl);
-    padding: 24px;
-    margin-top: 12px;
+    padding: 18px;
 }
 
 .video-header-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
 }
 
 .video-tag {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--apple-gold);
 }
 
 .video-label {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
 }
 
 .video-wrapper {
     position: relative;
     width: 100%;
-    border-radius: 18px;
+    border-radius: 14px;
     overflow: hidden;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(41, 151, 255, 0.12);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(41, 151, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: #000000;
 }
@@ -566,7 +576,7 @@ body::before {
     width: 100%;
     height: auto;
     display: block;
-    max-height: 520px;
+    max-height: 480px;
     object-fit: cover;
 }
 
@@ -574,16 +584,17 @@ body::before {
    4. APPLE USP HIGHLIGHTS BENTO
    ========================================================================= */
 .usp-banner-section {
-    margin-bottom: 40px;
+    margin-bottom: 32px;
+    width: 100%;
 }
 
 .usp-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .usp-title {
-    font-size: clamp(20px, 3vw, 28px);
+    font-size: clamp(18px, 2.8vw, 24px);
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--text-primary);
@@ -592,40 +603,35 @@ body::before {
 .usp-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-}
-
-.usp-grid .usp-card:nth-child(4),
-.usp-grid .usp-card:nth-child(5) {
-    grid-column: span 1;
+    gap: 14px;
 }
 
 .usp-card {
     background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 28px 24px;
-    transition: all 0.35s var(--ease-apple);
+    border-radius: var(--radius-lg);
+    padding: 22px 20px;
+    transition: all 0.3s var(--ease-apple);
 }
 
 .usp-card:hover {
     border-color: var(--border-hover);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-apple-hover);
 }
 
 .usp-card-title {
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: -0.01em;
 }
 
 .usp-card-desc {
-    font-size: 13.5px;
+    font-size: 12.5px;
     color: var(--text-secondary);
-    line-height: 1.5;
+    line-height: 1.45;
 }
 
 /* =========================================================================
@@ -634,38 +640,39 @@ body::before {
 .main-tabs-bar {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 32px;
-    background: transparent;
+    gap: 10px;
+    margin-bottom: 24px;
+    width: 100%;
 }
 
 .tab-btn {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
+    gap: 10px;
+    padding: 12px 14px;
     background: var(--apple-card);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     color: var(--text-secondary);
     cursor: pointer;
     text-align: left;
-    transition: all 0.3s var(--ease-apple);
+    transition: all 0.25s var(--ease-apple);
     font-family: inherit;
+    min-width: 0;
 }
 
 .tab-btn:hover {
     background: var(--apple-card-hover);
     border-color: var(--border-hover);
     color: var(--text-primary);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 .tab-btn.active {
     background: #ffffff;
     border-color: #ffffff;
     color: #000000;
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
 }
 
 .tab-btn.active .tab-title {
@@ -673,28 +680,32 @@ body::before {
 }
 
 .tab-btn.active .tab-sub {
-    color: #555555;
+    color: #444444;
 }
 
 .tab-icon {
-    font-size: 24px;
+    font-size: 20px;
     flex-shrink: 0;
 }
 
 .tab-text-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .tab-title {
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tab-sub {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
@@ -705,12 +716,14 @@ body::before {
    6. TAB PANES & CONTENT CARDS
    ========================================================================= */
 .tab-content-container {
-    min-height: 400px;
+    min-height: 380px;
+    width: 100%;
 }
 
 .tab-pane {
     display: none;
-    animation: appleFadeIn 0.4s var(--ease-apple);
+    animation: appleFadeIn 0.35s var(--ease-apple);
+    width: 100%;
 }
 
 .tab-pane.active {
@@ -720,7 +733,7 @@ body::before {
 @keyframes appleFadeIn {
     from {
         opacity: 0;
-        transform: translateY(8px);
+        transform: translateY(6px);
     }
     to {
         opacity: 1;
@@ -732,34 +745,35 @@ body::before {
     background: var(--apple-card);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-2xl);
-    padding: 34px 30px;
-    margin-bottom: 24px;
+    padding: 28px 22px;
+    margin-bottom: 20px;
     box-shadow: var(--shadow-apple-card);
+    width: 100%;
 }
 
 .card-header {
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .card-header-with-actions {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 }
 
 .card-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text-primary);
     letter-spacing: -0.02em;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .card-subtitle {
-    font-size: 14px;
+    font-size: 13.5px;
     color: var(--text-secondary);
     line-height: 1.45;
 }
@@ -773,23 +787,23 @@ body::before {
     justify-content: space-between;
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 18px 22px;
-    margin-bottom: 24px;
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 }
 
 .panel-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     flex: 1;
-    min-width: 220px;
+    min-width: 200px;
 }
 
 .panel-label {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--text-secondary);
     text-transform: uppercase;
@@ -802,13 +816,13 @@ body::before {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     color: var(--text-primary);
-    padding: 10px 14px;
-    font-size: 14px;
+    padding: 8px 12px;
+    font-size: 13.5px;
     font-family: inherit;
     font-weight: 500;
     outline: none;
     cursor: pointer;
-    transition: all 0.25s var(--ease-apple);
+    width: 100%;
 }
 
 .select-surah-custom:focus,
@@ -820,31 +834,31 @@ body::before {
 .surah-hero-card {
     background: linear-gradient(135deg, rgba(22, 22, 23, 0.95) 0%, rgba(10, 10, 12, 0.98) 100%);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-2xl);
-    padding: 40px 30px;
-    margin-bottom: 24px;
+    border-radius: var(--radius-xl);
+    padding: 32px 20px;
+    margin-bottom: 20px;
     text-align: center;
     box-shadow: var(--shadow-apple-card);
 }
 
 .surah-hero-arabic {
     font-family: 'Amiri Quran', serif;
-    font-size: 44px;
+    font-size: 38px;
     color: var(--apple-gold);
-    margin-bottom: 12px;
-    line-height: 1.4;
+    margin-bottom: 10px;
+    line-height: 1.3;
 }
 
 .surah-hero-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     letter-spacing: -0.02em;
 }
 
 .surah-hero-meta {
-    font-size: 13.5px;
+    font-size: 13px;
     color: var(--text-secondary);
 }
 
@@ -852,16 +866,18 @@ body::before {
 .ayahs-stream-container {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+    width: 100%;
 }
 
 .ayah-card {
     background: var(--apple-card);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-xl);
-    padding: 26px 30px;
-    transition: all 0.3s var(--ease-apple);
+    padding: 22px 20px;
+    transition: all 0.25s var(--ease-apple);
     position: relative;
+    width: 100%;
 }
 
 .ayah-card:hover {
@@ -878,19 +894,19 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
 }
 
 .ayah-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--border-hairline);
     border-radius: 50%;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--apple-gold);
 }
@@ -899,15 +915,15 @@ body::before {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
-    padding: 6px 14px;
+    padding: 5px 12px;
     color: var(--text-primary);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.25s var(--ease-apple);
+    gap: 5px;
+    transition: all 0.2s var(--ease-apple);
     font-family: inherit;
 }
 
@@ -919,27 +935,28 @@ body::before {
 
 .ayah-arabic-text {
     font-family: 'Amiri Quran', 'Amiri', serif;
-    font-size: 26px;
-    line-height: 2.2;
+    font-size: 24px;
+    line-height: 2.1;
     text-align: right;
     direction: rtl;
     color: #ffffff;
-    margin-bottom: 18px;
-    padding: 8px 0;
+    margin-bottom: 14px;
+    padding: 6px 0;
+    word-break: break-word;
 }
 
 .ayah-translit {
-    font-size: 14px;
+    font-size: 13.5px;
     color: var(--apple-gold);
     font-style: italic;
-    margin-bottom: 10px;
-    line-height: 1.5;
+    margin-bottom: 8px;
+    line-height: 1.45;
 }
 
 .ayah-translation {
-    font-size: 15px;
+    font-size: 14.5px;
     color: var(--text-primary);
-    line-height: 1.6;
+    line-height: 1.55;
 }
 
 /* =========================================================================
@@ -952,8 +969,8 @@ body::before {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
     color: var(--text-primary);
-    padding: 14px 16px;
-    font-size: 15px;
+    padding: 12px 14px;
+    font-size: 14.5px;
     font-family: inherit;
     outline: none;
     transition: all 0.25s var(--ease-apple);
@@ -974,8 +991,8 @@ body::before {
 
 .action-row {
     display: flex;
-    gap: 12px;
-    margin-top: 16px;
+    gap: 10px;
+    margin-top: 14px;
     flex-wrap: wrap;
 }
 
@@ -984,16 +1001,16 @@ body::before {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 24px;
-    font-size: 14.5px;
+    gap: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
     font-weight: 600;
     border-radius: var(--radius-pill);
     border: none;
     cursor: pointer;
     font-family: inherit;
     text-decoration: none;
-    transition: all 0.25s var(--ease-apple);
+    transition: all 0.2s var(--ease-apple);
 }
 
 .btn-primary {
@@ -1004,7 +1021,7 @@ body::before {
 .btn-primary:hover {
     background: var(--apple-blue-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 20px var(--apple-blue-glow);
+    box-shadow: 0 4px 16px var(--apple-blue-glow);
 }
 
 .btn-secondary {
@@ -1027,25 +1044,25 @@ body::before {
 .btn-emerald:hover {
     background: var(--apple-green-hover);
     transform: translateY(-1px);
-    box-shadow: 0 4px 20px var(--apple-green-glow);
+    box-shadow: 0 4px 16px var(--apple-green-glow);
 }
 
 .btn-large {
-    padding: 14px 28px;
-    font-size: 15px;
+    padding: 12px 24px;
+    font-size: 14.5px;
 }
 
 /* Quick Test Preset Chips */
 .quick-chips-wrapper {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: 6px;
+    margin-bottom: 14px;
     flex-wrap: wrap;
 }
 
 .chips-label {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
 }
@@ -1054,8 +1071,8 @@ body::before {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
-    padding: 5px 12px;
-    font-size: 12px;
+    padding: 4px 10px;
+    font-size: 11.5px;
     font-weight: 500;
     color: var(--text-primary);
     cursor: pointer;
@@ -1066,7 +1083,6 @@ body::before {
 .test-chip:hover {
     background: rgba(255, 255, 255, 0.12);
     border-color: var(--border-hover);
-    transform: translateY(-1px);
 }
 
 .chip-danger {
@@ -1086,12 +1102,13 @@ body::before {
 
 /* Verification Result Box */
 .verification-result-box {
-    margin-top: 20px;
+    margin-top: 18px;
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 24px;
+    border-radius: var(--radius-lg);
+    padding: 20px;
     box-shadow: var(--shadow-apple-card);
+    width: 100%;
 }
 
 /* =========================================================================
@@ -1100,36 +1117,36 @@ body::before {
 .prayer-times-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-    margin-bottom: 24px;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
 .prayer-box {
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    padding: 16px 12px;
+    padding: 14px 10px;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    transition: all 0.25s var(--ease-apple);
+    gap: 6px;
+    transition: all 0.2s var(--ease-apple);
 }
 
 .prayer-box:hover {
     background: #242426;
     border-color: var(--border-hover);
-    transform: translateY(-2px);
 }
 
 .prayer-name {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     color: var(--text-secondary);
 }
 
 .prayer-time {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--text-primary);
     font-family: 'JetBrains Mono', monospace;
@@ -1137,8 +1154,8 @@ body::before {
 
 .city-quick-selector {
     display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
 }
 
@@ -1146,8 +1163,8 @@ body::before {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
-    padding: 6px 14px;
-    font-size: 12.5px;
+    padding: 5px 12px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
     cursor: pointer;
@@ -1166,8 +1183,8 @@ body::before {
     background: rgba(48, 209, 88, 0.12);
     border: 1px solid rgba(48, 209, 88, 0.3);
     border-radius: var(--radius-pill);
-    padding: 6px 14px;
-    font-size: 12.5px;
+    padding: 5px 12px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--apple-green);
     cursor: pointer;
@@ -1183,25 +1200,26 @@ body::before {
 .qibla-display-card {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 20px;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    width: 100%;
 }
 
 .qibla-compass-icon {
-    font-size: 32px;
+    font-size: 28px;
 }
 
 .qibla-degree {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--apple-gold);
 }
 
 .qibla-sub {
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-secondary);
 }
 
@@ -1209,118 +1227,119 @@ body::before {
 .zakat-form {
     display: grid;
     grid-template-columns: repeat(3, 1fr) auto;
-    gap: 16px;
+    gap: 12px;
     align-items: flex-end;
+    width: 100%;
 }
 
 .zakat-result-card {
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-xl);
-    padding: 20px;
-    margin-top: 16px;
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-top: 14px;
+    width: 100%;
 }
 
 .zakat-amount {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 800;
     color: var(--apple-green);
-    margin: 6px 0;
+    margin: 4px 0;
 }
 
 .zakat-note {
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-secondary);
 }
 
 /* =========================================================================
-   10. BOTTOM REAL VISITOR STATS (APPLE BENTO BANNER)
+   10. BOTTOM REAL VISITOR STATS (COMPACT APPLE PILL BAR)
    ========================================================================= */
 .bottom-visitor-stats-section {
-    margin-top: 48px;
-    margin-bottom: 24px;
+    margin: 32px auto 16px;
+    max-width: 860px;
+    width: 100%;
 }
 
 .bottom-stats-card {
-    background: var(--apple-card);
+    background: rgba(22, 22, 23, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-2xl);
-    padding: 28px 34px;
-    box-shadow: var(--shadow-apple-card);
+    border-radius: var(--radius-pill);
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .bottom-stats-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .live-pulse {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     background-color: var(--apple-green);
     border-radius: 50%;
-    box-shadow: 0 0 10px var(--apple-green);
+    box-shadow: 0 0 8px var(--apple-green);
     animation: pulseGlow 2s infinite;
 }
 
 @keyframes pulseGlow {
     0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(48, 209, 88, 0); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(48, 209, 88, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
 }
 
 .bottom-stats-title {
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-}
-
-.bottom-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
-}
-
-.bottom-stat-item {
-    background: #1c1c1e;
-    border: 1px solid var(--border-hairline);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition: all 0.25s var(--ease-apple);
-}
-
-.bottom-stat-item:hover {
-    background: #242426;
-    border-color: var(--border-hover);
-}
-
-.bottom-stat-label {
     font-size: 12px;
+    font-weight: 700;
     color: var(--text-secondary);
-    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
 }
 
-.bottom-stat-value {
-    font-size: 22px;
-    font-weight: 800;
+.bottom-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+}
+
+.stat-pill-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.stat-pill-val {
     color: var(--text-primary);
+    font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
-    letter-spacing: -0.02em;
+    font-size: 12.5px;
 }
 
-.bottom-stat-item.highlight-stat {
-    border-color: rgba(41, 151, 255, 0.3);
-    background: rgba(41, 151, 255, 0.08);
+.stat-pill-dot {
+    color: var(--text-muted);
+    font-size: 10px;
 }
 
-.bottom-stat-item.highlight-stat .bottom-stat-value {
+.stat-pill.highlight-pill .stat-pill-val {
     color: var(--apple-blue);
 }
 
@@ -1329,27 +1348,28 @@ body::before {
    ========================================================================= */
 .floating-player-bar {
     position: fixed;
-    bottom: 24px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    width: min(840px, calc(100% - 32px));
-    background: rgba(22, 22, 23, 0.85);
+    width: min(800px, calc(100% - 24px));
+    background: rgba(22, 22, 23, 0.88);
     backdrop-filter: blur(35px) saturate(200%);
     -webkit-backdrop-filter: blur(35px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: var(--radius-pill);
     box-shadow: var(--shadow-island);
-    padding: 10px 22px;
+    padding: 8px 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     z-index: 1000;
-    animation: applePillSlideUp 0.4s var(--ease-bounce);
+    animation: applePillSlideUp 0.35s var(--ease-bounce);
+    gap: 12px;
 }
 
 @keyframes applePillSlideUp {
     from {
-        transform: translate(-50%, 40px);
+        transform: translate(-50%, 30px);
         opacity: 0;
     }
     to {
@@ -1361,24 +1381,26 @@ body::before {
 .player-left {
     display: flex;
     align-items: center;
-    gap: 14px;
-    min-width: 220px;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
 }
 
 .player-btn-circle {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: #ffffff;
     color: #000000;
     border: none;
-    font-size: 16px;
+    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.25s var(--ease-apple);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s var(--ease-apple);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
 }
 
 .player-btn-circle:hover {
@@ -1389,33 +1411,41 @@ body::before {
 .player-meta {
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
 .player-title {
-    font-size: 13.5px;
+    font-size: 12.5px;
     font-weight: 600;
     color: #ffffff;
     letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .player-reciter {
-    font-size: 11.5px;
+    font-size: 10.5px;
     color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .player-center {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .player-control-btn {
     background: transparent;
     border: none;
     color: var(--text-primary);
-    font-size: 16px;
+    font-size: 15px;
     cursor: pointer;
-    padding: 6px;
+    padding: 4px;
     border-radius: 50%;
     transition: all 0.2s ease;
 }
@@ -1429,8 +1459,8 @@ body::before {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
-    padding: 4px 12px;
-    font-size: 12px;
+    padding: 3px 9px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--text-secondary);
     cursor: pointer;
@@ -1447,7 +1477,8 @@ body::before {
 .player-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .speed-select {
@@ -1455,8 +1486,8 @@ body::before {
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
     color: var(--text-primary);
-    padding: 4px 10px;
-    font-size: 12px;
+    padding: 3px 8px;
+    font-size: 11px;
     font-weight: 600;
     outline: none;
     cursor: pointer;
@@ -1467,9 +1498,9 @@ body::before {
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 2px 4px;
     line-height: 1;
 }
 
@@ -1481,20 +1512,21 @@ body::before {
    12. APPLE.COM GLOBAL FOOTER
    ========================================================================= */
 .app-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 44px 0 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 36px 0 20px;
     color: var(--text-secondary);
-    font-size: 12.5px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.5;
+    width: 100%;
 }
 
 .footer-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
 }
 
 .footer-brand strong {
@@ -1503,7 +1535,8 @@ body::before {
 
 .footer-links {
     display: flex;
-    gap: 20px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
 .footer-links a {
@@ -1518,7 +1551,7 @@ body::before {
 }
 
 .footer-sub {
-    font-size: 11.5px;
+    font-size: 11px;
     color: var(--text-tertiary);
 }
 
@@ -1531,48 +1564,39 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.72);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 2000;
-    padding: 20px;
-    animation: appleFadeIn 0.3s var(--ease-apple);
+    padding: 16px;
+    animation: appleFadeIn 0.25s var(--ease-apple);
 }
 
 .modal-window {
     background: #1c1c1e;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: var(--radius-2xl);
-    width: min(640px, 100%);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9);
+    width: min(600px, 100%);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
     overflow: hidden;
-    animation: appleScaleUp 0.35s var(--ease-bounce);
-}
-
-@keyframes appleScaleUp {
-    from {
-        transform: scale(0.95);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 24px;
+    padding: 16px 20px;
     border-bottom: 1px solid var(--border-hairline);
 }
 
 .modal-header h3 {
-    font-size: 18px;
+    font-size: 16.5px;
     font-weight: 700;
     color: var(--text-primary);
 }
@@ -1582,14 +1606,13 @@ body::before {
     border: none;
     color: var(--text-secondary);
     font-size: 18px;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .modal-close:hover {
@@ -1598,14 +1621,15 @@ body::before {
 }
 
 .modal-body {
-    padding: 24px;
-    font-size: 14px;
+    padding: 20px;
+    font-size: 13.5px;
     color: var(--text-secondary);
-    line-height: 1.6;
+    line-height: 1.55;
+    overflow-y: auto;
 }
 
 .modal-body p {
-    margin-bottom: 14px;
+    margin-bottom: 12px;
 }
 
 .modal-body strong {
@@ -1618,32 +1642,27 @@ body::before {
 .grid-2-col {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
-}
-
-@media (max-width: 900px) {
-    .grid-2-col {
-        grid-template-columns: 1fr;
-    }
+    gap: 18px;
+    width: 100%;
 }
 
 .ayah-top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .ayah-number-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid var(--border-hairline);
     border-radius: 50%;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--apple-gold);
 }
@@ -1652,15 +1671,15 @@ body::before {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-pill);
-    padding: 6px 14px;
+    padding: 5px 12px;
     color: var(--text-primary);
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.25s var(--ease-apple);
+    gap: 5px;
+    transition: all 0.2s var(--ease-apple);
     font-family: inherit;
 }
 
@@ -1674,8 +1693,8 @@ body::before {
     background: #1c1c1e;
     border: 1px solid var(--border-hairline);
     border-radius: var(--radius-md);
-    padding: 16px;
-    margin-bottom: 10px;
+    padding: 14px;
+    margin-bottom: 8px;
     cursor: pointer;
     transition: all 0.2s var(--ease-apple);
 }
@@ -1689,83 +1708,83 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .search-result-title {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
     color: var(--apple-blue);
 }
 
 .search-result-arabic {
     font-family: 'Amiri Quran', serif;
-    font-size: 20px;
+    font-size: 18px;
     text-align: right;
     direction: rtl;
     color: #ffffff;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .search-result-trans {
-    font-size: 13px;
+    font-size: 12.5px;
     color: var(--text-secondary);
 }
 
 .halal-btn-row {
     display: flex;
-    gap: 12px;
-    margin-top: 14px;
+    gap: 10px;
+    margin-top: 12px;
     flex-wrap: wrap;
 }
 
 .halal-input-group {
-    margin-top: 14px;
+    margin-top: 12px;
 }
 
 .loading-spinner {
-    padding: 36px 20px;
+    padding: 28px 16px;
     text-align: center;
     color: var(--text-secondary);
-    font-size: 14.5px;
+    font-size: 13.5px;
     font-weight: 500;
 }
 
 .verdict-header {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     letter-spacing: -0.01em;
 }
 
 .verdict-desc {
-    font-size: 13.5px;
+    font-size: 13px;
     color: var(--text-secondary);
-    line-height: 1.5;
-    margin-bottom: 12px;
+    line-height: 1.45;
+    margin-bottom: 10px;
 }
 
 .root-input-row {
     display: flex;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 10px;
 }
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-bottom: 14px;
+    gap: 5px;
+    margin-bottom: 12px;
 }
 
 .form-label {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-secondary);
 }
 
 /* =========================================================================
-   15. RESPONSIVE DESIGN (MOBILE & TABLET)
+   15. BULLETPROOF MOBILE & TABLET RESPONSIVENESS
    ========================================================================= */
 @media (max-width: 1024px) {
     .welcome-guide-grid {
@@ -1780,37 +1799,116 @@ body::before {
     .prayer-times-grid {
         grid-template-columns: repeat(3, 1fr);
     }
-    .bottom-stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 768px) {
     .app-container {
-        padding: 0 16px 120px;
+        padding: 0 14px 110px;
     }
+    
     .app-header {
-        margin: 0 -16px 24px;
-        padding: 0 16px;
+        margin: 0 -14px 20px;
+        padding: 8px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
     }
-    .welcome-guide-grid,
-    .usp-grid,
-    .main-tabs-bar,
-    .prayer-times-grid,
-    .bottom-stats-grid {
+    
+    .header-left {
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .header-right {
+        justify-content: flex-start;
+        width: 100%;
+        gap: 6px;
+    }
+    
+    .brand-subtitle {
+        max-width: 240px;
+    }
+
+    .welcome-guide-section {
+        padding: 24px 16px;
+        border-radius: var(--radius-xl);
+    }
+
+    .welcome-guide-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .usp-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .main-tabs-bar {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .tab-btn {
+        padding: 10px 12px;
+    }
+
+    .tab-sub {
+        display: none; /* Hide subtext on phone for clean Apple pill look */
+    }
+
+    .grid-2-col {
         grid-template-columns: 1fr;
     }
+
+    .prayer-times-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
     .zakat-form {
         grid-template-columns: 1fr;
     }
-    .floating-player-bar {
+
+    .bottom-stats-card {
+        border-radius: var(--radius-xl);
         flex-direction: column;
-        gap: 10px;
-        border-radius: var(--radius-2xl);
-        padding: 14px 18px;
+        align-items: flex-start;
+        padding: 12px 14px;
+        gap: 8px;
     }
-    .player-left, .player-center, .player-right {
-        width: 100%;
-        justify-content: center;
+
+    .bottom-stats-row {
+        justify-content: flex-start;
+        gap: 6px;
+    }
+
+    .floating-player-bar {
+        width: calc(100% - 16px);
+        bottom: 8px;
+        padding: 8px 12px;
+        border-radius: var(--radius-xl);
+    }
+    
+    .player-left {
+        min-width: 0;
+    }
+    
+    .speed-select {
+        display: none; /* Keep player super compact on small screens */
+    }
+}
+
+@media (max-width: 420px) {
+    .main-tabs-bar {
+        grid-template-columns: 1fr;
+    }
+    
+    .prayer-times-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .btn-toggle-continuous {
+        display: none;
     }
 }
