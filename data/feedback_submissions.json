@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "name": "Ахмад Тестер",
+    "contact": "ahmad@example.com",
+    "category": "suggestion",
+    "message": "Превосходный проект! Добавьте больше переводов смыслов.",
+    "timestamp": "2026-08-21T02:43:19.064040+00:00"
+  },
+  {
+    "id": 1,
+    "name": "Tester",
+    "contact": "",
+    "category": "bug",
+    "message": "Automated test message",
+    "timestamp": "2026-08-21T02:59:08.721782+00:00"
+  },
+  {
+    "id": 1,
+    "name": "Tester",
+    "contact": "",
+    "category": "bug",
+    "message": "Automated test message",
+    "timestamp": "2026-08-21T03:00:24.821501+00:00"
+  },
+  {
+    "id": 1,
+    "name": "Tester",
+    "contact": "",
+    "category": "bug",
+    "message": "Automated test message",
+    "timestamp": "2026-08-21T03:00:53.940724+00:00"
+  },
+  {
+    "id": 1,
+    "name": "Tester",
+    "contact": "",
+    "category": "bug",
+    "message": "Automated test message",
+    "timestamp": "2026-08-21T03:01:31.177357+00:00"
+  }
+]

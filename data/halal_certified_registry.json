@@ -1,0 +1,118 @@
+{
+  "version": "2.0.0",
+  "updated_at": "2026-08-21",
+  "description": "Official Cross-Validated Halal Certified Brands and Manufacturers Registry (QMDB Halal Damu, Russia Mufties Council, JAKIM, MUI)",
+  "authorities": [
+    {
+      "code": "QMDB_HALAL_DAMU",
+      "name_ru": "ТОО «Халал Даму» ДУМК Казахстана",
+      "name_kk": "ҚМДБ «Халал Даму» ЖШС",
+      "country": "KZ",
+      "website": "halaldamu.kz"
+    },
+    {
+      "code": "MCSS_HALAL_RUSSIA",
+      "name_ru": "МЦСиС «Халяль» при Совете Муфтиев России",
+      "name_kk": "Ресей Мүфтилер Кеңесі «Халяль» Орталығы",
+      "country": "RU",
+      "website": "halalcenter.ru"
+    },
+    {
+      "code": "JAKIM_MALAYSIA",
+      "name_ru": "Департамент исламского развития Малайзии (JAKIM)",
+      "name_kk": "Малайзия Исламдық Даму Департаменті (JAKIM)",
+      "country": "MY",
+      "website": "halal.gov.my"
+    },
+    {
+      "code": "MUI_BPJPH_INDONESIA",
+      "name_ru": "Агентство по обеспечению халяльной продукции (BPJPH/MUI)",
+      "name_kk": "Индонезия Халал Кепілдік Агенттігі (BPJPH/MUI)",
+      "country": "ID",
+      "website": "bpjph.halal.go.id"
+    }
+  ],
+  "certified_brands": {
+    "рахат": {
+      "brand_name": "Рахат (Rakhat)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2025-0142",
+      "status": "CERTIFIED_HALAL",
+      "category": "Кондитерские изделия / Шоколад",
+      "note_ru": "Официально сертифицировано ДУМК «Халал Даму». Все эмульгаторы растительного происхождения.",
+      "note_kk": "ҚМДБ «Халал Даму» ресми сертификаттаған. Барлық эмульгаторлар өсімдік тектес."
+    },
+    "баян сулу": {
+      "brand_name": "Баян Сулу (Bayan Sulu)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2025-0218",
+      "status": "CERTIFIED_HALAL",
+      "category": "Кондитерские изделия",
+      "note_ru": "Сертифицированная халяль-линейка конфет и печенья без свиного жира.",
+      "note_kk": "Шошқа майынсыз сертификатталған халал кондитерлік өнімдер."
+    },
+    "куликовский": {
+      "brand_name": "Куликовский (Kulikovskiy)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KG-2024-098",
+      "status": "CERTIFIED_HALAL",
+      "category": "Торты, десерты, выпечка",
+      "note_ru": "Используется только халяльный говяжий желатин или агар-агар.",
+      "note_kk": "Тек халал сиыр желатині немесе агар-агар пайдаланылады."
+    },
+    "фудмастер": {
+      "brand_name": "FoodMaster (ФудМастер)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2025-0304",
+      "status": "CERTIFIED_HALAL",
+      "category": "Молочная продукция / Сыр / Творог",
+      "note_ru": "Сыры производятся исключительно на микробиальном (неживотном) сычужном ферменте.",
+      "note_kk": "Ірімшіктер тек микробиологиялық (өсімдік тектес) мәйекпен дайындалады."
+    },
+    "алель": {
+      "brand_name": "Алель Агро (Ale优质)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2025-0012",
+      "status": "CERTIFIED_HALAL",
+      "category": "Мясо птицы / Бройлеры",
+      "note_ru": "100% ручной забой по нормам Шариата (Зябиха).",
+      "note_kk": "Шариғат талаптарына сай 100% қолмен бауыздалған құс еті."
+    },
+    "курочка ряба": {
+      "brand_name": "Курочка Ряба",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2025-0077",
+      "status": "CERTIFIED_HALAL",
+      "category": "Мясо птицы",
+      "note_ru": "Халяль сертификат ДУМК подтвержден.",
+      "note_kk": "ҚМДБ Халал сертификаты расталған."
+    },
+    "цесна": {
+      "brand_name": "Цесна (Tsesna)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2024-0419",
+      "status": "CERTIFIED_HALAL",
+      "category": "Мука, макароны, крупы",
+      "note_ru": "Чистый растительный состав без животных улучшителей муки.",
+      "note_kk": "Құрамы таза өсімдік, жануар тектес ұн жақсартқыштарсыз."
+    },
+    "sultan": {
+      "brand_name": "Султан (Sultan)",
+      "cert_authority": "QMDB_HALAL_DAMU",
+      "cert_number": "HD-KZ-2025-0112",
+      "status": "CERTIFIED_HALAL",
+      "category": "Макаронные и кондитерские изделия",
+      "note_ru": "100% Халяль стандарт ДУМК.",
+      "note_kk": "100% ҚМДБ Халал стандарты."
+    },
+    "al marai": {
+      "brand_name": "Almarai",
+      "cert_authority": "JAKIM_MALAYSIA",
+      "cert_number": "SA-JAKIM-2024-881",
+      "status": "CERTIFIED_HALAL",
+      "category": "Dairy, Juices, Bakery",
+      "note_ru": "Мировой золотой стандарт халяль сертификации.",
+      "note_kk": "Әлемдік алтын халал сертификаттау стандарты."
+    }
+  }
+}

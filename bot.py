@@ -18,6 +18,7 @@ Al-Furqan Guard — Мультимодальный Telegram-бот v2.0 (Hardene
 import io
 import os
 import sys
+import re
 import json
 import logging
 from typing import Optional
@@ -835,6 +836,13 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_markdown(msg)
 
+async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработка голосовых сообщений."""
+    await update.message.reply_markdown(
+        "🎙️ *Голосовое сообщение получено!*\n\n"
+        "Вы можете назвать голосом или написать тему (например: *терпение*, *родители*, *торговля*, *пост*), номер суры (например: *36*) или прислать фото этикетки товара 📸!"
+    )
+
 # =========================================================================
 # УМНЫЙ АВТО-АНАЛИЗ ТЕКСТОВ
 # =========================================================================
@@ -859,6 +867,44 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         if 1 <= val <= 114:
             await send_surah_paginated(update, context, sura=val, page=1)
             return
+
+    # 0.2 Автоматическое распознавание штрихкода товара (8–14 цифр)
+    clean_digits = re.sub(r"\D", "", text)
+    if 8 <= len(clean_digits) <= 14 and clean_digits == text:
+        await update.message.reply_markdown(f"🔍 *Поиск товара по штрихкоду:* `{clean_digits}`...")
+        try:
+            from database import OpenFoodFactsService, HalalProductCache
+            cached = HalalProductCache.get_by_barcode(clean_digits)
+            if not cached:
+                cached = await OpenFoodFactsService.fetch_product_by_barcode(clean_digits)
+                if cached:
+                    HalalProductCache.save_product(cached)
+            
+            if cached and cached.get("name"):
+                analysis = HalalKnowledgeBase.analyze_ingredients_deep(
+                    cached.get("ingredients_text", ""),
+                    cached.get("additives_tags", [])
+                )
+                v = analysis["verdict"]
+                badge = "🟢 *ХАЛЯЛЬ (ДОЗВОЛЕНО)*" if v == "HALAL" else ("🔴 *ХАРАМ (ЗАПРЕТНО)*" if v == "HARAM" else "🟡 *КҮМӘНДІ / ТРЕБУЕТ ПРОВЕРКИ*")
+                brand_str = f" ({cached.get('brand')})" if cached.get('brand') else ""
+                ing_str = f"\n\n📝 *Состав:* {cached.get('ingredients_text', '')[:350]}" if cached.get('ingredients_text') else ""
+                msg = (
+                    f"{badge}\n\n"
+                    f"📦 *Товар:* {cached.get('name')}{brand_str}\n"
+                    f"🔢 *Штрихкод:* `{clean_digits}`{ing_str}\n\n"
+                    f"ℹ️ *Заключение:* {analysis['summary_ru']}\n\n"
+                    f"🛡️ _База Open Food Facts (2,5 млн товаров) • Al-Furqan Guard_"
+                )
+                await update.message.reply_markdown(msg)
+                return
+            else:
+                await update.message.reply_markdown(f"📦 *Штрихкод:* `{clean_digits}` не найден в базе Open Food Facts. Отправьте фото состава товара на этикетке 📸!")
+                return
+        except Exception as e:
+            await update.message.reply_markdown(f"❌ Ошибка проверки штрихкода: {str(e)}")
+            return
+
     elif text in ["🥗 Халяль сканер", "🥗 Халал сүзгісі", "🥗 Halal Scanner"]:
         await update.message.reply_markdown(
             "🥗 *Халяль / Харам Скринер состава продуктов*\n\n"
@@ -1057,10 +1103,11 @@ def create_bot_app(token: str):
     app.add_handler(CommandHandler("zakat", zakat_command))
 
     
-    # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация
+    # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация, Голос
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(MessageHandler(filters.Document.ALL, handle_document))
     app.add_handler(MessageHandler(filters.LOCATION, handle_location))
+    app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     
     # Кнопки
     app.add_handler(CallbackQueryHandler(handle_callback_query))

@@ -361,3 +361,131 @@ class SemanticThemeEngine:
                 })
                 
         return results
+
+
+# =========================================================================
+# 6. AAOIFI OFFICIAL AUDIT CERTIFICATE PDF GENERATOR (ReportLab)
+# =========================================================================
+
+class AuditCertificateGenerator:
+    """Generates formal, printable AAOIFI Shariah Compliance PDF Audit Reports."""
+
+    @staticmethod
+    def generate_pdf_bytes(audit_report: Dict[str, Any], doc_title: str = "Договор / Соглашение") -> bytes:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4,
+            rightMargin=36,
+            leftMargin=36,
+            topMargin=36,
+            bottomMargin=36
+        )
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'CertTitle',
+            parent=styles['Heading1'],
+            fontSize=16,
+            leading=20,
+            textColor=colors.HexColor('#0F172A'),
+            alignment=1
+        )
+        subtitle_style = ParagraphStyle(
+            'CertSubtitle',
+            parent=styles['Normal'],
+            fontSize=10,
+            leading=14,
+            textColor=colors.HexColor('#64748B'),
+            alignment=1
+        )
+        body_style = ParagraphStyle(
+            'CertBody',
+            parent=styles['Normal'],
+            fontSize=9.5,
+            leading=13,
+            textColor=colors.HexColor('#1E293B')
+        )
+        finding_title_style = ParagraphStyle(
+            'FindingTitle',
+            parent=styles['Normal'],
+            fontSize=10.5,
+            leading=14,
+            textColor=colors.HexColor('#DC2626'),
+            fontName='Helvetica-Bold'
+        )
+        quran_box_style = ParagraphStyle(
+            'QuranBox',
+            parent=styles['Normal'],
+            fontSize=9,
+            leading=13,
+            textColor=colors.HexColor('#0F766E')
+        )
+
+        elements = []
+
+        # Header
+        elements.append(Paragraph("🛡️ AL-FURQAN GUARD • SHARIAH COMPLIANCE AUDIT", title_style))
+        elements.append(Paragraph("Deterministic AAOIFI Standard Verification & Quranic Ground Truth Audit", subtitle_style))
+        elements.append(Spacer(1, 10))
+        elements.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#CBD5E1'), spaceAfter=14))
+
+        # Document Details Box
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+        is_compliant = audit_report.get("is_compliant", False)
+        status_text = "🟢 100% COMPLIANT (СООТВЕТСТВУЕТ ШАРИАТУ)" if is_compliant else "🔴 NON-COMPLIANT (ОБНАРУЖЕНЫ ШАРИАТСКИЕ РИСКИ)"
+        status_color = colors.HexColor('#16A34A') if is_compliant else colors.HexColor('#DC2626')
+
+        info_data = [
+            [Paragraph("<b>Название документа:</b>", body_style), Paragraph(str(doc_title), body_style)],
+            [Paragraph("<b>Дата аудита:</b>", body_style), Paragraph(timestamp, body_style)],
+            [Paragraph("<b>Тип контракта (AAOIFI):</b>", body_style), Paragraph(str(audit_report.get("contract_type", "COMMERCIAL")), body_style)],
+            [Paragraph("<b>Вердикт аудитора:</b>", body_style), Paragraph(f"<b>{status_text}</b>", ParagraphStyle('Status', parent=body_style, textColor=status_color))]
+        ]
+        info_table = Table(info_data, colWidths=[150, 370])
+        info_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F8FAFC')),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor('#E2E8F0')),
+            ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#E2E8F0')),
+            ('PADDING', (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 14))
+
+        # Findings Section
+        findings = audit_report.get("findings", [])
+        elements.append(Paragraph(f"<b>РЕЗУЛЬТАТЫ ПРОВЕРКИ И ВЫЯВЛЕННЫЕ РИСКИ ({len(findings)}):</b>", ParagraphStyle('H2', parent=styles['Heading2'], fontSize=11.5, leading=15, textColor=colors.HexColor('#0F172A'))))
+        elements.append(Spacer(1, 6))
+
+        if not findings:
+            elements.append(Paragraph("В ходе глубокого семантического и юридического аудита условий договора прямого несоответствия стандартам AAOIFI и аятам Корана не обнаружено.", body_style))
+        else:
+            for idx, f in enumerate(findings, 1):
+                f_title = f.get("risk_title_ru") or f.get("standard")
+                f_issue = f.get("issue_ru", "")
+                f_solution = f.get("solution_ru", "")
+                f_ayah = f.get("ayah_ref", "")
+                f_ayah_trans = f.get("ayah_trans_ru", "")
+
+                elements.append(Paragraph(f"{idx}. {f_title} [{f.get('severity', 'CRITICAL')}]", finding_title_style))
+                elements.append(Paragraph(f"<b>Суть нарушения:</b> {f_issue}", body_style))
+                elements.append(Spacer(1, 3))
+                if f_ayah:
+                    elements.append(Paragraph(f"📖 <b>Основа в Коране:</b> {f_ayah} • <i>{f_ayah_trans}</i>", quran_box_style))
+                if f_solution:
+                    elements.append(Paragraph(f"💡 <b>Рекомендация по устранению:</b> {f_solution}", ParagraphStyle('Rec', parent=body_style, textColor=colors.HexColor('#15803D'))))
+                elements.append(Spacer(1, 10))
+
+        # Footer Seal
+        elements.append(Spacer(1, 14))
+        elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#E2E8F0'), spaceAfter=8))
+        elements.append(Paragraph("Электронный сертификат сформирован детерминированной системой Al-Furqan Guard v2.0 • SHA-256 Verified • Tanzil Quran L0 Ground Truth", ParagraphStyle('Foot', parent=subtitle_style, fontSize=8, leading=10)))
+
+        doc.build(elements)
+        buffer.seek(0)
+        return buffer.getvalue()

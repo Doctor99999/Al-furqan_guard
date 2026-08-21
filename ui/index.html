@@ -57,6 +57,12 @@
                     <span data-i18n="btnStandards">🎖️ Стандарты</span>
                 </button>
 
+                <!-- Ecosystem Mini-Map Button -->
+                <button class="btn-header-action" id="btnToggleEcosystem" title="Карта возможностей и экосистема">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    <span data-i18n="btnEcosystemMap">🗺️ Возможности</span>
+                </button>
+
                 <!-- Feedback Button -->
                 <button class="btn-header-action" id="btnToggleFeedback" title="Обратная связь и предложения">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -147,6 +153,9 @@
                         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                         <input type="text" id="universalSearchInput" placeholder="Поиск: номер суры/аята (напр. 2:255), слово, тема (терпение), добавка (E120) или цитата..." data-i18n-placeholder="universalSearchPlaceholder">
                         <button class="btn-clear-search" id="btnClearSearch" style="display: none;">&times;</button>
+                        <button class="btn-header-action" id="btnVoiceSearch" title="Голосовой поиск аята (микрофон)" style="padding: 6px 10px; margin-right: 4px; border-radius: 8px;">
+                            <span id="voiceSearchIcon">🎙️</span>
+                        </button>
                     </div>
                     <button class="btn btn-primary btn-search-go" id="btnUniversalSearchGo">
                         <span data-i18n="btnSearch">🔍 Найти</span>
@@ -183,8 +192,8 @@
                     <p class="usp-card-desc" data-i18n="usp3Desc">Распознавание этикеток по фото камерой, классификация 500+ пищевых добавок (E-кодов) и 2 000+ ингредиентов по регламенту SMIIC с аятами Корана.</p>
                 </div>
                 <div class="usp-card">
-                    <h4 class="usp-card-title" data-i18n="usp4Title">📖 114 Сур, 1 651 Корень & 3 великих чтеца</h4>
-                    <p class="usp-card-desc" data-i18n="usp4Desc">Пословный морфологический разбор до корня, транслитерация и параллельные переводы на 7 языков без искажений.</p>
+                    <h4 class="usp-card-title" data-i18n="usp4Title">📖 114 Сур, 1 651 Корень & 3 великих Чтеца</h4>
+                    <p class="usp-card-desc" data-i18n="usp4Desc">Пословный морфологический разбор корней, латинская транслитерация и параллельные смысловые переводы на 7 мировых языков.</p>
                 </div>
                 <div class="usp-card">
                     <h4 class="usp-card-title" data-i18n="usp5Title">🕌 Точный Намаз по GPS & Нисаб Закята</h4>
@@ -232,30 +241,59 @@
         <main class="tab-content-container">
 
             <!-- ========================================== -->
-            <!-- TAB 1: СВЯЩЕННЫЙ КОРАН & АУДИОПЛЕЕР       -->
+            <!-- TAB 1: ЧТЕНИЕ И СЛУШАНИЕ КОРАНА (114 СУР)   -->
             <!-- ========================================== -->
             <section class="tab-pane active" id="tab-quran">
-                <!-- Quran Control Bar -->
-                <div class="quran-control-panel">
-                    <div class="panel-group">
-                        <label for="selectSura" class="panel-label" data-i18n="lblSelectSurah">Выберите суру для чтения:</label>
-                        <select id="selectSura" class="select-surah-custom"></select>
+                <!-- Top Control Bar -->
+                <div class="quran-controls-panel" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; background: #1C1C1E; padding: 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08);">
+                    <div class="panel-group" style="flex: 1; min-width: 160px;">
+                        <label for="selectSura" class="panel-label" data-i18n="lblSelectSurah">Выберите суру:</label>
+                        <select id="selectSura" class="select-surah-custom" style="width: 100%; padding: 8px 12px; background: #2C2C2E; color: #FFF; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;"></select>
                     </div>
 
-                    <div class="panel-group">
+                    <div class="panel-group" style="flex: 1; min-width: 180px;">
                         <label for="selectReciter" class="panel-label" data-i18n="lblSelectReciter">Чтец Корана:</label>
-                        <select id="selectReciter" class="select-reciter-custom">
+                        <select id="selectReciter" class="select-reciter-custom" style="width: 100%; padding: 8px 12px; background: #2C2C2E; color: #FFF; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
                             <option value="alafasy" data-i18n="reciterAlafasy">🎙️ Мишари Рашид Аль-Афаси (Mishary Alafasy)</option>
                             <option value="husary" data-i18n="reciterHusary">🎙️ Махмуд Халиль Аль-Хусари (Husary)</option>
                             <option value="abdulbasit" data-i18n="reciterAbdulbasit">🎙️ Абдульбасит Абдуссамад (Abdulbasit)</option>
                         </select>
                     </div>
 
-                    <div class="panel-actions">
+                    <div class="panel-group" style="flex: 1; min-width: 130px;">
+                        <label for="selectHifzRepeat" class="panel-label" data-i18n="lblHifzMode">🔁 Заучивание (Хифз):</label>
+                        <select id="selectHifzRepeat" class="select-reciter-custom" style="width: 100%; padding: 8px 12px; background: #2C2C2E; color: #FFF; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;">
+                            <option value="1" data-i18n="optRepeat1">1x (Обычно)</option>
+                            <option value="3" data-i18n="optRepeat3">3x Повтора</option>
+                            <option value="5" data-i18n="optRepeat5">5x Повторов</option>
+                            <option value="10" data-i18n="optRepeat10">10x Повторов</option>
+                        </select>
+                    </div>
+
+                    <div class="panel-actions" style="display: flex; gap: 6px; flex-wrap: wrap;">
                         <button class="btn btn-emerald" id="btnPlayFullSurah">
-                            <span data-i18n="btnPlayFullSurah">▶️ Слушать суру целиком</span>
+                            <span data-i18n="btnPlayFullSurah">▶️ Слушать</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnToggleTajweed" title="Включить цветовую подсветку правил Таджвида">
+                            <span data-i18n="btnTajweed">🎨 Таджвид</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnToggleHideArabic" title="Скрыть арабский текст для самопроверки">
+                            <span data-i18n="btnHideArabic">🙈 Скрыть текст</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnOpenKhatmPlanner" title="План прочтения всего Корана">
+                            <span data-i18n="btnKhatmPlanner">📅 Хатм-Планер</span>
                         </button>
                     </div>
+                </div>
+
+                <!-- Tajweed Legend -->
+                <div class="tajweed-legend" id="tajweedLegend" style="display: none; margin-bottom: 14px;">
+                    <span style="font-weight: 700; color: var(--apple-gold);" data-i18n="lblTajweedLegend">Правила Таджвида:</span>
+                    <div class="tajweed-legend-item"><span class="tajweed-dot" style="background: #38BDF8;"></span><span data-i18n="tajweedQalqala">Калькаля</span></div>
+                    <div class="tajweed-legend-item"><span class="tajweed-dot" style="background: #FB923C;"></span><span data-i18n="tajweedGhunna">Гунна</span></div>
+                    <div class="tajweed-legend-item"><span class="tajweed-dot" style="background: #34D399;"></span><span data-i18n="tajweedIkhfa">Ихфа</span></div>
+                    <div class="tajweed-legend-item"><span class="tajweed-dot" style="background: #C084FC;"></span><span data-i18n="tajweedIdgham">Идгам</span></div>
+                    <div class="tajweed-legend-item"><span class="tajweed-dot" style="background: #F87171;"></span><span data-i18n="tajweedMadd">Мадд</span></div>
                 </div>
 
                 <!-- Surah Header Card -->
@@ -372,9 +410,12 @@
                         <div class="barcode-search-box" style="margin-top: 16px; padding: 14px 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
                             <div style="font-size: 13.5px; font-weight: 700; color: var(--apple-gold); margin-bottom: 8px;" data-i18n="barcodeSectionTitle">📦 Поиск по штрихкоду товара (2,5 млн товаров Open Food Facts):</div>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <input type="text" id="inputBarcode" class="custom-input" style="flex: 1; min-width: 220px;" placeholder="Введите штрихкод (напр. 4607001770014, 5449000000996)..." data-i18n-placeholder="barcodePlaceholder">
+                                <input type="text" id="inputBarcode" class="custom-input" style="flex: 1; min-width: 200px;" placeholder="Введите штрихкод (напр. 4607001770014, 5449000000996)..." data-i18n-placeholder="barcodePlaceholder">
                                 <button class="btn btn-emerald" id="btnCheckBarcode">
-                                    <span data-i18n="btnCheckBarcode">🔍 Проверить штрихкод</span>
+                                    <span data-i18n="btnCheckBarcode">🔍 Проверить</span>
+                                </button>
+                                <button class="btn btn-primary" id="btnLiveCameraBarcode">
+                                    <span data-i18n="btnLiveCameraBarcode">📷 Сканер камеры</span>
                                 </button>
                             </div>
                         </div>
@@ -457,6 +498,227 @@
                                 <div class="zakat-result-title" data-i18n="zakatResultTitle">Результат расчета Закята:</div>
                                 <div class="zakat-amount" id="zakatAmountText">25 000 ₸</div>
                                 <div class="zakat-note" id="zakatNoteText">Имущество превышает Нисаб (~2 975 000 ₸). Закят обязателен (2.5%).</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row: Miras Inheritance & Halal Stock Screener -->
+                <div class="grid-2-col" style="margin-top: 16px;">
+                    <!-- Miras Inheritance Calculator Card -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="mirasCardTitle">⚖️ Шариатский калькулятор Наследства (Мирас)</h3>
+                            <p class="card-subtitle" data-i18n="mirasCardDesc">Расчет долей наследников по правилам Корана (Сура Ан-Ниса 4:11–12, 4:176).</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="zakat-form">
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblMirasTotal">Общая сумма наследственной массы (тенге / валюта):</label>
+                                    <input type="number" id="mirasTotalEstate" class="custom-input" placeholder="0" value="10000000">
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMirasDeceasedGender">Пол умершего:</label>
+                                        <select id="mirasDeceasedGender" class="custom-input">
+                                            <option value="male" data-i18n="optMale">Мужчина (Оставил жену)</option>
+                                            <option value="female" data-i18n="optFemale">Женщина (Оставила мужа)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMirasSpouse">Супруг / Супруга (жив):</label>
+                                        <select id="mirasHasSpouse" class="custom-input">
+                                            <option value="yes" data-i18n="optYes">Да (Жив/Жива)</option>
+                                            <option value="no" data-i18n="optNo">Нет</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMirasSons">Количество сыновей:</label>
+                                        <input type="number" id="mirasSonsCount" class="custom-input" min="0" value="1">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMirasDaughters">Количество дочерей:</label>
+                                        <input type="number" id="mirasDaughtersCount" class="custom-input" min="0" value="1">
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMirasFather">Отец (жив):</label>
+                                        <select id="mirasHasFather" class="custom-input">
+                                            <option value="no" data-i18n="optNo">Нет</option>
+                                            <option value="yes" data-i18n="optYes">Да</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMirasMother">Мать (жива):</label>
+                                        <select id="mirasHasMother" class="custom-input">
+                                            <option value="no" data-i18n="optNo">Нет</option>
+                                            <option value="yes" data-i18n="optYes">Да</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" id="btnCalculateMiras">
+                                    <span data-i18n="btnCalculateMiras">⚖️ Рассчитать доли по Шариату</span>
+                                </button>
+                            </div>
+                            <div id="mirasResultCard" style="display: none; margin-top: 15px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Halal Stock Screener Card (AAOIFI Standard No. 21) -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="stockCardTitle">📊 Шариатский скринер акций (AAOIFI 21)</h3>
+                            <p class="card-subtitle" data-i18n="stockCardDesc">Проверка акций компаний на соответствие исламским финансовым стандартам (AAOIFI 21).</p>
+                        </div>
+                        <div class="card-body">
+                            <!-- Preset Stock Chips -->
+                            <div class="quick-chips-wrapper" style="margin-bottom: 12px;">
+                                <span class="chips-label" data-i18n="lblPresets">Быстрый выбор:</span>
+                                <button class="test-chip chip-success" data-stock="KASPI">🟢 Kaspi.kz (KSPI)</button>
+                                <button class="test-chip chip-success" data-stock="KAP">🟢 Казатомпром (KAP)</button>
+                                <button class="test-chip chip-success" data-stock="AAPL">🟢 Apple (AAPL)</button>
+                                <button class="test-chip chip-success" data-stock="TSLA">🟢 Tesla (TSLA)</button>
+                                <button class="test-chip chip-success" data-stock="ARAMCO">🟢 Saudi Aramco</button>
+                                <button class="test-chip chip-danger" data-stock="HALYK">🔴 Halyk Bank (HSBK)</button>
+                            </div>
+                            <div class="zakat-form">
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblStockDebtRatio">Отношение процентного долга к рыночной капитализации (Лимит &lt; 33%):</label>
+                                    <input type="number" id="stockDebtRatio" class="custom-input" placeholder="например: 12" value="12">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblStockInterestIncome">Доля процентных / нечистых доходов от общей выручки (Лимит &lt; 5%):</label>
+                                    <input type="number" id="stockInterestIncome" class="custom-input" placeholder="например: 1.5" value="1.5">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblStockIndustry">Сфера деятельности компании (Основной бизнес):</label>
+                                    <select id="stockIndustry" class="custom-input">
+                                        <option value="halal" data-i18n="optIndustryHalal">🟢 Технологии, IT, Торговля, Промышленность, Медицина</option>
+                                        <option value="haram_bank" data-i18n="optIndustryBank">🔴 Традиционный банк / Кредитование под проценты (Риба)</option>
+                                        <option value="haram_alcohol" data-i18n="optIndustryAlcohol">🔴 Производство алкоголя, табака или свиноводство</option>
+                                        <option value="haram_gambling" data-i18n="optIndustryGambling">🔴 Казино, азартные игры или тотализаторы</option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-emerald" id="btnCheckStock">
+                                    <span data-i18n="btnCheckStock">📊 Проверить на соответствие AAOIFI 21</span>
+                                </button>
+                            </div>
+                            <div id="stockResultCard" style="display: none; margin-top: 15px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Third Row: Stock Dividend Purification & Islamic Will Generator -->
+                <div class="grid-2-col" style="margin-top: 16px;">
+                    <!-- Stock Dividend Purification Calculator (AAOIFI 21) -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="purifyCardTitle">🧼 Калькулятор Очищения Доходов (Тазкия)</h3>
+                            <p class="card-subtitle" data-i18n="purifyCardDesc">Расчет обязательной суммы для благотворительности с дивидендов или прибыли от акций по стандарту AAOIFI 21.</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="zakat-form">
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblPurifyDividend">Сумма полученных дивидендов или прибыли (тенге / валюта):</label>
+                                    <input type="number" id="purifyDividendAmount" class="custom-input" placeholder="например: 500000" value="250000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblPurifyRatio">Доля нечистого (процентного) дохода компании (%):</label>
+                                    <input type="number" id="purifyImpureRatio" class="custom-input" placeholder="например: 1.8" value="2.1">
+                                </div>
+                                <button class="btn btn-primary" id="btnCalculatePurification">
+                                    <span data-i18n="btnCalculatePurification">🧼 Рассчитать сумму очищения</span>
+                                </button>
+                            </div>
+                            <div id="purifyResultCard" style="display: none; margin-top: 15px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Islamic Will (Өсиетнама) Generator -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="willCardTitle">📜 Конструктор Завещания (Өсиетнама)</h3>
+                            <p class="card-subtitle" data-i18n="willCardDesc">Составление юридически и шариатски грамотного завещания (1/3 на Вакуф + Мирас) с экспортом в PDF.</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="zakat-form">
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblWillFullName">ФИО Завещателя (Толық аты-жөні):</label>
+                                    <input type="text" id="willFullName" class="custom-input" placeholder="например: Ахметов Серик Болатович" value="Ахметов Серик Болатович">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblWillWaqfFraction">Доля на благотворительность / Вакуф (Максимум 1/3):</label>
+                                    <select id="willWaqfShare" class="custom-input">
+                                        <option value="0.333" data-i18n="optWaqfThird">1/3 (Максимальная дозволенная доля по Сунне)</option>
+                                        <option value="0.25" data-i18n="optWaqfQuarter">1/4 (Четверть имущества)</option>
+                                        <option value="0.1" data-i18n="optWaqfTenth">1/10 (Десятая часть)</option>
+                                        <option value="0" data-i18n="optWaqfNone">0% (Только законные наследники)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblWillSpecialNotes">Особые поручения (долги, прощение, опека):</label>
+                                    <input type="text" id="willSpecialNotes" class="custom-input" placeholder="например: Выплатить долг 50000 тг, похоронить по сунне" value="Выплатить все долги из наследственной массы, провести погребение строго по Шариату.">
+                                </div>
+                                <button class="btn btn-emerald" id="btnGenerateWillPDF">
+                                    <span data-i18n="btnGenerateWillPDF">📜 Сформировать Завещание (PDF)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fourth Row: Murabaha vs Riba Simulator & Website Embed Widget Generator -->
+                <div class="grid-2-col" style="margin-top: 16px;">
+                    <!-- Murabaha vs Riba Simulator -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="muraCardTitle">⚖️ Мурабаха (Рассрочка) vs Риба (Кредит)</h3>
+                            <p class="card-subtitle" data-i18n="muraCardDesc">Интерактивный симулятор различий дозволенной торговой рассрочки и ростовщического кредита.</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="zakat-form">
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMuraItemPrice">Стоимость товара (₸):</label>
+                                        <input type="number" id="muraItemPrice" class="custom-input" value="300000">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label" data-i18n="lblMuraMonths">Срок сделки (мес):</label>
+                                        <input type="number" id="muraMonths" class="custom-input" value="12">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary" id="btnSimulateMurabaha">
+                                    <span data-i18n="btnSimulateMurabaha">⚖️ Сравнить Мурабаха и Риба</span>
+                                </button>
+                            </div>
+                            <div id="muraComparisonResult" style="display: none; margin-top: 15px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Embed Widget Generator -->
+                    <div class="panel-card">
+                        <div class="card-header">
+                            <h3 class="card-title" data-i18n="embedCardTitle">🌐 Встраиваемый Виджет для Сайтов</h3>
+                            <p class="card-subtitle" data-i18n="embedCardDesc">Установите Al-Furqan Guard на свой сайт или блог в 1 строчку HTML-кода.</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="zakat-form">
+                                <div class="form-group">
+                                    <label class="form-label" data-i18n="lblEmbedType">Выберите тип виджета:</label>
+                                    <select id="selectEmbedType" class="custom-input">
+                                        <option value="quran_reader" data-i18n="optEmbedQuran">📖 Читалка и Аудио Корана (L0)</option>
+                                        <option value="ai_guard" data-i18n="optEmbedGuard">🛡️ Анти-Галлюцинатор цитат из Корана</option>
+                                        <option value="namaz_times" data-i18n="optEmbedNamaz">🕌 Виджет времени Намаза & Киблы</option>
+                                        <option value="halal_scanner" data-i18n="optEmbedHalal">🥗 Халяль Сканер & E-коды</option>
+                                    </select>
+                                </div>
+                                <div class="embed-code-box" id="embedCodeSnippet">&lt;iframe src="https://al-furqan.ai/?embed=quran_reader" width="100%" height="480" frameborder="0" style="border-radius:12px;"&gt;&lt;/iframe&gt;</div>
+                                <button class="btn btn-secondary" id="btnCopyEmbedSnippet" style="margin-top: 10px;">
+                                    <span data-i18n="btnCopyCode">📋 Скопировать HTML-код</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -600,6 +862,288 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL: LIVE CAMERA BARCODE SCANNER -->
+    <div class="modal-backdrop" id="modalCameraScanner" style="display: none;">
+        <div class="modal-window" style="max-width: 440px; text-align: center;">
+            <div class="modal-header">
+                <h3 data-i18n="cameraScannerTitle">📷 Сканер штрихкодов</h3>
+                <button class="modal-close" id="btnCloseCameraScanner">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 16px;">
+                <div style="position: relative; width: 100%; height: 260px; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <video id="barcodeVideo" playsinline autoplay muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <!-- Target Reticle Overlay -->
+                    <div style="position: absolute; width: 75%; height: 110px; border: 2px solid var(--apple-gold); border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); pointer-events: none;">
+                        <div style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: #EF4444; opacity: 0.85;"></div>
+                    </div>
+                </div>
+                <div id="cameraScanStatus" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);" data-i18n="cameraScanInstruct">Наведите камеру на штрихкод товара...</div>
+                <div style="margin-top: 14px; display: flex; gap: 8px; justify-content: center;">
+                    <button class="btn btn-secondary" id="btnStopCameraScan" data-i18n="btnStopCamera">Закрыть камеру</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ECOSYSTEM MINI-MAP & FULL FEATURE SHOWCASE -->
+    <div class="modal-backdrop" id="modalEcosystemMap" style="display: none;">
+        <div class="modal-window" style="max-width: 820px;">
+            <div class="modal-header">
+                <div>
+                    <h3 data-i18n="ecoModalTitle">🗺️ Карта возможностей Al-Furqan Guard</h3>
+                    <p style="font-size: 12.5px; color: var(--text-secondary); margin-top: 2px;" data-i18n="ecoModalSub">Полная экосистема защиты истины Корана, исламских финансов и ежедневных сервисов</p>
+                </div>
+                <button class="modal-close" id="btnCloseEcosystem">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div style="margin-bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: space-between; align-items: center; background: rgba(217, 119, 6, 0.1); border: 1px solid rgba(217, 119, 6, 0.25); padding: 12px 16px; border-radius: 12px;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--apple-gold); font-size: 14px;" data-i18n="ecoShareTitle">📢 Расскажите об Al-Furqan Guard умме</div>
+                        <div style="font-size: 12px; color: #CBD5E1;" data-i18n="ecoShareSub">Поделитесь ссылкой на проект в WhatsApp, Telegram или соцсетях</div>
+                    </div>
+                    <button class="btn btn-emerald" id="btnShareProject" style="padding: 8px 16px;">
+                        <span data-i18n="btnShareProject">📲 Поделиться проектом</span>
+                    </button>
+                </div>
+
+                <div class="ecosystem-grid">
+                    <!-- 1. Quran Reading -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">📖</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard1Title">Священный Коран (L0)</div>
+                            </div>
+                            <span class="ecosystem-badge">114 СУР • 6236 АЯТОВ</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard1Desc">Канонический текст Tanzil Uthmani, аудио 3 великих чтецов, синхронные переводы и плавающий плеер.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-quran', 'selectSura')" data-i18n="btnGoFeature">⚡ Открыть Коран</button>
+                    </div>
+
+                    <!-- 2. AI Anti-Hallucination -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">🛡️</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard2Title">Анти-Галлюцинатор ИИ</div>
+                            </div>
+                            <span class="ecosystem-badge">100% ZERO MOCK</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard2Desc">Математическая защита от вымышленных цитат ChatGPT, Claude, DeepSeek и искажений огласовок.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-guard', 'guardTextInput')" data-i18n="btnGoFeature">⚡ Проверить текст</button>
+                    </div>
+
+                    <!-- 3. Halal Barcode & Live Camera -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">🥗</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard3Title">Халяль Сканер & Камера</div>
+                            </div>
+                            <span class="ecosystem-badge">2.5 МЛН ТОВАРОВ</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard3Desc">Поиск по штрихкоду, сканирование живой камерой, проверка E-кодов (SMIIC) и сертифицированные бренды.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-halal', 'inputBarcode')" data-i18n="btnGoFeature">⚡ Сканировать товар</button>
+                    </div>
+
+                    <!-- 4. AAOIFI PDF Contract Auditor -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">📑</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard4Title">Шариатский PDF Аудитор</div>
+                            </div>
+                            <span class="ecosystem-badge">AAOIFI СТАНДАРТЫ</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard4Desc">Аудит договоров на Рибу и штрафы с генерацией официального юридического PDF-сертификата.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-halal', 'btnUploadContractPDF')" data-i18n="btnGoFeature">⚡ Аудировать PDF</button>
+                    </div>
+
+                    <!-- 5. Namaz Times & Qibla -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">🕋</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard5Title">Намаз & Компас Киблы</div>
+                            </div>
+                            <span class="ecosystem-badge">GPS ТОЧНОСТЬ</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard5Desc">Астрономический расчет 5 молитв для любых координат и точный градус азимута на Каабу.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-namaz', 'prayerTimesGrid')" data-i18n="btnGoFeature">⚡ Время намаза</button>
+                    </div>
+
+                    <!-- 6. Zakat Calculator -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">💰</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard6Title">Калькулятор Закята</div>
+                            </div>
+                            <span class="ecosystem-badge">НИСАБ 85Г ЗОЛОТА</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard6Desc">Точный расчет обязательной выплаты 2.5% с учетом накоплений, драгметаллов и долгов.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-namaz', 'zakatCash')" data-i18n="btnGoFeature">⚡ Рассчитать Закят</button>
+                    </div>
+
+                    <!-- 7. Miras Inheritance Calculator -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">⚖️</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard7Title">Калькулятор Наследства</div>
+                            </div>
+                            <span class="ecosystem-badge">СУРА АН-НИСА 4:11</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard7Desc">Детерминированное распределение долей наследников (Мирас / Фараид) по нормам Шариата.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-namaz', 'mirasTotalEstate')" data-i18n="btnGoFeature">⚡ Расчет Наследства</button>
+                    </div>
+
+                    <!-- 8. AAOIFI 21 Stock Screener -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">📊</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard8Title">Шариатский Скринер Акций</div>
+                            </div>
+                            <span class="ecosystem-badge">AAOIFI 21 FINTECH</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard8Desc">Проверка акций (Kaspi, Apple, Tesla, Казатомпром) на допустимость инвестиций по нормам ислама.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.navigateToTabAndScroll('tab-namaz', 'stockDebtRatio')" data-i18n="btnGoFeature">⚡ Проверить акции</button>
+                    </div>
+
+                    <!-- 9. Stories Social Generator -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">🎨</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard9Title">Генератор Stories Карточек</div>
+                            </div>
+                            <span class="ecosystem-badge">INSTAGRAM & WHATSAPP</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard9Desc">Создание эстетичных карточек с аятами Корана для соцсетей с золотым оформлением и QR-кодом.</p>
+                        </div>
+                        <button class="ecosystem-btn" onclick="window.openStoryModalForCurrentAyah()" data-i18n="btnGoFeature">⚡ Создать Story</button>
+                    </div>
+
+                    <!-- 10. Telegram Bot & 100% Offline PWA -->
+                    <div class="ecosystem-card">
+                        <div>
+                            <div class="ecosystem-card-header">
+                                <div class="ecosystem-icon">✈️</div>
+                                <div class="ecosystem-title" data-i18n="ecoCard10Title">Telegram-бот & Офлайн PWA</div>
+                            </div>
+                            <span class="ecosystem-badge">100% МОБИЛЬНОСТЬ</span>
+                            <p class="ecosystem-desc" data-i18n="ecoCard10Desc">Многофункциональный бот в Telegram и веб-приложение, работающее даже без интернета.</p>
+                        </div>
+                        <a href="https://t.me/Al_Furqan_Guard_bot" target="_blank" class="ecosystem-btn" style="text-decoration: none;" data-i18n="btnOpenBot">⚡ Открыть бота</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: INSTAGRAM & WHATSAPP STORIES CARD GENERATOR -->
+    <div class="modal-backdrop" id="modalStoryGenerator" style="display: none;">
+        <div class="modal-window" style="max-width: 460px; text-align: center;">
+            <div class="modal-header">
+                <h3 data-i18n="storyModalTitle">🎨 Генератор Stories-карточек</h3>
+                <button class="modal-close" id="btnCloseStoryGenerator">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 16px;">
+                <div style="width: 100%; max-height: 400px; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 14px; background: #000;">
+                    <canvas id="storyCanvas" width="1080" height="1920" style="width: 100%; height: auto; display: block; border-radius: 12px;"></canvas>
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="btnDownloadStoryImage">
+                        <span data-i18n="btnDownloadStory">📥 Скачать картинку (Story 9:16)</span>
+                    </button>
+                    <button class="btn btn-emerald" id="btnShareStoryDirect">
+                        <span data-i18n="btnShareStory">📲 Поделиться</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: KHATM PLANNER (ПЛАН ПРОЧТЕНИЯ КОРАНА) -->
+    <div class="modal-backdrop" id="modalKhatmPlanner" style="display: none;">
+        <div class="modal-window" style="max-width: 520px;">
+            <div class="modal-header">
+                <div>
+                    <h3 data-i18n="khatmModalTitle">📅 Хатм-Планер (Чтение всего Корана)</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" data-i18n="khatmModalSub">Рассчитайте ежедневную норму чтения и отслеживайте прогресс</p>
+                </div>
+                <button class="modal-close" id="btnCloseKhatmPlanner">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 16px;">
+                <div class="zakat-form">
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lblKhatmDays">За сколько дней вы хотите завершить Хатм:</label>
+                        <select id="khatmDaysTarget" class="custom-input">
+                            <option value="30" data-i18n="optKhatm30">30 дней (1 Джуз / 20 страниц в день - Рамадан)</option>
+                            <option value="60" data-i18n="optKhatm60">60 дней (10 страниц / 0.5 Джуза в день)</option>
+                            <option value="90" data-i18n="optKhatm90">90 дней (6.7 страниц / ~1/3 Джуза в день)</option>
+                        </select>
+                    </div>
+
+                    <div style="background: rgba(217, 119, 6, 0.1); border: 1px solid rgba(217, 119, 6, 0.25); border-radius: 10px; padding: 12px; margin: 12px 0;">
+                        <div style="font-size: 13px; font-weight: 700; color: var(--apple-gold);" id="khatmDailyGoalText">🎯 Ваша норма: 20 страниц (4 страницы после каждого из 5 намазов)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lblKhatmCurrentPage">Текущая прочитанная страница (из 604):</label>
+                        <input type="number" id="khatmCurrentPage" class="custom-input" min="0" max="604" value="0">
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
+                            <span data-i18n="lblKhatmProgress">Прогресс завершения:</span>
+                            <span id="khatmProgressPercent" style="font-weight: 700; color: #34D399;">0%</span>
+                        </div>
+                        <div class="khatm-progress-container">
+                            <div class="khatm-progress-bar" id="khatmProgressBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 14px;">
+                        <button class="btn btn-primary" id="btnSaveKhatmProgress" style="flex: 1;">
+                            <span data-i18n="btnSaveProgress">💾 Сохранить прогресс</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btnResetKhatm" style="padding: 8px 12px;" title="Сбросить прогресс">
+                            <span>🔄</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ISLAMIC WILL (ӨСИЕТНАМА) PREVIEW -->
+    <div class="modal-backdrop" id="modalIslamicWillPreview" style="display: none;">
+        <div class="modal-window" style="max-width: 680px;">
+            <div class="modal-header">
+                <div>
+                    <h3 data-i18n="willModalTitle">📜 Шариатское Завещание (Өсиетнама)</h3>
+                    <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" data-i18n="willModalSub">Официальный юридический документ в соответствии с Кораном и Сунной</p>
+                </div>
+                <button class="modal-close" id="btnCloseWillPreview">&times;</button>
+            </div>
+            <div class="modal-body" style="max-height: 65vh; overflow-y: auto; padding: 20px; background: #FFF; color: #111; border-radius: 8px; font-family: Georgia, serif; line-height: 1.6;" id="willPrintableDocument">
+                <!-- Document populated dynamically -->
+            </div>
+            <div style="padding: 14px 20px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button class="btn btn-primary" id="btnPrintWillDocument">
+                    <span data-i18n="btnPrintWill">🖨️ Распечатать / Сохранить в PDF</span>
+                </button>
+                <button class="btn btn-secondary" id="btnCloseWillModal">
+                    <span data-i18n="btnClose">Закрыть</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL TOAST NOTIFICATION CONTAINER -->
+    <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
     <script src="app.js?v=18.0"></script>

@@ -21,6 +21,7 @@ from typing import Optional, Dict, Any, List, Tuple
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel, Field
 
 from quran_guard import QuranEngine, QuranGuard, AhkamExtractor
@@ -31,7 +32,8 @@ from quran_guard.multimodal import (
     ImageOCRProcessor,
     PrayerTimesCalculator,
     ZakatCalculator,
-    SemanticThemeEngine
+    SemanticThemeEngine,
+    AuditCertificateGenerator
 )
 
 def compute_sha256(filepath: str) -> str:
@@ -176,7 +178,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=self"
     return response
 
-# 2. CORS Middleware
+# 2. CORS & Compression Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -184,6 +186,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # 3. Request Models with Defensive Payload Boundaries
 class VerifyRequest(BaseModel):
@@ -196,6 +199,11 @@ class RootClaimRequest(BaseModel):
 
 class ContractAuditRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=200000)
+
+class ExportAuditPDFRequest(BaseModel):
+    document_title: Optional[str] = Field("Договор / Соглашение", max_length=200)
+    contract_text: Optional[str] = Field(None, max_length=200000)
+    audit_data: Optional[Dict[str, Any]] = None
 
 class HalalScreenRequest(BaseModel):
     query: Optional[str] = Field(None, max_length=50000)
@@ -268,7 +276,7 @@ async def health_check():
         "version": "2.0.0",
         "total_ayahs": len(engine.ayahs),
         "total_roots": len(engine.all_roots),
-        "timestamp": datetime.datetime.utcnow().isoformat()
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
     }
 
 @app.get("/api/stats")
@@ -720,6 +728,55 @@ async def audit_pdf_document(req: PDFScanRequest):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"PDF Processing error: {str(e)}")
 
+@app.post("/api/v1/documents/export-audit-pdf")
+async def export_audit_pdf(req: ExportAuditPDFRequest):
+    """Generates official AAOIFI Shariah Compliance PDF Certificate."""
+    try:
+        audit_data = req.audit_data
+        if not audit_data:
+            if req.contract_text:
+                audit_data = HalalKnowledgeBase.audit_contract_aaoifi(req.contract_text)
+            else:
+                audit_data = {
+                    "is_compliant": True,
+                    "contract_type": "GENERAL_COMMERCIAL",
+                    "findings": [],
+                    "quran_basis": "2:275 • 4:29"
+                }
+        
+        pdf_bytes = AuditCertificateGenerator.generate_pdf_bytes(
+            audit_report=audit_data,
+            doc_title=req.document_title or "Договор / Соглашение"
+        )
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": f'attachment; filename="Al_Furqan_AAOIFI_Audit_Certificate.pdf"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF generation error: {str(e)}")
+
+@app.get("/api/v1/keep-alive")
+async def keep_alive_ping():
+    """Ultra-lightweight keep-alive heartbeat endpoint to prevent Render cold starts."""
+    return {
+        "status": "alive",
+        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "service": "al-furqan-guard",
+        "version": "2.0.0"
+    }
+
+@app.get("/api/v1/halal/certified-registry")
+async def get_certified_registry():
+    """Returns official Cross-Validated Halal Certified Brands database."""
+    reg_path = os.path.join(os.path.dirname(__file__), "data", "halal_certified_registry.json")
+    if os.path.exists(reg_path):
+        with open(reg_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {"status": "ok", "certified_brands": {}}
+
 @app.get("/api/v1/namaz/times")
 async def get_namaz_times(lat: float = 51.1694, lon: float = 71.4491):
     """Returns astronomical 5 prayer times and Qibla compass bearing for given GPS coordinates."""
@@ -752,9 +809,32 @@ async def search_theme(q: str):
     results = SemanticThemeEngine.find_ayahs_by_topic(clean_q, engine)
     return {"query": clean_q, "total_found": len(results), "results": results}
 
+FEEDBACK_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "feedback_submissions.json")
+
+def persist_feedback_entry(entry: Dict[str, Any]):
+    """Appends feedback entry to persistent disk storage."""
+    try:
+        os.makedirs(os.path.dirname(FEEDBACK_FILE_PATH), exist_ok=True)
+        items = []
+        if os.path.exists(FEEDBACK_FILE_PATH):
+            try:
+                with open(FEEDBACK_FILE_PATH, "r", encoding="utf-8") as f:
+                    items = json.load(f)
+            except Exception:
+                items = []
+        if not isinstance(items, list):
+            items = []
+        items.append(entry)
+        if len(items) > MAX_FEEDBACK_ITEMS:
+            items = items[-MAX_FEEDBACK_ITEMS:]
+        with open(FEEDBACK_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(items, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"Failed to persist feedback to disk: {e}")
+
 @app.post("/api/v1/feedback")
 async def submit_feedback(req: FeedbackRequest):
-    """Submits user feedback with memory bounds protection."""
+    """Submits user feedback with memory bounds protection and persistent disk storage."""
     if not req.message or not req.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     
@@ -771,14 +851,54 @@ async def submit_feedback(req: FeedbackRequest):
         "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
     }
     FEEDBACK_STORE.append(entry)
+    persist_feedback_entry(entry)
+
+    # Optional Telegram Admin notification
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    admin_chat_id = os.environ.get("TELEGRAM_ADMIN_CHAT_ID")
+    if bot_token and admin_chat_id:
+        try:
+            import urllib.request
+            import urllib.parse
+            tg_text = (
+                f"📬 *НОВЫЙ ОТЗЫВ В AL-FURQAN GUARD (№{entry['id']})*\n\n"
+                f"👤 *Имя:* {entry['name']}\n"
+                f"📞 *Контакты:* {entry['contact'] or 'Не указан'}\n"
+                f"🏷️ *Категория:* {entry['category']}\n"
+                f"💬 *Сообщение:*\n{entry['message']}\n\n"
+                f"⏱️ _{entry['timestamp']}_"
+            )
+            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            data = urllib.parse.urlencode({
+                "chat_id": admin_chat_id,
+                "text": tg_text,
+                "parse_mode": "Markdown"
+            }).encode("utf-8")
+            req_tg = urllib.request.Request(url, data=data, method="POST")
+            urllib.request.urlopen(req_tg, timeout=3)
+        except Exception as e:
+            logger.warning(f"Telegram admin feedback notification failed: {e}")
     
     return {
         "status": "success",
+        "success": True,
         "feedback_id": entry["id"],
-        "message_kk": "Пікіріңіз бен хабарламаңыз сәтті қабылданды! Рахмет.",
-        "message_ru": "Ваш отзыв и обращение успешно приняты! Спасибо.",
-        "message_en": "Your feedback has been successfully received! Thank you."
+        "message_kk": "Пікіріңіз бен хабарламаңыз сәтті қабылданды және тіркелді! Рахмет.",
+        "message_ru": "Ваш отзыв и обращение успешно приняты и сохранены! Спасибо.",
+        "message_en": "Your feedback has been successfully received and recorded! Thank you."
     }
+
+@app.get("/api/v1/feedback/list")
+async def get_feedback_list():
+    """Returns list of all submitted user feedback."""
+    if os.path.exists(FEEDBACK_FILE_PATH):
+        try:
+            with open(FEEDBACK_FILE_PATH, "r", encoding="utf-8") as f:
+                items = json.load(f)
+                return {"total": len(items), "feedback": items}
+        except Exception:
+            pass
+    return {"total": len(FEEDBACK_STORE), "feedback": FEEDBACK_STORE}
 
 # Mount static UI
 app.mount("/", StaticFiles(directory=UI_DIR, html=True), name="ui")

@@ -1966,3 +1966,313 @@ body::before {
         font-size: 12.5px;
     }
 }
+
+/* ========================================================================= */
+/* TOAST NOTIFICATION CONTAINER (Instant UI Feedback)                       */
+/* ========================================================================= */
+.toast-container {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 380px;
+    width: calc(100% - 48px);
+}
+
+.toast-item {
+    pointer-events: auto;
+    background: rgba(28, 28, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    color: #FFF;
+    font-size: 13.5px;
+    font-weight: 500;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toastSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: all 0.3s ease;
+}
+
+.toast-item.toast-success {
+    border-color: rgba(52, 211, 153, 0.4);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.toast-item.toast-error {
+    border-color: rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.toast-item.toast-info {
+    border-color: rgba(217, 119, 6, 0.4);
+    background: rgba(217, 119, 6, 0.15);
+}
+
+.toast-item.toast-hiding {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+}
+
+@keyframes toastSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Button Active Press / Tactile Animation */
+.btn:active, .tab-btn:active, .test-chip:active, .header-action-btn:active {
+    transform: scale(0.96) !important;
+    opacity: 0.88;
+    transition: transform 0.08s ease;
+}
+
+/* ========================================================================= */
+/* ECOSYSTEM MINI-MAP & BENTO SHOWCASE                                       */
+/* ========================================================================= */
+.ecosystem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.ecosystem-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+}
+
+.ecosystem-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--apple-gold);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(217, 119, 6, 0.15);
+}
+
+.ecosystem-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.ecosystem-icon {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ecosystem-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    color: #FFF;
+}
+
+.ecosystem-desc {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+.ecosystem-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(217, 119, 6, 0.2);
+    color: var(--apple-gold);
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    align-self: flex-start;
+    margin-bottom: 10px;
+}
+
+.ecosystem-btn {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #FFF;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.ecosystem-btn:hover {
+    background: var(--apple-gold);
+    color: #000;
+    border-color: var(--apple-gold);
+}
+
+/* Miras & Stock UI Helpers */
+.miras-share-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+/* ========================================================================= */
+/* COLOR-CODED TAJWEED RULES (Client-Side Rendering)                         */
+/* ========================================================================= */
+.tajweed-qalqala {
+    color: #38BDF8 !important; /* Sky Blue - Qalqala */
+    font-weight: 700;
+}
+
+.tajweed-ghunna {
+    color: #FB923C !important; /* Orange - Ghunna */
+    font-weight: 700;
+}
+
+.tajweed-ikhfa {
+    color: #34D399 !important; /* Emerald - Ikhfa */
+    font-weight: 700;
+}
+
+.tajweed-idgham {
+    color: #C084FC !important; /* Purple - Idgham */
+    font-weight: 700;
+}
+
+.tajweed-madd {
+    color: #F87171 !important; /* Crimson - Madd */
+    font-weight: 700;
+}
+
+.tajweed-legend {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 11.5px;
+}
+
+.tajweed-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tajweed-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* HIFZ MEMORIZATION MODE */
+.ayah-hidden-text {
+    filter: blur(8px);
+    user-select: none;
+    transition: filter 0.25s ease;
+    cursor: pointer;
+}
+
+.ayah-hidden-text:hover, .ayah-hidden-text:active {
+    filter: blur(0px);
+}
+
+.hifz-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(52, 211, 153, 0.15);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    border-radius: 6px;
+    font-size: 11px;
+    color: #34D399;
+    font-weight: 600;
+}
+
+/* KHATM PLANNER & PROGRESS */
+.khatm-progress-container {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.khatm-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #D97706, #10B981);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+/* MURABAHA (HALAL) VS RIBA (CONVENTIONAL LOAN) COMPARISON */
+.comparison-matrix {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.comp-card-halal {
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.comp-card-riba {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+/* EMBED WIDGET CODE SNIPPET */
+.embed-code-box {
+    background: #0A0D14;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    color: #38BDF8;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+

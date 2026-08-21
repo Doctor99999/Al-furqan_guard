@@ -250,7 +250,7 @@ class B2BAuthService:
             """, (api_key.strip(),))
             row = cur.fetchone()
             if row:
-                now_str = datetime.datetime.utcnow().isoformat()
+                now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
                 cur.execute("""
                     UPDATE b2b_organizations 
                     SET total_requests = total_requests + 1, last_used_at = ?

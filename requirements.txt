@@ -7,3 +7,4 @@ Pillow>=10.0.0
 pytesseract>=0.3.10
 aiohttp>=3.9.0
 requests>=2.31.0
+reportlab>=4.0.0
