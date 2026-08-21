@@ -46,18 +46,19 @@ class AhkamExtractor:
         items = []
         seen = set()
         for r in target_roots:
-            for match in self.engine.search_by_root(r):
+            root_res = self.engine.search_by_root(r)
+            ayah_list = root_res.get("ayahs", []) if isinstance(root_res, dict) else root_res
+            for match in ayah_list:
                 if match["id"] not in seen:
                     seen.add(match["id"])
                     items.append({
                         "id": match["id"],
                         "sura": match["sura"],
                         "ayah": match["ayah"],
-                        "surah_name": match["surah_name"],
-                        "text": match["text"],
+                        "surah_name": match.get("surah_name_ru", ""),
+                        "text": match.get("text_uthmani") or match.get("text"),
                         "transliteration": match.get("transliteration", ""),
                         "translations": match.get("translations", {}),
-                        "matching_tokens": match["matching_tokens"],
                         "primary_root": r
                     })
         return {

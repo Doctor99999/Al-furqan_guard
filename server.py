@@ -17,7 +17,7 @@ import json
 import base64
 import hashlib
 import datetime
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Tuple
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -57,44 +57,60 @@ guard = QuranGuard(engine)
 ahkam = AhkamExtractor(engine)
 print(f"Engine Ready! Loaded {len(engine.ayahs)} Ayahs, {engine.total_tokens} tokens, {len(engine.all_roots)} roots.")
 
+import time
+from database import (
+    VisitorAnalyticsService, 
+    OpenFoodFactsService, 
+    B2BAuthService,
+    HalalProductCache
+)
+
 # =========================================================================
-# PERSISTENT ANALYTICS DATABASE (analytics.json)
+# TOKEN BUCKET RATE LIMITER FOR OCR AI
 # =========================================================================
-ANALYTICS_FILE = os.path.join(os.path.dirname(__file__), "analytics.json")
+class TokenBucketRateLimiter:
+    """
+    Token Bucket rate limiter for OCR AI image processing:
+    - Capacity: 3 tokens available immediately
+    - Refill Rate: 1 token restored every 120 seconds (2 minutes)
+    - Unlimited for B2B API keys and Barcode lookups
+    """
+    def __init__(self, capacity: int = 3, refill_seconds: int = 120):
+        self.capacity = capacity
+        self.refill_seconds = refill_seconds
+        self.buckets: Dict[str, Dict[str, Any]] = {}
 
-def load_analytics() -> Dict[str, Any]:
-    default_stats = {
-        "total_visits": 0,
-        "total_pageviews": 0,
-        "daily_visits": {},
-        "unique_ips": [],
-        "total_queries_verified": 0,
-        "total_ayahs_read": 0,
-        "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "last_updated": datetime.datetime.now(datetime.timezone.utc).isoformat()
-    }
-    if os.path.exists(ANALYTICS_FILE):
-        try:
-            with open(ANALYTICS_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if "daily_visits" not in data:
-                    data["daily_visits"] = {}
-                if "total_pageviews" not in data:
-                    data["total_pageviews"] = data.get("total_visits", 0)
-                return data
-        except Exception:
-            return default_stats
-    return default_stats
+    def is_allowed(self, client_id: str) -> Tuple[bool, int, float]:
+        now = time.time()
+        bucket = self.buckets.get(client_id)
+        
+        if not bucket:
+            # First request: consume 1 token, leaving capacity - 1
+            self.buckets[client_id] = {
+                "tokens": self.capacity - 1,
+                "last_refill": now
+            }
+            return True, self.capacity - 1, 0.0
 
-def save_analytics(data: Dict[str, Any]):
-    try:
-        data["last_updated"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-        with open(ANALYTICS_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        print(f"[Analytics] Save error: {e}")
+        # Refill tokens based on elapsed intervals
+        elapsed = now - bucket["last_refill"]
+        refill_count = int(elapsed // self.refill_seconds)
+        if refill_count > 0:
+            bucket["tokens"] = min(self.capacity, bucket["tokens"] + refill_count)
+            bucket["last_refill"] = now - (elapsed % self.refill_seconds)
 
-ANALYTICS_DATA = load_analytics()
+        if bucket["tokens"] >= 1:
+            bucket["tokens"] -= 1
+            return True, int(bucket["tokens"]), 0.0
+        else:
+            time_until_next = max(1, int(self.refill_seconds - (now - bucket["last_refill"])))
+            return False, 0, time_until_next
+
+ocr_rate_limiter = TokenBucketRateLimiter(capacity=3, refill_seconds=120)
+
+# Legacy in-memory fallback for non-DB environments
+ANALYTICS_DATA = {"total_queries_verified": 0}
+
 
 
 from contextlib import asynccontextmanager
@@ -125,7 +141,7 @@ async def lifespan(app: FastAPI):
             pass
 
 app = FastAPI(
-    title="Al-Furqan AI — L0 Ground Truth & Anti-Hallucination API",
+    title="Al-Furqan Guard — L0 Ground Truth & Anti-Hallucination API",
     description="Deterministic anti-hallucination guardrail, 1,651 roots analyzer, Halal screening, and AAOIFI Shariah compliance.",
     version="2.0.0",
     lifespan=lifespan
@@ -248,7 +264,7 @@ async def health_check():
     """Liveness & health endpoint for Keep-Alive and Render monitoring."""
     return {
         "status": "healthy",
-        "service": "al-furqan-ai",
+        "service": "al-furqan-guard",
         "version": "2.0.0",
         "total_ayahs": len(engine.ayahs),
         "total_roots": len(engine.all_roots),
@@ -277,7 +293,7 @@ async def verify_integrity():
 
 @app.get("/api/v1/analytics/visitor-count")
 async def get_visitor_count(request: Request):
-    """Tracks and returns real, 100% authentic persistent visitor metrics across all timeframes."""
+    """Tracks and returns real, 100% authentic persistent visitor metrics across all timeframes via PostgreSQL."""
     # Extract real client IP (supporting Render, Cloudflare, Nginx proxies)
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
@@ -285,57 +301,138 @@ async def get_visitor_count(request: Request):
     else:
         client_ip = request.headers.get("cf-connecting-ip") or request.headers.get("x-real-ip") or (request.client.host if request.client else "127.0.0.1")
 
-    now_utc = datetime.datetime.now(datetime.timezone.utc)
-    today_str = now_utc.strftime("%Y-%m-%d")
-    current_year_str = now_utc.strftime("%Y")
-    current_month_str = now_utc.strftime("%Y-%m")
-    start_of_week = (now_utc - datetime.timedelta(days=now_utc.weekday())).strftime("%Y-%m-%d")
-
-    # Salted SHA-256 for privacy
+    # Salted SHA-256 for GDPR/privacy compliance
     ip_hash = hashlib.sha256(f"alfurqan_salt_{client_ip}".encode()).hexdigest()[:16]
+    user_agent = request.headers.get("user-agent", "")
     
-    if "daily_visits" not in ANALYTICS_DATA:
-        ANALYTICS_DATA["daily_visits"] = {}
+    # Record and query persistent analytics from PostgreSQL / SQLite
+    stats = VisitorAnalyticsService.record_visit(ip_hash, user_agent)
+    return stats
 
-    today_ips_key = f"ips_{today_str}"
-    today_ips_set = set(ANALYTICS_DATA.get(today_ips_key, []))
-    unique_all_set = set(ANALYTICS_DATA.get("unique_ips", []))
+# =========================================================================
+# OPEN FOOD FACTS 2.5M+ PRODUCTS & BARCODE SCANNER (UNLIMITED)
+# =========================================================================
+@app.get("/api/v1/halal/barcode/{barcode}")
+async def check_halal_barcode(barcode: str):
+    """
+    Looks up products by barcode (2.5M+ items) via PostgreSQL cache & Open Food Facts API.
+    Zero rate limits applied to barcode lookups!
+    """
+    clean_code = re.sub(r"\D", "", barcode.strip())
+    if not clean_code:
+        raise HTTPException(status_code=400, detail="Некорректный штрихкод")
 
-    # Increment pageviews on every hit
-    ANALYTICS_DATA["total_pageviews"] = ANALYTICS_DATA.get("total_pageviews", 0) + 1
+    # 1. Check local database cache
+    cached = HalalProductCache.get_by_barcode(clean_code)
+    if cached:
+        return {
+            "barcode": cached["barcode"],
+            "name": cached["product_name"],
+            "brand": cached.get("brand"),
+            "categories": cached.get("categories"),
+            "ingredients_text": cached.get("ingredients_text"),
+            "halal_verdict": cached["halal_verdict"],
+            "summary": cached.get("shubhat_summary"),
+            "shubhat_details": json.loads(cached["shubhat_details_json"]) if cached.get("shubhat_details_json") else [],
+            "source": "DATABASE_CACHE"
+        }
 
-    # Record unique visitor for today
-    if ip_hash not in today_ips_set:
-        today_ips_set.add(ip_hash)
-        ANALYTICS_DATA[today_ips_key] = list(today_ips_set)
-        ANALYTICS_DATA["daily_visits"][today_str] = ANALYTICS_DATA["daily_visits"].get(today_str, 0) + 1
-        
-        if ip_hash not in unique_all_set:
-            unique_all_set.add(ip_hash)
-            ANALYTICS_DATA["unique_ips"] = list(unique_all_set)
-            
-        ANALYTICS_DATA["total_visits"] = len(unique_all_set)
-        save_analytics(ANALYTICS_DATA)
+    # 2. Fetch from Open Food Facts API (2.5M+ products)
+    off_data = OpenFoodFactsService.fetch_product_by_barcode(clean_code)
+    if not off_data:
+        return {
+            "barcode": clean_code,
+            "name": "Товар не найден в глобальной базе",
+            "halal_verdict": "NOT_FOUND",
+            "summary": "Штрихкод отсутствует в каталоге Open Food Facts (2.5 млн товаров). Пожалуйста, сфотографируйте состав продукта камерой (OCR).",
+            "source": "OPEN_FOOD_FACTS"
+        }
 
-    daily = ANALYTICS_DATA.get("daily_visits", {})
-    real_today = daily.get(today_str, 0)
-    real_week = sum(v for d, v in daily.items() if d >= start_of_week)
-    real_month = sum(v for d, v in daily.items() if d.startswith(current_month_str))
-    real_year = sum(v for d, v in daily.items() if d.startswith(current_year_str))
-    real_all_time = sum(daily.values()) if daily else len(unique_all_set)
+    # 3. Analyze ingredients through Shariah/Halal & Shubhât Knowledge Base
+    analysis = HalalKnowledgeBase.analyze_ingredients_deep(
+        off_data.get("ingredients_text", ""), 
+        off_data.get("additives_tags", [])
+    )
+
+    # 4. Cache verified result in Database
+    HalalProductCache.save_product(
+        barcode=clean_code,
+        name=off_data["name"][:250],
+        brand=off_data.get("brand", "")[:120],
+        categories=off_data.get("categories", "")[:250],
+        ingredients=off_data.get("ingredients_text", ""),
+        verdict=analysis["verdict"],
+        summary=analysis["summary_ru"],
+        shubhat_json=json.dumps(analysis.get("shubhat_details", []), ensure_ascii=False),
+        source="OPEN_FOOD_FACTS"
+    )
 
     return {
-        "today": real_today,
-        "week": real_week,
-        "month": real_month,
-        "year": real_year,
-        "all_time": real_all_time,
-        "total_visitors": real_all_time,
-        "unique_visitors": len(unique_all_set),
-        "total_pageviews": ANALYTICS_DATA.get("total_pageviews", real_all_time),
-        "total_queries_verified": ANALYTICS_DATA.get("total_queries_verified", 0),
-        "status": "LIVE_PERSISTENT_REAL"
+        "barcode": clean_code,
+        "name": off_data["name"],
+        "brand": off_data.get("brand"),
+        "categories": off_data.get("categories"),
+        "ingredients_text": off_data.get("ingredients_text"),
+        "halal_verdict": analysis["verdict"],
+        "summary_ru": analysis["summary_ru"],
+        "summary_kk": analysis["summary_kk"],
+        "haram_items": analysis["haram_items"],
+        "doubtful_items": analysis["doubtful_items"],
+        "shubhat_details": analysis["shubhat_details"],
+        "source": "OPEN_FOOD_FACTS_ANALYZED"
     }
+
+# =========================================================================
+# B2B & PUBLIC SHARIAH / HALAL AUDIT ENDPOINTS
+# =========================================================================
+@app.post("/api/v1/b2b/halal-check")
+@app.post("/api/v1/halal-check")
+async def b2b_halal_check(req: HalalScreenRequest, request: Request):
+    """
+    Enterprise B2B / Public Halal Screening Endpoint:
+    Accepts text, barcode, or ingredient list.
+    B2B authorization via X-API-Key or Bearer token removes rate limits and logs commercial usage.
+    """
+    api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+    org = B2BAuthService.validate_api_key(api_key) if api_key else None
+
+    query_text = (req.query or req.text or "").strip()
+    if not query_text:
+        raise HTTPException(status_code=400, detail="Параметр query или text обязателен")
+
+    # If barcode provided
+    if re.match(r"^\d{8,14}$", query_text):
+        return await check_halal_barcode(query_text)
+
+    # Deep Shubhât and Halal Analysis
+    analysis = HalalKnowledgeBase.analyze_ingredients_deep(query_text)
+    return {
+        "authenticated_as": org.org_name if org else "PUBLIC_B2C_TIER",
+        "tier": org.tier if org else "FREE",
+        "query": query_text,
+        "halal_verdict": analysis["verdict"],
+        "summary_ru": analysis["summary_ru"],
+        "summary_kk": analysis["summary_kk"],
+        "haram_items": analysis["haram_items"],
+        "doubtful_items": analysis["doubtful_items"],
+        "shubhat_details": analysis["shubhat_details"],
+        "smiic_standard": analysis["smiic_standard"],
+        "quran_ground_truth": analysis["quran_ground_truth"]
+    }
+
+# =========================================================================
+# CROSS-LINGUAL SEMANTIC SEARCH (RUSSIAN / KAZAKH -> ARABIC ROOT)
+# =========================================================================
+@app.get("/api/v1/quran/semantic-search")
+async def semantic_search(q: str = "", limit: int = 50):
+    """
+    Cross-Language Semantic & Stemming Search:
+    Translates Russian/Kazakh queries (e.g. 'Милосердие', 'Мейірім') to Arabic Root ('رحм') and returns verified Ayahs.
+    """
+    if not q:
+        return {"query": "", "results": []}
+    return engine.search_cross_lingual(q, limit=limit)
+
 
 
 
@@ -376,11 +473,6 @@ async def verify_text(req: VerifyRequest):
         raise HTTPException(status_code=400, detail="Text cannot be empty")
     
     result = guard.verify_full_text(req.text)
-    
-    # Increment query stats
-    ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
-    save_analytics(ANALYTICS_DATA)
-    
     return result
 
 @app.post("/api/verify/root")
@@ -399,11 +491,6 @@ async def screen_halal(req: HalalScreenRequest):
         return {"total_matches": 0, "matches": []}
     
     matches = HalalKnowledgeBase.match_input(input_text)
-    
-    # Increment query stats
-    ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
-    save_analytics(ANALYTICS_DATA)
-    
     return {"query": input_text, "total_matches": len(matches), "matches": matches}
 
 @app.post("/api/v1/contracts/audit-aaoifi")
@@ -528,11 +615,27 @@ async def get_ahkam(category: str):
 
 @app.post("/api/v1/images/audit-ocr")
 @app.post("/api/v1/halal/scan-image")
-async def scan_image_ocr(req: ImageScanRequest):
+async def scan_image_ocr(req: ImageScanRequest, request: Request):
     """
     Real OCR image processing using Pillow & Tesseract.
-    Extracts text, numbers, and E-codes and runs real Shariah screening.
+    Protected by Token Bucket Rate Limiter (3 tokens max, +1 refill every 2 min).
+    B2B requests with X-API-Key bypass rate limits!
     """
+    # 1. B2B Rate-limit bypass check
+    api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+    is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
+
+    if not is_b2b:
+        forwarded = request.headers.get("x-forwarded-for")
+        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "127.0.0.1")
+        allowed, remaining_tokens, wait_seconds = ocr_rate_limiter.is_allowed(client_ip)
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Лимит OCR-сканирований исчерпан (3 токена). Пожалуйста, подождите {wait_seconds} сек.",
+                headers={"Retry-After": str(wait_seconds)}
+            )
+
     try:
         img_data = req.image_base64
         if "," in img_data:
@@ -540,17 +643,18 @@ async def scan_image_ocr(req: ImageScanRequest):
         img_bytes = base64.b64decode(img_data)
         
         extracted_text = ImageOCRProcessor.extract_text(img_bytes)
-        matches = HalalKnowledgeBase.match_input(extracted_text)
+        analysis = HalalKnowledgeBase.analyze_ingredients_deep(extracted_text)
         guard_report = guard.verify_full_text(extracted_text[:20000])
-        
-        ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
-        save_analytics(ANALYTICS_DATA)
         
         return {
             "status": "success",
             "extracted_text": extracted_text[:1200],
-            "total_matches": len(matches),
-            "matches": matches,
+            "halal_verdict": analysis["verdict"],
+            "summary_ru": analysis["summary_ru"],
+            "summary_kk": analysis["summary_kk"],
+            "haram_items": analysis["haram_items"],
+            "doubtful_items": analysis["doubtful_items"],
+            "shubhat_details": analysis["shubhat_details"],
             "guard_report": guard_report
         }
     except Exception as e:
@@ -560,6 +664,7 @@ async def scan_image_ocr(req: ImageScanRequest):
             "extracted_text": "",
             "matches": []
         }
+
 
 @app.post("/api/v1/documents/audit-pdf")
 async def audit_pdf_document(req: PDFScanRequest):
@@ -571,10 +676,6 @@ async def audit_pdf_document(req: PDFScanRequest):
         pdf_bytes = base64.b64decode(pdf_data)
         
         audit_result = PDFDocumentProcessor.audit_pdf(pdf_bytes, guard, HalalKnowledgeBase)
-        
-        ANALYTICS_DATA["total_queries_verified"] = ANALYTICS_DATA.get("total_queries_verified", 0) + 1
-        save_analytics(ANALYTICS_DATA)
-        
         return {
             "status": "success",
             "audit": audit_result

@@ -1,5 +1,5 @@
 """
-Al-Furqan AI — Мультимодальный Telegram-бот v2.0 (Hardened Enterprise)
+Al-Furqan Guard — Мультимодальный Telegram-бот v2.0 (Hardened Enterprise)
 Детерминированный L0 Ground Truth фильтр Корана, PDF-аудитор, распознавание фото (OCR),
 Халяль-комплаенс, время намаза, Кибла и расчет Закята.
 
@@ -58,11 +58,11 @@ logging.basicConfig(
 logger = logging.getLogger("AlFurqanBot")
 
 # Инициализация ядра
-print("Загрузка Al-Furqan AI Core Engine v2.0...")
+print("Загрузка Al-Furqan Guard Core Engine v2.0...")
 engine = QuranEngine(manifest_path=MANIFEST_PATH, translations_path=TRANSLATIONS_PATH)
 guard = QuranGuard(engine)
 ahkam = AhkamExtractor(engine)
-print("Ядро Al-Furqan AI успешно загружено!")
+print("Ядро Al-Furqan Guard успешно загружено!")
 
 # Хранилище языковых настроек пользователей (user_id -> lang)
 USER_LANGS = {}
@@ -88,7 +88,7 @@ def get_user_reciter(user_id: int) -> str:
 I18N_MESSAGES = {
     "ru": {
         "welcome": (
-            "🌟 *Добро пожаловать в Al-Furqan AI!* 🌟\n\n"
+            "🌟 *Добро пожаловать в Al-Furqan Guard!* 🌟\n\n"
             "Мультимодальная платформа верификации Корана, исламских финансов и стандартов Халяль на базе *L0 Ground Truth* (6 236 аятов, 130 030 токенов, 1 651 корень).\n\n"
             "📌 *Что умеет этот бот:*\n"
             "• 📖 *Коран и Чтение:* Аудио любого аята и суры с переводом и транслитерацией\n"
@@ -109,7 +109,7 @@ I18N_MESSAGES = {
         "btn_reciter": "🎙️ Выбрать чтеца",
         "btn_lang": "🌐 Сменить язык",
         "help": (
-            "📖 *Команды и возможности Al-Furqan AI:*\n\n"
+            "📖 *Команды и возможности Al-Furqan Guard:*\n\n"
             "• `/fatiha` — Сура Аль-Фатиха с транслитерацией и аудио\n"
             "• `/ayah 2 255` — Получить Аят аль-Курси (или `<сура> <аят>`)\n"
             "• `/surah 112` — Получить суру целиком\n"
@@ -123,7 +123,7 @@ I18N_MESSAGES = {
     },
     "kk": {
         "welcome": (
-            "🌟 *Al-Furqan AI мультимодальды ботына қош келдіңіз!* 🌟\n\n"
+            "🌟 *Al-Furqan Guard мультимодальды ботына қош келдіңіз!* 🌟\n\n"
             "Қасиетті Құранның *L0 Ground Truth* эталоны, исламдық қаржы және Халал комплаенс сүзгісі (6 236 аят, 130 030 таңба, 1 651 түбір).\n\n"
             "📌 *Боттың барлық мүмкіндіктері:*\n"
             "• 📖 *Құранды оқу & тыңдау:* Кез келген аят пен сүренің аудиосы, транскрипциясы мен аудармасы\n"
@@ -158,7 +158,7 @@ I18N_MESSAGES = {
     },
     "en": {
         "welcome": (
-            "🌟 *Welcome to Al-Furqan AI Multi-Modal Bot!* 🌟\n\n"
+            "🌟 *Welcome to Al-Furqan Guard Multi-Modal Bot!* 🌟\n\n"
             "Deterministic Quran Ground Truth, Islamic Finance & Halal Compliance (6,236 Ayahs, 130,030 Tokens, 1,651 Roots).\n\n"
             "📌 *Key Capabilities:*\n"
             "• 📖 *Quran Audio & Text:* Read & Listen to any Ayah with verified translations\n"
@@ -192,6 +192,25 @@ I18N_MESSAGES = {
     }
 }
 
+def get_persistent_reply_keyboard(lang: str = "ru") -> ReplyKeyboardMarkup:
+    """Returns persistent ReplyKeyboardMarkup with 4 main bot actions."""
+    if lang == "kk":
+        keyboard = [
+            [KeyboardButton("📖 Құран оқу"), KeyboardButton("🥗 Халал сүзгісі")],
+            [KeyboardButton("🕋 Намаз және Құбыла"), KeyboardButton("ℹ️ Қалай қолдану керек")]
+        ]
+    elif lang == "en":
+        keyboard = [
+            [KeyboardButton("📖 Read Quran"), KeyboardButton("🥗 Halal Scanner")],
+            [KeyboardButton("🕋 Prayer & Qibla"), KeyboardButton("ℹ️ How to Use")]
+        ]
+    else:
+        keyboard = [
+            [KeyboardButton("📖 Читать Коран"), KeyboardButton("🥗 Халяль сканер")],
+            [KeyboardButton("🕋 Намаз и Кибла"), KeyboardButton("ℹ️ Как пользоваться")]
+        ]
+    return ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
 def get_main_keyboard(lang: str) -> InlineKeyboardMarkup:
     t = I18N_MESSAGES.get(lang, I18N_MESSAGES["ru"])
     keyboard = [
@@ -218,14 +237,95 @@ def get_main_keyboard(lang: str) -> InlineKeyboardMarkup:
 # КОМАНДЫ БОТА
 # =========================================================================
 
+async def send_surah_paginated(
+    update: Update, 
+    context: ContextTypes.DEFAULT_TYPE, 
+    sura: int, 
+    page: int = 1, 
+    page_size: int = 10,
+    edit: bool = False
+):
+    """
+    Sends or edits a paginated view of a surah in chunks of 10-15 ayahs.
+    Prevents Telegram 4096-character limit errors and provides smooth navigation.
+    """
+    if not (1 <= sura <= 114):
+        sura = 1
+    
+    total_ayahs = engine.CANONICAL_AYAH_COUNTS[sura - 1]
+    total_pages = max(1, (total_ayahs + page_size - 1) // page_size)
+    page = max(1, min(page, total_pages))
+
+    start_ayah = (page - 1) * page_size + 1
+    end_ayah = min(page * page_size, total_ayahs)
+
+    lang = get_user_lang(update.effective_user.id)
+    sura_name = engine.SURAH_NAMES.get(lang, engine.SURAH_NAMES["ru"])[sura - 1]
+
+    msg_lines = [
+        f"📖 *{sura_name} (Сура {sura})* • _Стр. {page}/{total_pages} (Аяты {start_ayah}–{end_ayah} из {total_ayahs})_\n"
+    ]
+
+    for a in range(start_ayah, end_ayah + 1):
+        data = engine.get_ayah(sura, a)
+        if data:
+            ar_text = data.get("text_uthmani") or data.get("text")
+            tr_text = data.get("transliteration", "")
+            translations = data.get("translations", {})
+            trans = translations.get(lang) or translations.get("ru") or translations.get("kk") or ""
+
+            msg_lines.append(f"*{a}.* `{ar_text}`")
+            if tr_text:
+                msg_lines.append(f"   _{tr_text}_")
+            if trans:
+                msg_lines.append(f"   💬 {trans}")
+            msg_lines.append("")
+
+    full_text = "\n".join(msg_lines)
+
+    # Navigation buttons
+    nav_row = []
+    if page > 1:
+        nav_row.append(InlineKeyboardButton("⬅️ Назад", callback_data=f"surah_page_{sura}_{page - 1}"))
+    nav_row.append(InlineKeyboardButton(f"📄 {page}/{total_pages}", callback_data="noop"))
+    if page < total_pages:
+        nav_row.append(InlineKeyboardButton("Далее ➡️", callback_data=f"surah_page_{sura}_{page + 1}"))
+
+    keyboard = [nav_row]
+    
+    # Audio link button
+    s_pad = f"{sura:03d}"
+    keyboard.append([
+        InlineKeyboardButton("🎧 Чтение суры целиком", url=f"https://server8.mp3quran.net/afs/{s_pad}.mp3")
+    ])
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    if edit and update.callback_query:
+        await update.callback_query.edit_message_text(
+            text=full_text,
+            parse_mode="Markdown",
+            reply_markup=reply_markup
+        )
+    elif update.message:
+        await update.message.reply_markdown(full_text, reply_markup=reply_markup)
+    elif update.callback_query:
+        await update.callback_query.message.reply_markdown(full_text, reply_markup=reply_markup)
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Приветственное сообщение и главное меню."""
+    """Приветственное сообщение, ReplyKeyboardMarkup и Inline меню."""
     user = update.effective_user
     lang = get_user_lang(user.id)
     t = I18N_MESSAGES.get(lang, I18N_MESSAGES["ru"])
     
+    # 1. Send greeting with persistent ReplyKeyboardMarkup
     await update.message.reply_markdown(
         t["welcome"],
+        reply_markup=get_persistent_reply_keyboard(lang)
+    )
+    # 2. Provide inline quick actions
+    await update.message.reply_markdown(
+        "⚡ *Быстрый доступ к разделам Al-Furqan Guard:*",
         reply_markup=get_main_keyboard(lang)
     )
 
@@ -233,7 +333,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Справка по доступным командам и мультимодальным функциям."""
     lang = get_user_lang(update.effective_user.id)
     t = I18N_MESSAGES.get(lang, I18N_MESSAGES["ru"])
-    await update.message.reply_markdown(t["help"])
+    await update.message.reply_markdown(t["help"], reply_markup=get_persistent_reply_keyboard(lang))
+
 
 async def fatiha_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Отправка суры Аль-Фатиха с арабским текстом, транслитерацией, переводом и аудио."""
@@ -343,6 +444,21 @@ async def ayah_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     except Exception as e:
         logger.warning(f"Ayah audio send notice: {e}")
+
+async def surah_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Чтение суры с пагинацией: /surah <номер_суры> (например, /surah 2)"""
+    args = context.args
+    if not args:
+        await send_surah_paginated(update, context, sura=1, page=1)
+        return
+    try:
+        sura_num = int(args[0])
+        if not (1 <= sura_num <= 114):
+            await update.message.reply_markdown("❌ Номер суры должен быть от 1 до 114.")
+            return
+        await send_surah_paginated(update, context, sura=sura_num, page=1)
+    except ValueError:
+        await update.message.reply_markdown("⚠️ Укажите номер суры числом, например: `/surah 36` (Сура Йа Син)")
 
 async def halal_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Проверка продукта или E-кода на Халяль: /halal <название/E-код>"""
@@ -588,7 +704,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 for f in a_rep["findings"][:3]:
                     msg_lines.append(f"  • ⚠️ _{f['standard']}: {f.get('issue_ru')}_")
 
-        msg_lines.append("\n🛡️ _Детерминированный аудит Al-Furqan AI с криптографической верификацией._")
+        msg_lines.append("\n🛡️ _Детерминированный аудит Al-Furqan Guard с криптографической верификацией._")
         await update.message.reply_markdown("\n".join(msg_lines))
     except Exception as e:
         await update.message.reply_markdown(f"❌ Ошибка аудита PDF: {str(e)}")
@@ -624,12 +740,33 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # =========================================================================
 
 async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Автоматическая проверка любого входящего текста на галлюцинации, темы и халяль."""
+    """Автоматическая проверка любого входящего текста на галлюцинации, темы и халяль, а также обработка кнопок главного меню."""
     text = update.message.text.strip()
     if not text:
         return
 
     lang = get_user_lang(update.effective_user.id)
+
+    # 0. Обработка кнопок постоянного меню (ReplyKeyboardMarkup)
+    if text in ["📖 Читать Коран", "📖 Құран оқу", "📖 Read Quran"]:
+        await send_surah_paginated(update, context, sura=1, page=1)
+        return
+    elif text in ["🥗 Халяль сканер", "🥗 Халал сүзгісі", "🥗 Halal Scanner"]:
+        await update.message.reply_markdown(
+            "🥗 *Халяль / Харам Скринер состава продуктов*\n\n"
+            "• Напишите название продукта или E-код (например, `E471`, `Кармин`, `Желатин`, `Свинина`)\n"
+            "• Или сфотографируйте этикетку/состав камерой и отправьте фото в чат 📸!"
+        )
+        return
+    elif text in ["🕋 Намаз и Кибла", "🕋 Намаз және Құбыла", "🕋 Prayer & Qibla"]:
+        await update.message.reply_markdown(
+            "🕋 *Астрономическое расписание Намаза и компас Киблы*\n\n"
+            "Нажмите на иконку скрепки 📎 в Telegram $\\rightarrow$ выберите **Геопозиция (Location)** и отправьте боту для расчета точного времени 5 намазов и азимута на Каабу!"
+        )
+        return
+    elif text in ["ℹ️ Как пользоваться", "ℹ️ Қалай қолдану керек", "ℹ️ How to Use"]:
+        await help_command(update, context)
+        return
 
     # 1. Проверка цитат Корана через Anti-Hallucination Guardrail
     audit_report = guard.verify_full_text(text)
@@ -642,7 +779,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
             )
             for v in audit_report["violations"]:
                 err_msg += f"• ⚠️ *{v.get('type')}:* {v.get('details')}\n"
-            err_msg += "\n🛡️ _Al-Furqan AI предотвратил распространение искаженного текста Корана._"
+            err_msg += "\n🛡️ _Al-Furqan Guard предотвратил распространение искаженного текста Корана._"
             await update.message.reply_markdown(err_msg)
             return
         else:
@@ -697,7 +834,14 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
     data = query.data
     user_id = update.effective_user.id
 
-    if data == "cmd_fatiha":
+    if data == "noop":
+        return
+    elif data.startswith("surah_page_"):
+        parts = data.split("_")
+        sura_num = int(parts[2])
+        page_num = int(parts[3])
+        await send_surah_paginated(update, context, sura=sura_num, page=page_num, edit=True)
+    elif data == "cmd_fatiha":
         await fatiha_command(update, context)
     elif data == "cmd_halal_menu":
         await query.message.reply_markdown(
@@ -791,11 +935,12 @@ def create_bot_app(token: str):
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("fatiha", fatiha_command))
     app.add_handler(CommandHandler("ayah", ayah_command))
-    app.add_handler(CommandHandler("surah", ayah_command))
+    app.add_handler(CommandHandler("surah", surah_command))
     app.add_handler(CommandHandler("halal", halal_command))
     app.add_handler(CommandHandler("root", root_command))
     app.add_handler(CommandHandler("search", search_command))
     app.add_handler(CommandHandler("zakat", zakat_command))
+
     
     # Мультимодальные обработчики: Фото, Документы (PDF), Геолокация
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
@@ -845,10 +990,10 @@ def main():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
 
-            print("🚀 Запуск Al-Furqan AI Multi-Modal Telegram Bot (Polling mode)...")
+            print("🚀 Запуск Al-Furqan Guard Multi-Modal Telegram Bot (Polling mode)...")
             app = create_bot_app(token)
 
-            print("✅ Мультимодальный бот Al-Furqan AI успешно запущен и слушает события Telegram!")
+            print("✅ Мультимодальный бот Al-Furqan Guard успешно запущен и слушает события Telegram!")
             # drop_pending_updates=True drops stale updates / webhook remnants
             app.run_polling(drop_pending_updates=True, stop_signals=None, close_loop=False)
             break

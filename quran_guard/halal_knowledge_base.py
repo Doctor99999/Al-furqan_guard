@@ -388,3 +388,120 @@ class HalalKnowledgeBase:
             "findings": findings,
             "quran_basis": "2:275 (Запрет Риба) • 4:29 (Торговля по согласию) • 5:1 (Исполнение договоров)"
         }
+
+    # =========================================================================
+    # 4. DEEP SHUBHÂT (DOUBTFUL SUBSTANCES) FIQH & ORIGIN KNOWLEDGE GRAPH
+    # =========================================================================
+    SHUBHAT_KNOWLEDGE = {
+        "E471": {
+            "name": "E471 — Моно- и диглицериды жирных кислот (Mono- and diglycerides of fatty acids)",
+            "origin_types": ["Растительное (Plant/Vegetable)", "Животное (Animal)", "Синтетическое"],
+            "shariah_verdict_ru": "СОМНИТЕЛЬНО (ШҮБӘЛІ) БЕЗ СЕРТИФИКАТА",
+            "shariah_verdict_kk": "СЕРТИФИКАТСЫЗ КҮМӘНДІ (ШҮБӘЛІ)",
+            "detailed_fiqh_ru": "Моно- и диглицериды (E471) производятся путем этерификации жирных кислот. Если сырьем служат растительные масла (соевое, пальмовое, рапсовое) — добавка 100% ХАЛЯЛЬ. Если источником является животный жир (говяжий или свиной без халяль-забоя) — ХАРАМ. Согласно стандартам OIC/SMIIC 1:2019 и ДУМК/Halal Damu, продукт с E471 разрешен к употреблению только при явном указании 'растительного происхождения' на этикетке или при наличии сертификата Халяль.",
+            "detailed_fiqh_kk": "E471 қоспасы өсімдік немесе мал майларынан алынады. Егер өсімдіктен (пальма, соя майы) алынса — ХАЛАЛ. Мал немесе шошқа майынан алынса — ХАРАМ. SMIIC 1:2019 және ҚМДБ (Халал Даму) стандарттарына сәйкес, қаптамада 'өсімдік майынан' деп жазылмаса немесе Халал сертификаты болмаса, күмәнді (шүбәлі) саналады.",
+            "standards_ref": "OIC/SMIIC 1:2019 General Requirements for Halal Food §5.1.2 • ДУМК РК"
+        },
+        "E120": {
+            "name": "E120 — Кармин / Кошениль (Carmine / Cochineal extract)",
+            "origin_types": ["Насекомые (Сушеные самки кошенили / Dactylopius coccus)"],
+            "shariah_verdict_ru": "ХАРАМ (по Ханафи, Шафии и ДУМК / Halal Damu)",
+            "shariah_verdict_kk": "ХАРАМ (Ханафи, Шафии және ҚМДБ / Халал Даму бойынша)",
+            "detailed_fiqh_ru": "Кармин — натуральный краситель красного цвета, получаемый из сушеных самок насекомых кошенили. В ханафитском и шафиитском мазхабах (а также согласно нормам ДУМК РК, Совета муфтиев РФ и SMIIC) насекомые, не относящиеся к саранче, признаются 'хабаис' (скверной) и запрещены к употреблению в пищу (Коран 7:157). Употребление продуктов с E120 запрещено.",
+            "detailed_fiqh_kk": "Кармин бояғышы кошениль жәндіктерінен өндіріледі. Ханафи және Шафии мәзһабтарында, сондай-ақ ҚМДБ стандарттары бойынша шегірткеден басқа жәндіктер 'хабаис' (жиіркенішті) саналып, жеуге қатаң тыйым салынған (Құран 7:157). Құрамында E120 бар өнімдер Харам болып табылады.",
+            "standards_ref": "Сура Аль-Аграф 7:157 • Постановление ДУМК РК • SMIIC 1:2019 §5.1.1"
+        },
+        "GELATIN": {
+            "name": "Желатин / E441 (Gelatin)",
+            "origin_types": ["Свиная шкура (Pork Skin)", "Кости КРС (Bovine)", "Рыбный (Fish)", "Растительный аналог (Агар-агар/Пектин)"],
+            "shariah_verdict_ru": "СОМНИТЕЛЬНО / ТРЕБУЕТСЯ СЕРТИФИКАТ ХАЛЯЛЬ",
+            "shariah_verdict_kk": "КҮМӘНДІ / ХАЛАЛ СЕРТИФИКАТЫ ҚАЖЕТ",
+            "detailed_fiqh_ru": "Желатин — продукт денатурации коллагена. До 80% промышленного европейского желатина производится из свиной шкуры (ХАРАМ). Желатин из говяжьих костей скота, забитого не по шариату — также ХАРАМ по мнению большинства ученых (так как концепция 'истихала' не признается полной). Разрешен ТОЛЬКО желатин из рыбы (Fish Gelatin) или скота, забитого по стандартам Халяль с подтвержденным сертификатом.",
+            "detailed_fiqh_kk": "Әлемдік желатиннің басым бөлігі доңыз терісінен өндіріледі (ХАРАМ). Шариғатқа сай сойылмаған сиыр сүйегінен жасалған желатин де харам. Тек балықтан (Fish Gelatin) немесе шариғат талабымен бауыздалған малдан жасалған Халал сертификатталған желатин ғана адал.",
+            "standards_ref": "Сура Аль-Маида 5:3 • Фетва Европейского совета по богословию и фетвам • ДУМК"
+        },
+        "RENNET": {
+            "name": "Сычужный фермент / Пепсин / Химозин (Rennet / Pepsin / Chymosin)",
+            "origin_types": ["Микробиологический (Microbial/Vegetarian)", "Телячий сычуг (Bovine/Calf)", "Свиной пепсин (Porcine Pepsin)"],
+            "shariah_verdict_ru": "МИКРОБИОЛОГИЧЕСКИЙ — ХАЛЯЛЬ / ЖИВОТНЫЙ — ТРЕБУЕТСЯ ПРОВЕРКА",
+            "shariah_verdict_kk": "МИКРОБИОЛОГИЯЛЫҚ — ХАЛАЛ / МАЛДЫҚ — ТЕКСЕРУ ҚАЖЕТ",
+            "detailed_fiqh_ru": "Сычужный фермент используется в производстве твердых и полутвердых сыров. Если на упаковке указан 'фермент микробиологического (растительного) происхождения' (Microbial Rennet) — продукт 100% ХАЛЯЛЬ. Если указан животный сычуг: в ханафитском мазхабе сам фермент чист, однако стандарты Halal Damu и SMIIC требуют использования ферментов от халяль-забоя во избежание соприкосновения со свиным пепсином.",
+            "detailed_fiqh_kk": "Сыр өндірісіндегі сычуг: 'микробиологиялық' (өсімдік текті) фермент болса — 100% ХАЛАЛ. Малдың мәйегінен алынса, Халал сертификаты немесе шариғатша бауыздалғанын растау талап етіледі.",
+            "standards_ref": "OIC/SMIIC 1:2019 §5.1.3 • ДУМК РК Стандарт сыроделия"
+        }
+    }
+
+    @classmethod
+    def analyze_ingredients_deep(cls, text: str, additives_tags: List[str] = None) -> Dict[str, Any]:
+        """
+        Comprehensive automated Shariah & Halal analysis of ingredients text & E-codes.
+        Returns precise fiqh classification, origin breakdowns, and references.
+        """
+        norm = text.lower()
+        if additives_tags:
+            for tag in additives_tags:
+                clean_tag = tag.replace("en:", "").upper()
+                norm += f" {clean_tag}"
+
+        matches = cls.match_input(norm)
+        haram_items = []
+        doubtful_items = []
+        shubhat_details = []
+
+        # 1. Match specific Shubhât deep entries
+        if "e471" in norm or "моно- и диглицерид" in norm or "моноглицерид" in norm or "diglyceride" in norm:
+            shubhat_details.append(cls.SHUBHAT_KNOWLEDGE["E471"])
+            doubtful_items.append("E471 (Моно- и диглицериды)")
+
+        if "e120" in norm or "кармин" in norm or "кошенил" in norm or "carmine" in norm:
+            shubhat_details.append(cls.SHUBHAT_KNOWLEDGE["E120"])
+            haram_items.append("E120 (Кармин / Кошениль — Насекомые)")
+
+        if "желатин" in norm or "gelatin" in norm or "e441" in norm:
+            # Check if certified fish or halal
+            if "рыбный желатин" in norm or "агар" in norm or "говяжий желатин халяль" in norm:
+                pass
+            else:
+                shubhat_details.append(cls.SHUBHAT_KNOWLEDGE["GELATIN"])
+                doubtful_items.append("Желатин (E441)")
+
+        if "сычужн" in norm or "rennet" in norm or "пепсин" in norm or "химозин" in norm:
+            if "микробиологическ" in norm or "растительн" in norm or "microbial" in norm:
+                pass
+            else:
+                shubhat_details.append(cls.SHUBHAT_KNOWLEDGE["RENNET"])
+                doubtful_items.append("Сычужный фермент (Rennet)")
+
+        # 2. General ontology checks
+        for m in matches:
+            if m["verdict"] == "HARAM" and m["title_ru"] not in haram_items:
+                haram_items.append(m["title_ru"])
+            elif m["verdict"] == "DOUBTFUL" and m["title_ru"] not in doubtful_items:
+                doubtful_items.append(m["title_ru"])
+
+        # Determine overall verdict
+        if haram_items:
+            final_verdict = "HARAM"
+            summary_ru = f"🔴 ВНИМАНИЕ: Продукт содержит запрещенные (ХАРАМ) компоненты: {', '.join(haram_items)}."
+            summary_kk = f"🔴 ЕСКЕРТУ: Өнімде шариғатта тыйым салынған (ХАРАМ) заттар табылды: {', '.join(haram_items)}."
+        elif doubtful_items or shubhat_details:
+            final_verdict = "DOUBTFUL"
+            summary_ru = f"🟡 ВНИМАНИЕ: Обнаружены сомнительные ингредиенты (ШУБХАТ): {', '.join(doubtful_items)}. Требуется подтверждение происхождения или сертификат Халяль."
+            summary_kk = f"🟡 ЕСКЕРТУ: Құрамында күмәнді (ШҮБӘЛІ) қоспалар табылды: {', '.join(doubtful_items)}. Халал сертификаты немесе өсімдіктен алынғанын растау қажет."
+        else:
+            final_verdict = "HALAL"
+            summary_ru = "🟢 ПРОВЕРЕНО: Прямых запрещенных компонентов и сомнительных добавок не обнаружено (Халяль)."
+            summary_kk = "🟢 ТЕКСЕРІЛДІ: Құрамында тыйым салынған немесе күмәнді қоспалар табылмады (Халал)."
+
+        return {
+            "verdict": final_verdict,
+            "summary_ru": summary_ru,
+            "summary_kk": summary_kk,
+            "haram_items": haram_items,
+            "doubtful_items": doubtful_items,
+            "shubhat_details": shubhat_details,
+            "raw_matches_count": len(matches),
+            "smiic_standard": "OIC/SMIIC 1:2019",
+            "quran_ground_truth": "5:3 (Запрет мертвечины, крови и свинины) • 5:90 (Запрет опьяняющего) • 7:157 (Запрет скверны)"
+        }
+

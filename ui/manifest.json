@@ -1,12 +1,28 @@
 {
-  "name": "Al-Furqan AI — L0 Islamic Ground Truth & Halal Guard",
-  "short_name": "Al-Furqan AI",
-  "description": "Deterministic Quran Anti-Hallucination Guardrail, Halal OCR Scanner, and AAOIFI Shariah Auditor",
-  "start_url": "/",
+  "id": "com.alfurqan.guard.twa",
+  "name": "Al-Furqan Guard — Священный Коран & Шариатский Аудитор",
+  "short_name": "Al-Furqan Guard",
+  "description": "Детерминированная система чтения и аудио 114 сур Корана, защита от ошибок ИИ, Халяль-сканер состава продуктов (SMIIC), точное время намаза и аудит договоров AAOIFI.",
+  "start_url": "/?utm_source=twa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "background_color": "#06090F",
   "theme_color": "#0C111D",
   "orientation": "portrait-primary",
+  "lang": "kk",
+  "dir": "auto",
+  "categories": [
+    "lifestyle",
+    "education",
+    "books",
+    "utilities",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3247/3247167.png",
@@ -20,5 +36,61 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Священный Коран",
+      "short_name": "Коран",
+      "description": "Читать и слушать 114 Сур Корана",
+      "url": "/#tab-quran",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/3247/3247167.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Халяль-сканер",
+      "short_name": "Халяль",
+      "description": "Проверить состав продукта или E-коды",
+      "url": "/#tab-halal",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/3247/3247167.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Время Намаза & Кибла",
+      "short_name": "Намаз",
+      "description": "Астрономическое расписание 5 намазов",
+      "url": "/#tab-namaz",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/3247/3247167.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=1080&q=80",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Главный экран Al-Furqan AI и Священный Коран"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?auto=format&fit=crop&w=1920&q=80",
+      "sizes": "1920x1080",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Интерфейс аудита и аналитики Al-Furqan AI"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 }

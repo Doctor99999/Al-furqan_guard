@@ -79,6 +79,9 @@ class PDFDocumentProcessor:
             "text_preview": full_text[:1200]
         }
 
+    # Alias for backwards compatibility
+    audit_document = audit_pdf
+
 # =========================================================================
 # 2. IMAGE & PHOTO OCR PROCESSOR
 # =========================================================================

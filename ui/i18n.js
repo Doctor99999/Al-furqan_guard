@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Al-Furqan AI - Comprehensive Internationalization (i18n) Engine & Dictionaries v14.0
+   Al-Furqan Guard - Comprehensive Internationalization (i18n) Engine & Dictionaries v14.0
    Supported Languages: kk (Қазақша), ru (Русский), en (English), ar (العربية),
                         tr (Türkçe), uz (O‘zbekcha), id (Bahasa Indonesia)
    ========================================================================== */
@@ -12,9 +12,10 @@ const I18N = {
         // 1. КАЗАХСКИЙ (Қазақша - kk)
         // =====================================================================
         kk: {
-            title: "Al-Furqan AI",
+            title: "Al-Furqan Guard",
             subtitle: "Қасиетті Құран & Интеллектуалды Ислам Аудиторы",
             metricVisitors: "Келушілер",
+            metricAyahs: "Аяттар",
             metricVisitorsTitle: "📊 Келушілер статистикасы:",
             metricToday: "Бүгін",
             metricWeek: "Осы аптада",
@@ -25,8 +26,20 @@ const I18N = {
             btnFeedback: "💬 Кері байланыс",
             btnGuide: "📖 Жоба туралы",
 
+            // Welcome Guide
+            welcomeTitle: "Қош келдіңіз! Al-Furqan Guard қалай пайдалану керек?",
+            welcomeSubtitle: "Сенімді шариғат сүзгісі және Құран канондық анықтамалығы",
+            guideStep1Title: "Құран оқу және тыңдау",
+            guideStep1Desc: "114 сүре, 3 қари аудиосы, сөздік талдау және 7 тілдегі параллель аударма.",
+            guideStep2Title: "Дәйексөзді тексеру (ИИ)",
+            guideStep2Desc: "ChatGPT және мәтіндерден келтірілген аяттарды 0% галлюцинациямен тексеру.",
+            guideStep3Title: "Халал-сканер & Фото OCR",
+            guideStep3Desc: "Өнім фотосын жүктеңіз немесе E-кодты жазыңыз. SMIIC және ДУМК талдауы.",
+            guideStep4Title: "PDF Келісімшарт Аудиті",
+            guideStep4Desc: "Құжаттарды (несие, Мурабаха) AAOIFI бойынша өсім мен айыппұлдарға тексеру.",
+
             // USP Section
-            uspTitle: "⚡ Неліктен Al-Furqan AI? Басқа жобалардан басты артықшылықтарымыз:",
+            uspTitle: "⚡ Неліктен Al-Furqan Guard? Басқа жобалардан басты артықшылықтарымыз:",
             usp1Title: "🛡️ 0% ЖИ Галлюцинациясы (L0 Ground Truth)",
             usp1Desc: "ChatGPT-ден айырмашылығы: 6 236 аят пен 130 030 сөздің ташкилі мен мағынасы SHA-256 криптографиялық мөрімен 100% дәл тексеріледі.",
             usp2Title: "⚖️ AAOIFI Исламдық Қаржы Аудиті",
@@ -83,7 +96,7 @@ const I18N = {
             guardInvalidDesc: "Енгізілген мәтінде канондық Құраннан ауытқулар табылды:",
             guardNoQuotesHeader: "ℹ️ Тексте тікелей Құран дәйексөздері табылмады",
             guardNoQuotesDesc: "Жүйе сүре немесе аят сілтемелерін таппады. Мәтінде канондық бекітулер жоқ.",
-            guardProtectedNote: "🛡️ Al-Furqan AI жалған және бұрмаланған дәйексөздің таралуынан қорғады.",
+            guardProtectedNote: "🛡️ Al-Furqan Guard жалған және бұрмаланған дәйексөздің таралуынан қорғады.",
             rootsCardTitle: "🧬 1 651 семантикалық Құран түбірі бойынша іздеу",
             rootsCardDesc: "Барлық сөз формалары мен аяттарды табу үшін араб түбірін енгізіңіз (мысалы: صبر — сабыр, رحم — мейірім, خنز — шошқа).",
             rootSearchPlaceholder: "Араб түбірін енгізіңіз (мыс: صبر немесе رحم)...",
@@ -137,6 +150,8 @@ const I18N = {
             cityAstana: "Астана",
             cityAlmaty: "Алматы",
             cityShymkent: "Шымкент",
+            cityAktau: "Ақтау",
+            cityAktobe: "Ақтөбе",
             cityMoscow: "Мәскеу",
             cityIstanbul: "Ыстамбұл",
             cityTashkent: "Ташкент",
@@ -166,7 +181,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ Сапа, Қауіпсіздік және Шариғат Стандарттары",
-            standardsSubtitle: "Al-Furqan AI архитектурасы халықаралық ISO/IEC, SMIIC және AAOIFI стандарттарына сай жасалған.",
+            standardsSubtitle: "Al-Furqan Guard архитектурасы халықаралық ISO/IEC, SMIIC және AAOIFI стандарттарына сай жасалған.",
             std1Title: "1. Каноникалық Құран эталоны (Tanzil Uthmani L0)",
             std1Text: "Tanzil Quran Project v1.0.2 (Осман жазуы, 6 236 аят, 130 030 морфологиялық таңба, 1 651 түбір). Манифест SHA-256 криптографиялық мөрімен қорғалған.",
             std2Title: "2. Ислам Қаржысы Стандарттары (AAOIFI)",
@@ -188,13 +203,13 @@ const I18N = {
             feedbackSuccess: "Рақмет! Сіздің пікіріңіз қабылданды.",
             feedbackError: "Хабарлама жіберу кезінде қате орын алды.",
 
-            guideModalTitle: "📖 Al-Furqan AI Жобасы туралы",
-            guideP1: "<strong>Al-Furqan AI (Ақиқат пен жалғанды ажыратушы)</strong> — генеративті жасанды интеллект дәуірінде Қасиетті Құранның абсолютті дәлдігін сақтау үшін жасалған детерминирленген жүйе.",
-            guideP2: "ChatGPT, Claude, Gemini сияқты заманауи үлкен тілдік модельдер аят нөмірлерін, сөздерді немесе мағынаны шатастырып, жиі «галлюцинацияға» ұшырайды. Al-Furqan AI математикалық тұрғыдан мінсіз L0 Ground Truth сүзгісі ретінде қызмет етеді.",
+            guideModalTitle: "📖 Al-Furqan Guard Жобасы туралы",
+            guideP1: "<strong>Al-Furqan Guard (Ақиқат пен жалғанды ажыратушы)</strong> — генеративті жасанды интеллект дәуірінде Қасиетті Құранның абсолютті дәлдігін сақтау үшін жасалған детерминирленген жүйе.",
+            guideP2: "ChatGPT, Claude, Gemini сияқты заманауи үлкен тілдік модельдер аят нөмірлерін, сөздерді немесе мағынаны шатастырып, жиі «галлюцинацияға» ұшырайды. Al-Furqan Guard математикалық тұрғыдан мінсіз L0 Ground Truth сүзгісі ретінде қызмет етеді.",
             guideP3: "Сонымен қатар жүйе Құранды ыңғайлы оқуды, танымал қарилардың аудиосын, өнімдерді Халалға тексеруді, намаз уақыты мен Зекетті есептеуді қамтамасыз етеді.",
 
             // Footer
-            footerBrandText: "Al-Furqan AI v2.0 • Қасиетті Құран (Tanzil Uthmani L0) & Шариғат Сәйкестік Жүйесі",
+            footerBrandText: "Al-Furqan Guard v2.0 • Қасиетті Құран (Tanzil Uthmani L0) & Шариғат Сәйкестік Жүйесі",
             footerTgBot: "✈️ Telegram Бот",
             footerApiDocs: "API Құжаттамасы",
             footerGithub: "GitHub",
@@ -208,9 +223,10 @@ const I18N = {
         // 2. РУССКИЙ (Русский - ru)
         // =====================================================================
         ru: {
-            title: "Al-Furqan AI",
+            title: "Al-Furqan Guard",
             subtitle: "Священный Коран & Интеллектуальный Исламский Аудитор",
             metricVisitors: "Посетителей",
+            metricAyahs: "Аятов",
             metricVisitorsTitle: "📊 Статистика посещений:",
             metricToday: "Сегодня",
             metricWeek: "На неделе",
@@ -221,8 +237,20 @@ const I18N = {
             btnFeedback: "💬 Отзыв",
             btnGuide: "📖 О проекте",
 
+            // Welcome Guide
+            welcomeTitle: "Добро пожаловать! Как пользоваться Al-Furqan Guard?",
+            welcomeSubtitle: "Интеллектуальный шариатский аудитор и канонический эталон Корана",
+            guideStep1Title: "Чтение и аудио Корана",
+            guideStep1Desc: "114 сур, аудио 3 великих чтецов, пословный разбор и синхронные переводы.",
+            guideStep2Title: "Проверка цитат (ИИ)",
+            guideStep2Desc: "Детерминированная защита от галлюцинаций ChatGPT и искажения аятов.",
+            guideStep3Title: "Халяль-сканер & Фото OCR",
+            guideStep3Desc: "Сфотографируйте состав продукта или введите E-код для проверки по SMIIC.",
+            guideStep4Title: "Аудит PDF-договоров",
+            guideStep4Desc: "Проверка финансовых договоров (рассрочка, Мурабаха) на Риба по AAOIFI.",
+
             // USP Section
-            uspTitle: "⚡ Почему Al-Furqan AI? Наши ключевые отличия от других проектов:",
+            uspTitle: "⚡ Почему Al-Furqan Guard? Наши ключевые отличия от других проектов:",
             usp1Title: "🛡️ 0% AI Галлюцинаций (L0 Ground Truth)",
             usp1Desc: "В отличие от ChatGPT и Claude: 6 236 аятов, 130 030 токенов и огласовки проверяются со 100% математической точностью по криптографической печати SHA-256.",
             usp2Title: "⚖️ Аудит исламских договоров по AAOIFI",
@@ -279,7 +307,7 @@ const I18N = {
             guardInvalidDesc: "В тексте выявлены несоответствия каноническому Корану:",
             guardNoQuotesHeader: "ℹ️ Прямых цитат Корана в тексте не обнаружено",
             guardNoQuotesDesc: "Система не выявила ссылок на суры или аяты. Текст не содержит утверждений о каноническом тексте.",
-            guardProtectedNote: "🛡️ Al-Furqan AI защитил от распространения недостоверного текста.",
+            guardProtectedNote: "🛡️ Al-Furqan Guard защитил от распространения недостоверного текста.",
             rootsCardTitle: "🧬 Поиск по 1 651 семантическому корню Корана",
             rootsCardDesc: "Введите арабский корень для поиска всех словоформ и аятов (например: صبر — терпение, رحم — милость, خنز — свинина).",
             rootSearchPlaceholder: "Введите арабский корень (напр. صبر или رحم)...",
@@ -333,6 +361,8 @@ const I18N = {
             cityAstana: "Астана",
             cityAlmaty: "Алматы",
             cityShymkent: "Шымкент",
+            cityAktau: "Актау",
+            cityAktobe: "Актобе",
             cityMoscow: "Москва",
             cityIstanbul: "Стамбул",
             cityTashkent: "Ташкент",
@@ -362,7 +392,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ Стандарты качества и сертификация",
-            standardsSubtitle: "Архитектура Al-Furqan AI спроектирована в соответствии со стандартами ISO/IEC, SMIIC и AAOIFI.",
+            standardsSubtitle: "Архитектура Al-Furqan Guard спроектирована в соответствии со стандартами ISO/IEC, SMIIC и AAOIFI.",
             std1Title: "1. Канонический эталон Корана (Tanzil Uthmani L0)",
             std1Text: "Tanzil Quran Project v1.0.2 (Uthmani Text, 6 236 аятов, 130 030 токенов, 1 651 корень). Хэш манифеста защищен криптографической печатью SHA-256.",
             std2Title: "2. Исламские финансы (AAOIFI)",
@@ -384,13 +414,13 @@ const I18N = {
             feedbackSuccess: "Спасибо! Ваш отзыв успешно принят.",
             feedbackError: "Ошибка отправки отзыва.",
 
-            guideModalTitle: "📖 О проекте Al-Furqan AI",
-            guideP1: "<strong>Al-Furqan AI (Различение истины от лжи)</strong> — это детерминированная система, созданная для сохранения абсолютной точности Священного Корана в эпоху генеративного искусственного интеллекта.",
-            guideP2: "Современные большие языковые модели (ChatGPT, Claude, Gemini) часто страдают «галлюцинациями», путая номера аятов, слова или смысл. Al-Furqan AI выступает в качестве математически точного фильтра первого уровня (L0 Ground Truth), гарантируя 100% каноничность.",
+            guideModalTitle: "📖 О проекте Al-Furqan Guard",
+            guideP1: "<strong>Al-Furqan Guard (Различение истины от лжи)</strong> — это детерминированная система, созданная для сохранения абсолютной точности Священного Корана в эпоху генеративного искусственного интеллекта.",
+            guideP2: "Современные большие языковые модели (ChatGPT, Claude, Gemini) часто страдают «галлюцинациями», путая номера аятов, слова или смысл. Al-Furqan Guard выступает в качестве математически точного фильтра первого уровня (L0 Ground Truth), гарантируя 100% каноничность.",
             guideP3: "Дополнительно система предоставляет удобное чтение Корана, аудио-плеер признанных чтецов, проверку состава продуктов на Халяль, расчет времени намаза и Закята.",
 
             // Footer
-            footerBrandText: "Al-Furqan AI v2.0 • Священный Коран (Tanzil Uthmani L0) & Shariah Compliance Engine",
+            footerBrandText: "Al-Furqan Guard v2.0 • Священный Коран (Tanzil Uthmani L0) & Shariah Compliance Engine",
             footerTgBot: "✈️ Telegram Бот",
             footerApiDocs: "API Документация",
             footerGithub: "GitHub",
@@ -404,9 +434,10 @@ const I18N = {
         // 3. АНГЛИЙСКИЙ (English - en)
         // =====================================================================
         en: {
-            title: "Al-Furqan AI",
+            title: "Al-Furqan Guard",
             subtitle: "The Holy Quran & Intelligent Islamic Auditor",
             metricVisitors: "Visitors",
+            metricAyahs: "Ayahs",
             metricVisitorsTitle: "📊 Visitor Statistics:",
             metricToday: "Today",
             metricWeek: "This Week",
@@ -417,8 +448,20 @@ const I18N = {
             btnFeedback: "💬 Feedback",
             btnGuide: "📖 About",
 
+            // Welcome Guide
+            welcomeTitle: "Welcome! How to use Al-Furqan Guard?",
+            welcomeSubtitle: "Intelligent Shariah Compliance Auditor and Canonical Quran Ground Truth",
+            guideStep1Title: "Quran Reader & Audio",
+            guideStep1Desc: "114 Surahs, 3 renowned reciters, word-by-word analysis and parallel translations.",
+            guideStep2Title: "AI Quote Verifier",
+            guideStep2Desc: "Deterministic defense against ChatGPT hallucinations and ayah distortions.",
+            guideStep3Title: "Halal Scanner & Photo OCR",
+            guideStep3Desc: "Take a photo of ingredients or enter E-codes for instant SMIIC check.",
+            guideStep4Title: "PDF Contract Audit",
+            guideStep4Desc: "Screen financial agreements (installments, Murabaha) for Riba via AAOIFI.",
+
             // USP Section
-            uspTitle: "⚡ Why Al-Furqan AI? Our Key Differentiators:",
+            uspTitle: "⚡ Why Al-Furqan Guard? Our Key Differentiators:",
             usp1Title: "🛡️ 0% AI Hallucinations (L0 Ground Truth)",
             usp1Desc: "Unlike ChatGPT and Claude: 6,236 Ayahs, 130,030 tokens, and diacritics are verified with 100% mathematical accuracy via SHA-256 cryptographic seal.",
             usp2Title: "⚖️ AAOIFI Islamic Financial Auditing",
@@ -475,7 +518,7 @@ const I18N = {
             guardInvalidDesc: "Discrepancies from the canonical Quran were found in the text:",
             guardNoQuotesHeader: "ℹ️ No direct Quran quotes detected in text",
             guardNoQuotesDesc: "The system found no references to Surahs or Ayahs. The text contains no canonical claims.",
-            guardProtectedNote: "🛡️ Al-Furqan AI prevented the propagation of unverified text.",
+            guardProtectedNote: "🛡️ Al-Furqan Guard prevented the propagation of unverified text.",
             rootsCardTitle: "🧬 Search by 1,651 Semantic Quranic Roots",
             rootsCardDesc: "Enter an Arabic root to find all word forms and verses (e.g. صبر — patience, رحم — mercy, خنز — swine).",
             rootSearchPlaceholder: "Enter Arabic root (e.g. صبر or رحم)...",
@@ -529,6 +572,8 @@ const I18N = {
             cityAstana: "Astana",
             cityAlmaty: "Almaty",
             cityShymkent: "Shymkent",
+            cityAktau: "Aktau",
+            cityAktobe: "Aktobe",
             cityMoscow: "Moscow",
             cityIstanbul: "Istanbul",
             cityTashkent: "Tashkent",
@@ -558,7 +603,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ Quality, Security & Shariah Standards Compliance",
-            standardsSubtitle: "The Al-Furqan AI architecture is engineered to comply with ISO/IEC, SMIIC, and AAOIFI standards.",
+            standardsSubtitle: "The Al-Furqan Guard architecture is engineered to comply with ISO/IEC, SMIIC, and AAOIFI standards.",
             std1Title: "1. Canonical Quran Ground Truth (Tanzil Uthmani L0)",
             std1Text: "Tanzil Quran Project v1.0.2 (Uthmani Text, 6,236 Ayahs, 130,030 tokens, 1,651 roots). Manifest is secured with SHA-256 seal.",
             std2Title: "2. Islamic Finance Standards (AAOIFI)",
@@ -580,13 +625,13 @@ const I18N = {
             feedbackSuccess: "Thank you! Your feedback has been received.",
             feedbackError: "Error sending feedback.",
 
-            guideModalTitle: "📖 About Al-Furqan AI Project",
-            guideP1: "<strong>Al-Furqan AI (The Criterion of Truth from Falsehood)</strong> is a deterministic system engineered to ensure absolute accuracy of the Holy Quran in the generative AI era.",
-            guideP2: "Modern Large Language Models (ChatGPT, Claude, Gemini) frequently suffer from hallucinations, misquoting verse numbers, text, or theological rules. Al-Furqan AI acts as a zero-hallucination L0 Ground Truth verification layer.",
+            guideModalTitle: "📖 About Al-Furqan Guard Project",
+            guideP1: "<strong>Al-Furqan Guard (The Criterion of Truth from Falsehood)</strong> is a deterministic system engineered to ensure absolute accuracy of the Holy Quran in the generative AI era.",
+            guideP2: "Modern Large Language Models (ChatGPT, Claude, Gemini) frequently suffer from hallucinations, misquoting verse numbers, text, or theological rules. Al-Furqan Guard acts as a zero-hallucination L0 Ground Truth verification layer.",
             guideP3: "Additionally, the system offers complete Quran recitation, audio from world-renowned reciters, Halal food screening, and precision prayer times and Zakat calculations.",
 
             // Footer
-            footerBrandText: "Al-Furqan AI v2.0 • The Holy Quran (Tanzil Uthmani L0) & Shariah Compliance Engine",
+            footerBrandText: "Al-Furqan Guard v2.0 • The Holy Quran (Tanzil Uthmani L0) & Shariah Compliance Engine",
             footerTgBot: "✈️ Telegram Bot",
             footerApiDocs: "API Documentation",
             footerGithub: "GitHub",
@@ -603,6 +648,7 @@ const I18N = {
             title: "الفرقان للذكاء الاصطناعي",
             subtitle: "القرآن الكريم والمدقق الشرعي الذكي",
             metricVisitors: "الزوار",
+            metricAyahs: "آيات",
             metricVisitorsTitle: "📊 إحصائيات الزوار:",
             metricToday: "اليوم",
             metricWeek: "هذا الأسبوع",
@@ -612,6 +658,18 @@ const I18N = {
             btnStandards: "🎖️ المعايير",
             btnFeedback: "💬 تواصل معنا",
             btnGuide: "📖 عن المشروع",
+
+            // Welcome Guide
+            welcomeTitle: "مرحباً بكم! كيف تستخدم الفرقان للذكاء الاصطناعي؟",
+            welcomeSubtitle: "المدقق الشرعي الذكي والمرجع المعياري للقرآن الكريم",
+            guideStep1Title: "تلاوة القرآن والاستماع",
+            guideStep1Desc: "114 سورة، تلاوة 3 قراء، تحليل صرفي وترجمات متوازية.",
+            guideStep2Title: "تدقيق الاقتباسات (AI)",
+            guideStep2Desc: "حماية حتمية ضد هلوسة الذكاء الاصطناعي وتحريف الآيات.",
+            guideStep3Title: "ماسح الحلال والتعرف الضوئي",
+            guideStep3Desc: "التقط صورة المكونات أو ابحث عن رموز E وفق معايير SMIIC.",
+            guideStep4Title: "تدقيق عقود PDF",
+            guideStep4Desc: "فحص العقود المالية (المرابحة والتقسيط) من الربا وفق معايير AAOIFI.",
 
             // USP Section
             uspTitle: "⚡ لماذا الفرقان؟ ما يميزنا عن المشاريع الأخرى:",
@@ -725,6 +783,8 @@ const I18N = {
             cityAstana: "أستانا",
             cityAlmaty: "ألماتي",
             cityShymkent: "شيمكنت",
+            cityAktau: "أكتاو",
+            cityAktobe: "أكتوبي",
             cityMoscow: "موسكو",
             cityIstanbul: "إسطنبول",
             cityTashkent: "طشقند",
@@ -754,7 +814,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ الامتثال لمعايير الجودة والأمان والشريعة",
-            standardsSubtitle: "تم تصميم بنية Al-Furqan AI وفق معايير ISO/IEC و SMIIC و AAOIFI الدولية الصارمة.",
+            standardsSubtitle: "تم تصميم بنية Al-Furqan Guard وفق معايير ISO/IEC و SMIIC و AAOIFI الدولية الصارمة.",
             std1Title: "١. النص القرآني الأصيل (Tanzil Uthmani L0)",
             std1Text: "مشروع تنزيل v1.0.2 (بالرسم العثماني، 6,236 آية، 130,030 رمزاً صرفياً، 1,651 جذراً) محمي بختم التشفير SHA-256.",
             std2Title: "٢. معايير المالية الإسلامية (AAOIFI)",
@@ -796,9 +856,10 @@ const I18N = {
         // 5. ТУРЕЦКИЙ (Türkçe - tr)
         // =====================================================================
         tr: {
-            title: "Al-Furqan AI",
+            title: "Al-Furqan Guard",
             subtitle: "Kuran-ı Kerim & Akıllı İslami Denetçi",
             metricVisitors: "Ziyaretçi",
+            metricAyahs: "Ayet",
             metricVisitorsTitle: "📊 Ziyaretçi İstatistikleri:",
             metricToday: "Bugün",
             metricWeek: "Bu Hafta",
@@ -809,8 +870,20 @@ const I18N = {
             btnFeedback: "💬 Geri Bildirim",
             btnGuide: "📖 Hakkında",
 
+            // Welcome Guide
+            welcomeTitle: "Hoş Geldiniz! Al-Furqan Guard Nasıl Kullanılır?",
+            welcomeSubtitle: "Akıllı İslami Denetçi ve Kuran-ı Kerim Standart Kaynağı",
+            guideStep1Title: "Kuran Okuma ve Dinleme",
+            guideStep1Desc: "114 Sure, 3 büyük kâri, kelime kelime morfolojik analiz ve mealler.",
+            guideStep2Title: "Alıntı Doğrulama (Yapay Zeka)",
+            guideStep2Desc: "ChatGPT yanılsamalarına ve ayet bozulmalarına karşı kesin koruma.",
+            guideStep3Title: "Helal Tarayıcı & Fotoğraf OCR",
+            guideStep3Desc: "İçindekiler fotoğrafını çekin veya E-kodlarını SMIIC standartlarında inceleyin.",
+            guideStep4Title: "PDF Sözleşme Denetimi",
+            guideStep4Desc: "Finansal sözleşmeleri (taksit, Murabaha) AAOIFI'ye göre faizden denetleyin.",
+
             // USP Section
-            uspTitle: "⚡ Neden Al-Furqan AI? Diğer Projelerden Temel Farklarımız:",
+            uspTitle: "⚡ Neden Al-Furqan Guard? Diğer Projelerden Temel Farklarımız:",
             usp1Title: "🛡️ %0 Yapay Zeka Yanılsaması (L0 Ground Truth)",
             usp1Desc: "ChatGPT ve Claude'un aksine: 6.236 Ayet, 130.030 kelime ve tüm harekeler SHA-256 kriptografik mührü ile %100 kesinlikle doğrulanır.",
             usp2Title: "⚖️ AAOIFI İslami Finans ve Sözleşme Denetimi",
@@ -867,7 +940,7 @@ const I18N = {
             guardInvalidDesc: "Metinde Kuran metnine uymayan farklılıklar bulundu:",
             guardNoQuotesHeader: "ℹ️ Metinde doğrudan Kuran alıntısı bulunamadı",
             guardNoQuotesDesc: "Sistem herhangi bir sure veya ayet atfı tespit etmedi.",
-            guardProtectedNote: "🛡️ Al-Furqan AI hatalı metinlerin yayılmasını engelledi.",
+            guardProtectedNote: "🛡️ Al-Furqan Guard hatalı metinlerin yayılmasını engelledi.",
             rootsCardTitle: "🧬 1.651 Anlamsal Kuran Köküyle Arama",
             rootsCardDesc: "Tüm kelime formlarını ve ayetleri bulmak için Arapça kök girin (örn: صبر — sabır, رحم — merhamet, خنز — domuz).",
             rootSearchPlaceholder: "Arapça kök girin (örn. صبر veya رحم)...",
@@ -921,6 +994,8 @@ const I18N = {
             cityAstana: "Astana",
             cityAlmaty: "Almatı",
             cityShymkent: "Çimkent",
+            cityAktau: "Aktau",
+            cityAktobe: "Aktöbe",
             cityMoscow: "Moskova",
             cityIstanbul: "İstanbul",
             cityTashkent: "Taşkent",
@@ -950,7 +1025,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ Kalite, Güvenlik ve Şeriat Standartları",
-            standardsSubtitle: "Al-Furqan AI mimarisi uluslararası ISO/IEC, SMIIC ve AAOIFI standartlarına göre tasarlanmıştır.",
+            standardsSubtitle: "Al-Furqan Guard mimarisi uluslararası ISO/IEC, SMIIC ve AAOIFI standartlarına göre tasarlanmıştır.",
             std1Title: "1. Kanonik Kuran Metni (Tanzil Uthmani L0)",
             std1Text: "Tanzil Quran Project v1.0.2 (6.236 Ayet, 130.030 kelime, 1.651 kök). SHA-256 kriptografik mührü ile korunmaktadır.",
             std2Title: "2. İslami Finans Standartları (AAOIFI)",
@@ -972,13 +1047,13 @@ const I18N = {
             feedbackSuccess: "Teşekkürler! Geri bildiriminiz başarıyla alındı.",
             feedbackError: "Mesaj gönderilirken hata oluştu.",
 
-            guideModalTitle: "📖 Al-Furqan AI Projesi Hakkında",
-            guideP1: "<strong>Al-Furqan AI (Hakkı Batıldan Ayıran)</strong> — Üretken yapay zeka çağında Kuran-ı Kerim'in mutlak doğruluğunu korumak için geliştirilmiş deterministik bir sistemdir.",
-            guideP2: "ChatGPT, Claude gibi büyük dil modelleri ayetleri veya mealleri karıştırarak yanılsama üretebilir. Al-Furqan AI, hatasız bir L0 Ground Truth denetim katmanı sunar.",
+            guideModalTitle: "📖 Al-Furqan Guard Projesi Hakkında",
+            guideP1: "<strong>Al-Furqan Guard (Hakkı Batıldan Ayıran)</strong> — Üretken yapay zeka çağında Kuran-ı Kerim'in mutlak doğruluğunu korumak için geliştirilmiş deterministik bir sistemdir.",
+            guideP2: "ChatGPT, Claude gibi büyük dil modelleri ayetleri veya mealleri karıştırarak yanılsama üretebilir. Al-Furqan Guard, hatasız bir L0 Ground Truth denetim katmanı sunar.",
             guideP3: "Ayrıca sistem Kuran okuma, seçkin hafızlardan dinleme, Helal gıda taraması, sözleşme denetimi, namaz vakitleri ve zekat hesabı imkanı sağlar.",
 
             // Footer
-            footerBrandText: "Al-Furqan AI v2.0 • Kuran-ı Kerim (Tanzil Uthmani L0) & Şeriat Uyumluluk Motoru",
+            footerBrandText: "Al-Furqan Guard v2.0 • Kuran-ı Kerim (Tanzil Uthmani L0) & Şeriat Uyumluluk Motoru",
             footerTgBot: "✈️ Telegram Botu",
             footerApiDocs: "API Dokümantasyonu",
             footerGithub: "GitHub",
@@ -992,9 +1067,10 @@ const I18N = {
         // 6. УЗБЕКСКИЙ (O‘zbekcha - uz)
         // =====================================================================
         uz: {
-            title: "Al-Furqan AI",
+            title: "Al-Furqan Guard",
             subtitle: "Qur'oni Karim & Intellektual Islomiy Auditor",
             metricVisitors: "Tashrif buyuruvchilar",
+            metricAyahs: "Oyatlar",
             metricVisitorsTitle: "📊 Tashrif statistikasi:",
             metricToday: "Bugun",
             metricWeek: "Shu hafta",
@@ -1005,8 +1081,20 @@ const I18N = {
             btnFeedback: "💬 Fikr-mulohaza",
             btnGuide: "📖 Loyiha haqida",
 
+            // Welcome Guide
+            welcomeTitle: "Xush kelibsiz! Al-Furqan Guard-dan qanday foydalanish kerak?",
+            welcomeSubtitle: "Intellektual shariat auditori va Qur'oni Karim kanonik manbasi",
+            guideStep1Title: "Qur'on o'qish va tinglash",
+            guideStep1Desc: "114 sura, 3 buyuk qori, so'zma-so'z tahlil va tarjimalar.",
+            guideStep2Title: "Iqtiboslarni tekshirish (AI)",
+            guideStep2Desc: "ChatGPT gallyutsinatsiyasi va oyat buzilishlaridan himoya.",
+            guideStep3Title: "Halol-skaner & Foto OCR",
+            guideStep3Desc: "Tarkib rasmini yuklang yoki E-kodlarni SMIIC bo'yicha tekshiring.",
+            guideStep4Title: "PDF Shartnoma Auditi",
+            guideStep4Desc: "Moliyaviy shartnomalarni (nasiya, Murobaha) AAOIFI bo'yicha ribodan tekshiring.",
+
             // USP Section
-            uspTitle: "⚡ Nega Al-Furqan AI? Boshqa loyihalardan asosiy afzalliklarimiz:",
+            uspTitle: "⚡ Nega Al-Furqan Guard? Boshqa loyihalardan asosiy afzalliklarimiz:",
             usp1Title: "🛡️ 0% AI Gallyutsinatsiyasi (L0 Ground Truth)",
             usp1Desc: "ChatGPT va Claude'dan farqli o'laroq: 6 236 oyat, 130 030 so'z va harakatlar SHA-256 kriptografik muhri bilan 100% aniqlikda tekshiriladi.",
             usp2Title: "⚖️ AAOIFI Islomiy Moliya Auditi",
@@ -1063,7 +1151,7 @@ const I18N = {
             guardInvalidDesc: "Matnda kanonik Qur'ondan chetga chiqishlar aniqlandi:",
             guardNoQuotesHeader: "ℹ️ Matnda to'g'ridan-to'g'ri Qur'on iqtiboslari topilmadi",
             guardNoQuotesDesc: "Tizim sura yoki oyat havolalarini topmadi.",
-            guardProtectedNote: "🛡️ Al-Furqan AI noto'g'ri matn tarqalishidan himoya qildi.",
+            guardProtectedNote: "🛡️ Al-Furqan Guard noto'g'ri matn tarqalishidan himoya qildi.",
             rootsCardTitle: "🧬 1 651 semantik Qur'on o'zagi bo'yicha qidiruv",
             rootsCardDesc: "Barcha so'z shakllari va oyatlarni topish uchun arabcha o'zakni kiriting (masalan: صبر — sabr, رحم — rahm, خنز — cho'chqa).",
             rootSearchPlaceholder: "Arabcha o'zakni kiriting (masalan: صبر yoki رحم)...",
@@ -1117,6 +1205,8 @@ const I18N = {
             cityAstana: "Ostona",
             cityAlmaty: "Almati",
             cityShymkent: "Chimkent",
+            cityAktau: "Aqtau",
+            cityAktobe: "Aqtobe",
             cityMoscow: "Moskva",
             cityIstanbul: "Istanbul",
             cityTashkent: "Toshkent",
@@ -1146,7 +1236,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ Sifat, Xavfsizlik va Shariat Standartlari",
-            standardsSubtitle: "Al-Furqan AI arxitekturasi xalqaro ISO/IEC, SMIIC va AAOIFI standartlariga mos ishlab chiqilgan.",
+            standardsSubtitle: "Al-Furqan Guard arxitekturasi xalqaro ISO/IEC, SMIIC va AAOIFI standartlariga mos ishlab chiqilgan.",
             std1Title: "1. Kanonik Qur'on standarti (Tanzil Uthmani L0)",
             std1Text: "Tanzil Quran Project v1.0.2 (6 236 oyat, 130 030 so'z, 1 651 o'zak). SHA-256 kriptografik muhri bilan himoyalangan.",
             std2Title: "2. Islomiy Moliya Standartlari (AAOIFI)",
@@ -1168,13 +1258,13 @@ const I18N = {
             feedbackSuccess: "Rahmat! Sizning xabaringiz qabul qilindi.",
             feedbackError: "Xabar yuborishda xatolik yuz berdi.",
 
-            guideModalTitle: "📖 Al-Furqan AI Loyihasi Haqida",
-            guideP1: "<strong>Al-Furqan AI (Haq bilan botilni ajratuvchi)</strong> — generativ sun'iy intellekt davrida Qur'oni Karimning mutlaq to'g'riligini saqlash uchun yaratilgan tizimdir.",
-            guideP2: "Zamonaviy ChatGPT, Claude kabi modellar oyatlar yoki harakatlarni chalkashtirib, gallyutsinatsiyaga uchrashi mumkin. Al-Furqan AI 100% xatosiz L0 Ground Truth tekshiruv qatlamini ta'minlaydi.",
+            guideModalTitle: "📖 Al-Furqan Guard Loyihasi Haqida",
+            guideP1: "<strong>Al-Furqan Guard (Haq bilan botilni ajratuvchi)</strong> — generativ sun'iy intellekt davrida Qur'oni Karimning mutlaq to'g'riligini saqlash uchun yaratilgan tizimdir.",
+            guideP2: "Zamonaviy ChatGPT, Claude kabi modellar oyatlar yoki harakatlarni chalkashtirib, gallyutsinatsiyaga uchrashi mumkin. Al-Furqan Guard 100% xatosiz L0 Ground Truth tekshiruv qatlamini ta'minlaydi.",
             guideP3: "Shuningdek, tizim Qur'onni qulay o'qish, mashhur qorilarni tinglash, mahsulotlarni Halollikka tekshirish, namoz vaqtlari va Zakotni aniq hisoblash imkonini beradi.",
 
             // Footer
-            footerBrandText: "Al-Furqan AI v2.0 • Qur'oni Karim (Tanzil Uthmani L0) & Shariat Komplaens Tizimi",
+            footerBrandText: "Al-Furqan Guard v2.0 • Qur'oni Karim (Tanzil Uthmani L0) & Shariat Komplaens Tizimi",
             footerTgBot: "✈️ Telegram Bot",
             footerApiDocs: "API Hujjatlari",
             footerGithub: "GitHub",
@@ -1188,9 +1278,10 @@ const I18N = {
         // 7. ИНДОНЕЗИЙСКИЙ (Bahasa Indonesia - id)
         // =====================================================================
         id: {
-            title: "Al-Furqan AI",
+            title: "Al-Furqan Guard",
             subtitle: "Al-Qur'an Al-Karim & Auditor Islam Cerdas",
             metricVisitors: "Pengunjung",
+            metricAyahs: "Ayat",
             metricVisitorsTitle: "📊 Statistik Pengunjung:",
             metricToday: "Hari Ini",
             metricWeek: "Minggu Ini",
@@ -1201,8 +1292,20 @@ const I18N = {
             btnFeedback: "💬 Umpan Balik",
             btnGuide: "📖 Tentang",
 
+            // Welcome Guide
+            welcomeTitle: "Selamat Datang! Cara Menggunakan Al-Furqan Guard?",
+            welcomeSubtitle: "Auditor Kepatuhan Syariah Cerdas & Standar Kanonikal Al-Qur'an",
+            guideStep1Title: "Membaca & Audio Al-Qur'an",
+            guideStep1Desc: "114 Surah, 3 qari terkemuka, analisis perkata dan terjemahan.",
+            guideStep2Title: "Verifikasi Kutipan (AI)",
+            guideStep2Desc: "Perlindungan deterministik terhadap halusinasi AI dan distorsi ayat.",
+            guideStep3Title: "Pemindai Halal & OCR Foto",
+            guideStep3Desc: "Foto komposisi produk atau cari kode E sesuai standar SMIIC.",
+            guideStep4Title: "Audit Kontrak PDF",
+            guideStep4Desc: "Periksa akad keuangan (cicilan, Murabahah) dari Riba via AAOIFI.",
+
             // USP Section
-            uspTitle: "⚡ Mengapa Al-Furqan AI? Keunggulan Utama Kami:",
+            uspTitle: "⚡ Mengapa Al-Furqan Guard? Keunggulan Utama Kami:",
             usp1Title: "🛡️ 0% Halusinasi AI (L0 Ground Truth)",
             usp1Desc: "Berbeda dari ChatGPT dan Claude: 6.236 Ayat, 130.030 token kata dan harakat diverifikasi secara matematis 100% akurat dengan segel kriptografi SHA-256.",
             usp2Title: "⚖️ Audit Kontrak Keuangan Syariah AAOIFI",
@@ -1259,7 +1362,7 @@ const I18N = {
             guardInvalidDesc: "Ditemukan ketidaksesuaian dari teks Al-Qur'an yang sah:",
             guardNoQuotesHeader: "ℹ️ Tidak ada kutipan Al-Qur'an langsung yang terdeteksi",
             guardNoQuotesDesc: "Sistem tidak menemukan referensi ke Surah atau Ayat dalam teks.",
-            guardProtectedNote: "🛡️ Al-Furqan AI mencegah penyebaran teks yang tidak akurat.",
+            guardProtectedNote: "🛡️ Al-Furqan Guard mencegah penyebaran teks yang tidak akurat.",
             rootsCardTitle: "🧬 Pencarian Berdasarkan 1.651 Akar Kata Al-Qur'an",
             rootsCardDesc: "Masukkan akar kata Arab untuk menemukan semua bentuk kata dan ayat (misal: صبر — sabar, رحم — rahmat, خنز — babi).",
             rootSearchPlaceholder: "Masukkan akar kata Arab (misal: صبر atau رحم)...",
@@ -1313,6 +1416,8 @@ const I18N = {
             cityAstana: "Astana",
             cityAlmaty: "Almaty",
             cityShymkent: "Shymkent",
+            cityAktau: "Aktau",
+            cityAktobe: "Aktobe",
             cityMoscow: "Moskow",
             cityIstanbul: "Istanbul",
             cityTashkent: "Tashkent",
@@ -1342,7 +1447,7 @@ const I18N = {
 
             // Modals
             standardsModalTitle: "🎖️ Kepatuhan Standar Kualitas, Keamanan & Syariah",
-            standardsSubtitle: "Arsitektur Al-Furqan AI dirancang sesuai dengan standar ISO/IEC, SMIIC, dan AAOIFI internasional.",
+            standardsSubtitle: "Arsitektur Al-Furqan Guard dirancang sesuai dengan standar ISO/IEC, SMIIC, dan AAOIFI internasional.",
             std1Title: "1. Rujukan Kanonik Al-Qur'an (Tanzil Uthmani L0)",
             std1Text: "Tanzil Quran Project v1.0.2 (Rasm Utsmani, 6.236 Ayat, 130.030 token, 1.651 akar kata). Dilindungi segel kriptografi SHA-256.",
             std2Title: "2. Standar Keuangan Syariah (AAOIFI)",
@@ -1364,13 +1469,13 @@ const I18N = {
             feedbackSuccess: "Terima kasih! Pesan Anda telah berhasil diterima.",
             feedbackError: "Gagal mengirim pesan.",
 
-            guideModalTitle: "📖 Tentang Proyek Al-Furqan AI",
-            guideP1: "<strong>Al-Furqan AI (Pembeda Antara Kebenaran dan Kebatilan)</strong> adalah sistem deterministik yang dibangun untuk menjaga keaslian Al-Qur'an di era kecerdasan buatan generatif.",
-            guideP2: "Model Bahasa Besar seperti ChatGPT, Claude sering mengalami 'halusinasi' dengan mengarang ayat atau memutarbalikkan tanda baca. Al-Furqan AI hadir sebagai filter L0 Ground Truth yang 100% akurat.",
+            guideModalTitle: "📖 Tentang Proyek Al-Furqan Guard",
+            guideP1: "<strong>Al-Furqan Guard (Pembeda Antara Kebenaran dan Kebatilan)</strong> adalah sistem deterministik yang dibangun untuk menjaga keaslian Al-Qur'an di era kecerdasan buatan generatif.",
+            guideP2: "Model Bahasa Besar seperti ChatGPT, Claude sering mengalami 'halusinasi' dengan mengarang ayat atau memutarbalikkan tanda baca. Al-Furqan Guard hadir sebagai filter L0 Ground Truth yang 100% akurat.",
             guideP3: "Sistem ini juga menyediakan pembacaan Al-Qur'an lengkap, audio qari ternama, pemindaian makanan Halal, jadwal sholat presisi, dan kalkulator Zakat.",
 
             // Footer
-            footerBrandText: "Al-Furqan AI v2.0 • Al-Qur'an Al-Karim (Tanzil Uthmani L0) & Mesin Kepatuhan Syariah",
+            footerBrandText: "Al-Furqan Guard v2.0 • Al-Qur'an Al-Karim (Tanzil Uthmani L0) & Mesin Kepatuhan Syariah",
             footerTgBot: "✈️ Bot Telegram",
             footerApiDocs: "Dokumentasi API",
             footerGithub: "GitHub",
