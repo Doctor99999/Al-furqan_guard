@@ -1,13 +1,15 @@
 services:
   - type: web
-    name: al-furqan-ai
+    name: al-furqan-guard
     env: python
     region: frankfurt
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: python start_all.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: PIP_ROOT_USER_ACTION
+        value: ignore
       - key: TELEGRAM_BOT_TOKEN
         sync: false
