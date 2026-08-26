@@ -1,7 +1,7 @@
 """
 Al-Furqan AI - Web API & Playground Server v2.0 (Hardened Production)
 FastAPI server with enterprise defensive security & 100% real-world data pipelines:
-- Persistent disk-based analytics engine (analytics.json)
+- Persistent database-backed visitor analytics (SQLite / PostgreSQL)
 - Universal multi-language full-text Quran search (6,236 Ayahs)
 - Real image OCR processing (Pillow + Tesseract) & Halal food compliance
 - Real PDF document parser (pypdf) & AAOIFI Shariah audit

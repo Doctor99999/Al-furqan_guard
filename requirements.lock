@@ -10,3 +10,4 @@ pytesseract==0.3.13
 aiohttp==3.11.12
 requests==2.32.3
 reportlab==5.0.1
+httpx==0.28.1
