@@ -219,6 +219,21 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=self"
+    # CSP tuned for the actual UI dependency set (gtag, html5-qrcode, tesseract.js CDN,
+    # Google Fonts, everyayah.com audio, Open Food Facts images)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://unpkg.com https://cdn.jsdelivr.net; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
+        "img-src 'self' data: blob: https:; "
+        "media-src 'self' https://everyayah.com; "
+        "connect-src 'self' https://world.openfoodfacts.org https://www.googletagmanager.com "
+        "https://*.google-analytics.com https://analytics.google.com https://cdn.jsdelivr.net "
+        "https://unpkg.com https://tessdata.projectnaptha.com; "
+        "worker-src 'self' blob: https://cdn.jsdelivr.net https://unpkg.com; "
+        "frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+    )
     return response
 
 # 2. CORS & Compression Middleware
@@ -731,6 +746,9 @@ async def get_surah_full(sura: int):
     surah_name_kk = engine.SURAH_NAMES.get("kk", [])[sura - 1] if 1 <= sura <= 114 else ""
     surah_name_ar = engine.SURAH_NAMES.get("ar", [])[sura - 1] if 1 <= sura <= 114 else ""
     surah_name_en = engine.SURAH_NAMES.get("en", [])[sura - 1] if 1 <= sura <= 114 else ""
+    surah_name_tr = engine.SURAH_NAMES.get("tr", [])[sura - 1] if 1 <= sura <= 114 else ""
+    surah_name_uz = engine.SURAH_NAMES.get("uz", [])[sura - 1] if 1 <= sura <= 114 else ""
+    surah_name_id = engine.SURAH_NAMES.get("id", [])[sura - 1] if 1 <= sura <= 114 else ""
 
     return {
         "sura": sura,
@@ -739,6 +757,9 @@ async def get_surah_full(sura: int):
         "surah_name_kk": surah_name_kk,
         "surah_name_ar": surah_name_ar,
         "surah_name_en": surah_name_en,
+        "surah_name_tr": surah_name_tr,
+        "surah_name_uz": surah_name_uz,
+        "surah_name_id": surah_name_id,
         "ayahs": ayahs_list
     }
 
