@@ -11,7 +11,6 @@ BASE_DIR = Path(os.getenv("QURAN_BASE_DIR", Path(__file__).resolve().parent.pare
 
 # Dataset filepaths
 MANIFEST_PATH = os.getenv("QURAN_MANIFEST_PATH", str(BASE_DIR / "security_manifest.jsonl"))
-QURAN_TXT_PATH = os.getenv("QURAN_TXT_PATH", str(BASE_DIR / "quran.txt"))
 TRANSLATIONS_PATH = os.getenv("QURAN_TRANSLATIONS_PATH", str(BASE_DIR / "translations" / "translations.json"))
 UI_DIR = os.getenv("QURAN_UI_DIR", str(BASE_DIR / "ui"))
 
