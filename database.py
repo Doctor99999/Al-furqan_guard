@@ -347,6 +347,12 @@ class HalalProductCache:
                     shubhat_details_json=excluded.shubhat_details_json,
                     updated_at=CURRENT_TIMESTAMP
             """, (barcode, name, brand, categories, ingredients, verdict, summary, shubhat_json, source))
+            # Bound cache growth (disk-fill protection): keep newest 50k rows
+            cur.execute("""
+                DELETE FROM halal_products WHERE rowid NOT IN (
+                    SELECT rowid FROM halal_products ORDER BY rowid DESC LIMIT 50000
+                )
+            """)
             conn.commit()
         except Exception as e:
             print(f"[HalalProductCache] Save error: {e}")

@@ -14,6 +14,7 @@ import os
 import sys
 import re
 import json
+import html
 import base64
 import hashlib
 import hmac
@@ -47,6 +48,38 @@ def compute_sha256(filepath: str) -> str:
         for chunk in iter(lambda: f.read(65536), b""):
             hasher.update(chunk)
     return hasher.hexdigest()
+
+
+def get_client_ip(request: Request) -> str:
+    """
+    Resolves the real client IP.
+    Proxy headers (X-Forwarded-For etc.) are honored ONLY when explicitly trusted via
+    TRUST_PROXY_HEADERS=1 (auto-enabled when RENDER_EXTERNAL_URL is present), otherwise
+    a spoofed header cannot bypass rate limiting or poison analytics.
+    """
+    import ipaddress
+    peer_ip = request.client.host if request.client else "127.0.0.1"
+    trust_proxy = os.environ.get(
+        "TRUST_PROXY_HEADERS",
+        "1" if os.environ.get("RENDER_EXTERNAL_URL") else "0"
+    ) == "1"
+    if trust_proxy:
+        forwarded = request.headers.get("x-forwarded-for", "")
+        candidate = forwarded.split(",")[0].strip() if forwarded else (
+            request.headers.get("cf-connecting-ip") or request.headers.get("x-real-ip") or ""
+        ).strip()
+        if candidate:
+            try:
+                ipaddress.ip_address(candidate)
+                return candidate[:45]
+            except ValueError:
+                pass  # Malformed header: fall back to direct peer
+    return peer_ip
+
+
+def sanitize_md(text: str) -> str:
+    """Strips Markdown control characters from untrusted strings before Telegram formatting."""
+    return re.sub(r'[*_`\[\]]', '', text or "")
 
 # Live Cryptographic Hashes of Canonical Ground Truth
 MANIFEST_SHA256 = compute_sha256(MANIFEST_PATH)
@@ -199,7 +232,18 @@ if CORS_ORIGINS:
     )
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
+# Reciters CDN map (EveryAyah.com)
+RECITERS_CDN = {
+    "alafasy": "https://everyayah.com/data/Alafasy_128kbps",
+    "husary": "https://everyayah.com/data/Husary_128kbps",
+    "abdulbasit": "https://everyayah.com/data/Abdul_Basit_Murattal_192kbps"
+}
+
+# Heavy-document rate limiter: PDF parsing + difflib audit are CPU-expensive
+pdf_rate_limiter = TokenBucketRateLimiter(capacity=3, refill_seconds=600)
+
 # 3. Request Models with Defensive Payload Boundaries
+
 class VerifyRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=100000, description="Input text to verify against Quranic ground truth")
 
@@ -247,13 +291,6 @@ MAX_FEEDBACK_ITEMS = 1000
 IP_HASH_SALT = os.environ.get("IP_HASH_SECRET") or secrets.token_hex(32)
 # Admin key required to read submitted feedback (PII protection)
 ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY", "")
-
-# Reciters CDN map (EveryAyah.com)
-RECITERS_CDN = {
-    "alafasy": "https://everyayah.com/data/Alafasy_128kbps",
-    "husary": "https://everyayah.com/data/Husary_128kbps",
-    "abdulbasit": "https://everyayah.com/data/Abdul_Basit_Murattal_192kbps"
-}
 
 # Tafsir Summaries for Key Juridical & Doctrinal Verses (As-Sa'di & Ibn Kathir)
 TAFSIR_REGISTRY = {
@@ -318,12 +355,7 @@ async def verify_integrity():
 @app.get("/api/v1/analytics/visitor-count")
 async def get_visitor_count(request: Request):
     """Tracks and returns real, 100% authentic persistent visitor metrics across all timeframes via PostgreSQL."""
-    # Extract real client IP (supporting Render, Cloudflare, Nginx proxies)
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        client_ip = forwarded.split(",")[0].strip()
-    else:
-        client_ip = request.headers.get("cf-connecting-ip") or request.headers.get("x-real-ip") or (request.client.host if request.client else "127.0.0.1")
+    client_ip = get_client_ip(request)
 
     # Salted SHA-256 for GDPR/privacy compliance (secret salt from ENV or per-process random)
     ip_hash = hashlib.sha256(f"{IP_HASH_SALT}{client_ip}".encode()).hexdigest()[:16]
@@ -334,15 +366,28 @@ async def get_visitor_count(request: Request):
     return stats
 
 # =========================================================================
-# OPEN FOOD FACTS 2.5M+ PRODUCTS & BARCODE SCANNER (UNLIMITED)
+# OPEN FOOD FACTS 2.5M+ PRODUCTS & BARCODE SCANNER (RATE LIMITED)
 # =========================================================================
+barcode_rate_limiter = TokenBucketRateLimiter(capacity=20, refill_seconds=60)
+
 @app.get("/api/v1/halal/barcode/{barcode}")
-async def check_halal_barcode(barcode: str):
+async def check_halal_barcode(barcode: str, request: Request):
     """
     Looks up products by barcode (2.5M+ items) via PostgreSQL cache & Open Food Facts API.
-    Zero rate limits applied to barcode lookups!
+    Rate limited (20/min per IP) to prevent outbound-request amplification; B2B keys bypass.
     """
-    clean_code = re.sub(r"\D", "", barcode.strip())
+    api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+    is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
+    if not is_b2b:
+        allowed, _remaining, wait_seconds = barcode_rate_limiter.is_allowed(get_client_ip(request))
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Слишком много запросов. Повторите через {wait_seconds} секунд.",
+                headers={"Retry-After": str(wait_seconds)}
+            )
+
+    clean_code = re.sub(r"\D", "", barcode.strip())[:20]
     if not clean_code:
         raise HTTPException(status_code=400, detail="Некорректный штрихкод")
 
@@ -377,6 +422,11 @@ async def check_halal_barcode(barcode: str):
         off_data.get("ingredients_text", ""), 
         off_data.get("additives_tags", [])
     )
+
+    # 3.1 HTML-escape third-party strings (Open Food Facts is publicly editable -> stored XSS vector)
+    for field in ("name", "brand", "categories", "ingredients_text"):
+        if off_data.get(field):
+            off_data[field] = html.escape(str(off_data[field])[:10000], quote=True)
 
     # 4. Cache verified result in Database
     HalalProductCache.save_product(
@@ -738,9 +788,7 @@ async def scan_image_ocr(req: ImageScanRequest, request: Request):
     is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
 
     if not is_b2b:
-        forwarded = request.headers.get("x-forwarded-for")
-        client_ip = forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "127.0.0.1")
-        allowed, remaining_tokens, wait_seconds = ocr_rate_limiter.is_allowed(client_ip)
+        allowed, remaining_tokens, wait_seconds = ocr_rate_limiter.is_allowed(get_client_ip(request))
         if not allowed:
             raise HTTPException(
                 status_code=429,
@@ -781,8 +829,18 @@ async def scan_image_ocr(req: ImageScanRequest, request: Request):
 
 
 @app.post("/api/v1/documents/audit-pdf")
-async def audit_pdf_document(req: PDFScanRequest):
-    """Audits PDF contract or text for Quran quotes and AAOIFI compliance."""
+async def audit_pdf_document(req: PDFScanRequest, request: Request):
+    """Audits PDF contract or text for Quran quotes and AAOIFI compliance. Rate limited (3/10min per IP); B2B bypass."""
+    api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+    is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
+    if not is_b2b:
+        allowed, _remaining, wait_seconds = pdf_rate_limiter.is_allowed(get_client_ip(request))
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Лимит PDF-аудитов исчерпан (3 токена). Повторите через {wait_seconds} секунд.",
+                headers={"Retry-After": str(wait_seconds)}
+            )
     try:
         pdf_data = req.pdf_base64
         if "," in pdf_data:
@@ -931,10 +989,10 @@ async def submit_feedback(req: FeedbackRequest):
             import urllib.parse
             tg_text = (
                 f"📬 *НОВЫЙ ОТЗЫВ В AL-FURQAN GUARD (№{entry['id']})*\n\n"
-                f"👤 *Имя:* {entry['name']}\n"
-                f"📞 *Контакты:* {entry['contact'] or 'Не указан'}\n"
-                f"🏷️ *Категория:* {entry['category']}\n"
-                f"💬 *Сообщение:*\n{entry['message']}\n\n"
+                f"👤 *Имя:* {sanitize_md(entry['name'])}\n"
+                f"📞 *Контакты:* {sanitize_md(entry['contact']) or 'Не указан'}\n"
+                f"🏷️ *Категория:* {sanitize_md(entry['category'])}\n"
+                f"💬 *Сообщение:*\n{sanitize_md(entry['message'])}\n\n"
                 f"⏱️ _{entry['timestamp']}_"
             )
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"

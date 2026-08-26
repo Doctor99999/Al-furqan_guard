@@ -887,11 +887,15 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 )
                 v = analysis["verdict"]
                 badge = "🟢 *ХАЛЯЛЬ (ДОЗВОЛЕНО)*" if v == "HALAL" else ("🔴 *ХАРАМ (ЗАПРЕТНО)*" if v == "HARAM" else "🟡 *КҮМӘНДІ / ТРЕБУЕТ ПРОВЕРКИ*")
-                brand_str = f" ({cached.get('brand')})" if cached.get('brand') else ""
-                ing_str = f"\n\n📝 *Состав:* {cached.get('ingredients_text', '')[:350]}" if cached.get('ingredients_text') else ""
+
+                def _md_clean(s: str) -> str:
+                    return re.sub(r'[*_`\[\]]', '', s or "")
+
+                brand_str = f" ({_md_clean(cached.get('brand'))})" if cached.get('brand') else ""
+                ing_str = f"\n\n📝 *Состав:* {_md_clean(cached.get('ingredients_text', '')[:350])}" if cached.get('ingredients_text') else ""
                 msg = (
                     f"{badge}\n\n"
-                    f"📦 *Товар:* {cached.get('name')}{brand_str}\n"
+                    f"📦 *Товар:* {_md_clean(cached.get('name'))}{brand_str}\n"
                     f"🔢 *Штрихкод:* `{clean_digits}`{ing_str}\n\n"
                     f"ℹ️ *Заключение:* {analysis['summary_ru']}\n\n"
                     f"🛡️ _База Open Food Facts (2,5 млн товаров) • Al-Furqan Guard_"

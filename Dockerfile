@@ -18,9 +18,14 @@ ENV PIP_ROOT_USER_ACTION=ignore
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt -c requirements.lock
 
 COPY . .
+
+# Writable runtime dirs (SQLite DB, feedback, analytics) + non-root execution
+RUN mkdir -p /app/data && chmod -R a+w /app/data && \
+    useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
 ENV PORT=8000
 ENV HOST=0.0.0.0
