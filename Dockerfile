@@ -16,7 +16,7 @@ RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PIP_ROOT_USER_ACTION=ignore
 
-COPY requirements.txt .
+COPY requirements.txt requirements.lock .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt -c requirements.lock
 
