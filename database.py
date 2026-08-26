@@ -12,6 +12,8 @@ import os
 import sys
 import re
 import json
+import hashlib
+import hmac
 import sqlite3
 import datetime
 import urllib.request
@@ -89,22 +91,32 @@ def init_native_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             org_name TEXT NOT NULL,
             api_key TEXT UNIQUE NOT NULL,
+            key_hash TEXT,
             is_active INTEGER DEFAULT 1,
             tier TEXT DEFAULT 'ENTERPRISE',
             total_requests INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_used_at TIMESTAMP
         )
-    """)
+        """)
     
-    # Seed default master demo B2B key
-    demo_key = "alfurqan_live_b2b_demo_secret_key"
-    cur.execute("SELECT id FROM b2b_organizations WHERE api_key = ?", (demo_key,))
+    # Migrate pre-existing databases: add key_hash column if missing
+    cols = [r[1] for r in cur.execute("PRAGMA table_info(b2b_organizations)").fetchall()]
+    if "key_hash" not in cols:
+        cur.execute("ALTER TABLE b2b_organizations ADD COLUMN key_hash TEXT")
+    
+    # Seed default master demo B2B key (stored as SHA-256 hash only, never plaintext)
+    demo_key = os.environ.get("B2B_DEMO_API_KEY", "alfurqan_live_b2b_demo_secret_key")
+    demo_hash = hashlib.sha256(demo_key.encode()).hexdigest()
+    cur.execute("SELECT id FROM b2b_organizations WHERE key_hash = ? OR api_key = ?", (demo_hash, demo_key))
     if not cur.fetchone():
+        # Upgrade any legacy plaintext row for this key
+        cur.execute("UPDATE b2b_organizations SET key_hash = ?, api_key = ? WHERE api_key = ?", (demo_hash, demo_hash, demo_key))
         cur.execute("""
-            INSERT INTO b2b_organizations (org_name, api_key, is_active, tier, total_requests)
-            VALUES (?, ?, 1, 'ENTERPRISE', 0)
-        """, ("Al-Furqan Enterprise Demo Partner", demo_key))
+            INSERT INTO b2b_organizations (org_name, api_key, key_hash, is_active, tier, total_requests)
+            SELECT 'Al-Furqan Enterprise Demo Partner', ?, ?, 1, 'ENTERPRISE', 0
+            WHERE NOT EXISTS (SELECT 1 FROM b2b_organizations WHERE key_hash = ?)
+        """, (demo_hash, demo_hash, demo_hash))
 
     conn.commit()
     conn.close()
@@ -234,38 +246,66 @@ class B2BOrgModel:
         self.total_requests = total_requests
 
 class B2BAuthService:
-    """Validates B2B Enterprise API keys and tracks commercial usage."""
+    """Validates B2B Enterprise API keys and tracks commercial usage.
+    Keys are stored as SHA-256 hashes; legacy plaintext rows are transparently upgraded."""
+
+    @staticmethod
+    def _hash_key(api_key: str) -> str:
+        return hashlib.sha256(api_key.encode("utf-8")).hexdigest()
 
     @staticmethod
     def validate_api_key(api_key: str) -> Optional[B2BOrgModel]:
-        if not api_key:
+        if not api_key or not api_key.strip():
             return None
+        key = api_key.strip()
+        key_hash = B2BAuthService._hash_key(key)
         conn = DBConnection.get_sqlite_conn()
         cur = conn.cursor()
         try:
             cur.execute("""
-                SELECT id, org_name, api_key, is_active, tier, total_requests 
-                FROM b2b_organizations 
-                WHERE api_key = ? AND is_active = 1
-            """, (api_key.strip(),))
-            row = cur.fetchone()
-            if row:
-                now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
-                cur.execute("""
-                    UPDATE b2b_organizations 
-                    SET total_requests = total_requests + 1, last_used_at = ?
-                    WHERE id = ?
-                """, (now_str, row["id"]))
-                conn.commit()
-                return B2BOrgModel(
-                    id=row["id"],
-                    org_name=row["org_name"],
-                    api_key=row["api_key"],
-                    is_active=row["is_active"],
-                    tier=row["tier"],
-                    total_requests=row["total_requests"] + 1
-                )
-            return None
+                SELECT id, org_name, api_key, key_hash, is_active, tier, total_requests
+                FROM b2b_organizations
+                WHERE is_active = 1
+            """)
+            matched_row = None
+            for row in cur.fetchall():
+                stored_hash = (row["key_hash"] or "").strip()
+                stored_plain = row["api_key"] or ""
+                if stored_hash:
+                    if hmac.compare_digest(stored_hash, key_hash):
+                        matched_row = row
+                        break
+                elif stored_plain:
+                    # Legacy plaintext row: timing-safe compare, then upgrade to hash
+                    if hmac.compare_digest(stored_plain, key):
+                        now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                        cur.execute("""
+                            UPDATE b2b_organizations
+                            SET key_hash = ?, api_key = ?, last_used_at = COALESCE(last_used_at, ?)
+                            WHERE id = ?
+                        """, (key_hash, key_hash, now_str, row["id"]))
+                        conn.commit()
+                        matched_row = row
+                        break
+
+            if matched_row is None:
+                return None
+
+            now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            cur.execute("""
+                UPDATE b2b_organizations
+                SET total_requests = total_requests + 1, last_used_at = ?
+                WHERE id = ?
+            """, (now_str, matched_row["id"]))
+            conn.commit()
+            return B2BOrgModel(
+                id=matched_row["id"],
+                org_name=matched_row["org_name"],
+                api_key="",
+                is_active=bool(matched_row["is_active"]),
+                tier=matched_row["tier"],
+                total_requests=(matched_row["total_requests"] or 0) + 1
+            )
         except Exception as e:
             print(f"[B2BAuthService] Error: {e}")
             return None

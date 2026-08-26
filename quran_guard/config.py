@@ -18,4 +18,5 @@ UI_DIR = os.getenv("QURAN_UI_DIR", str(BASE_DIR / "ui"))
 # Server settings
 DEFAULT_HOST = os.getenv("HOST", "127.0.0.1")
 DEFAULT_PORT = int(os.getenv("PORT", 8000))
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+# Explicit allow-list only (comma-separated origins). Empty = same-origin policy, no cross-origin browser access.
+CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]

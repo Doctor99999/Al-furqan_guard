@@ -16,6 +16,8 @@ import re
 import json
 import base64
 import hashlib
+import hmac
+import secrets
 import datetime
 from typing import Optional, Dict, Any, List, Tuple
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -128,8 +130,11 @@ async def lifespan(app: FastAPI):
             bot_app = bot.create_bot_app(token)
             await bot_app.initialize()
             webhook_url = f"{ext_url}/api/v1/telegram-webhook"
+            # Shared secret so the endpoint can reject forged updates
+            webhook_secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET") or secrets.token_urlsafe(32)
+            app.state.telegram_webhook_secret = webhook_secret
             print(f"[Telegram Webhook] Registering webhook on Render: {webhook_url}")
-            await bot_app.bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+            await bot_app.bot.set_webhook(url=webhook_url, drop_pending_updates=True, secret_token=webhook_secret)
             app.state.bot_app = bot_app
             print(f"[Telegram Webhook] ✅ Webhook successfully activated! (0% polling conflicts)")
         except Exception as e:
@@ -151,10 +156,15 @@ app = FastAPI(
 
 @app.post("/api/v1/telegram-webhook")
 async def telegram_webhook(request: Request):
-    """Processes incoming Telegram updates via Webhook with zero conflicts."""
+    """Processes incoming Telegram updates via Webhook. Rejects forged requests via shared secret."""
     if not hasattr(request.app.state, "bot_app"):
         return {"status": "bot_not_initialized"}
-    
+
+    expected_secret = getattr(request.app.state, "telegram_webhook_secret", None)
+    provided_secret = request.headers.get("x-telegram-bot-api-secret-token", "")
+    if not expected_secret or not hmac.compare_digest(provided_secret, expected_secret):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
     try:
         from telegram import Update
         data = await request.json()
@@ -162,9 +172,9 @@ async def telegram_webhook(request: Request):
         if update:
             await request.app.state.bot_app.process_update(update)
         return {"status": "ok"}
-    except Exception as e:
-        print(f"[Telegram Webhook] Processing error: {e}")
-        return {"status": "error", "message": str(e)}
+    except Exception:
+        # Do not leak internal error details to untrusted callers
+        return {"status": "error"}
 
 
 # 1. Enterprise Security Headers Middleware
@@ -179,13 +189,14 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 # 2. CORS & Compression Middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # 3. Request Models with Defensive Payload Boundaries
@@ -231,6 +242,11 @@ class FeedbackRequest(BaseModel):
 
 FEEDBACK_STORE: List[Dict[str, Any]] = []
 MAX_FEEDBACK_ITEMS = 1000
+
+# Privacy salt for IP anonymization: ENV secret or per-process random (never hardcoded)
+IP_HASH_SALT = os.environ.get("IP_HASH_SECRET") or secrets.token_hex(32)
+# Admin key required to read submitted feedback (PII protection)
+ADMIN_API_KEY = os.environ.get("ADMIN_API_KEY", "")
 
 # Reciters CDN map (EveryAyah.com)
 RECITERS_CDN = {
@@ -309,8 +325,8 @@ async def get_visitor_count(request: Request):
     else:
         client_ip = request.headers.get("cf-connecting-ip") or request.headers.get("x-real-ip") or (request.client.host if request.client else "127.0.0.1")
 
-    # Salted SHA-256 for GDPR/privacy compliance
-    ip_hash = hashlib.sha256(f"alfurqan_salt_{client_ip}".encode()).hexdigest()[:16]
+    # Salted SHA-256 for GDPR/privacy compliance (secret salt from ENV or per-process random)
+    ip_hash = hashlib.sha256(f"{IP_HASH_SALT}{client_ip}".encode()).hexdigest()[:16]
     user_agent = request.headers.get("user-agent", "")
     
     # Record and query persistent analytics from PostgreSQL / SQLite
@@ -942,8 +958,13 @@ async def submit_feedback(req: FeedbackRequest):
     }
 
 @app.get("/api/v1/feedback/list")
-async def get_feedback_list():
-    """Returns list of all submitted user feedback."""
+async def get_feedback_list(request: Request):
+    """Returns list of submitted user feedback. Restricted: requires X-Admin-Key header."""
+    if not ADMIN_API_KEY:
+        raise HTTPException(status_code=403, detail="Feedback access disabled: ADMIN_API_KEY is not configured")
+    provided = request.headers.get("x-admin-key", "")
+    if not hmac.compare_digest(provided, ADMIN_API_KEY):
+        raise HTTPException(status_code=403, detail="Forbidden")
     if os.path.exists(FEEDBACK_FILE_PATH):
         try:
             with open(FEEDBACK_FILE_PATH, "r", encoding="utf-8") as f:
