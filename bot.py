@@ -915,7 +915,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
     elif text in ["🕋 Намаз и Кибла", "🕋 Намаз және Құбыла", "🕋 Prayer & Qibla"]:
         await update.message.reply_markdown(
             "🕋 *Астрономическое расписание Намаза и компас Киблы*\n\n"
-            "Нажмите на иконку скрепки 📎 в Telegram $\\rightarrow$ выберите **Геопозиция (Location)** и отправьте боту для расчета точного времени 5 намазов и азимута на Каабу!"
+            "Нажмите на иконку скрепки 📎 в Telegram → выберите **Геопозиция (Location)** и отправьте боту для расчета точного времени 5 намазов и азимута на Каабу!"
         )
         return
     elif text in ["ℹ️ Как пользоваться", "ℹ️ Қалай қолдану керек", "ℹ️ How to Use"]:

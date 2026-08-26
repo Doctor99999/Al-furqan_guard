@@ -440,6 +440,14 @@ class QuranGuard:
                 verdict = "VERIFIED_CANONICAL"
                 verdict_ru = "Текст полностью верифицирован и соответствует каноническому манифесту"
 
+        # Backwards-compatible aliases consumed by bot.py and ui/app.js:
+        # claims_detected / is_valid / violations[{type, details}]
+        violations = []
+        for h in hallucinations:
+            v = dict(h)
+            v.setdefault("details", h.get("error_description", ""))
+            violations.append(v)
+
         return {
             "trust_score": round(trust_score, 1),
             "verdict": verdict,
@@ -449,5 +457,8 @@ class QuranGuard:
             "hallucinations": hallucinations,
             "verified_items": verified_items,
             "corrected_text": corrected_text,
-            "original_text": text
+            "original_text": text,
+            "claims_detected": len(citations) > 0,
+            "is_valid": len(hallucinations) == 0,
+            "violations": violations
         }
