@@ -72,7 +72,7 @@ def test_multi_quote_alignment(guard):
     """Ensures two consecutive quotes are paired with their respective coordinates without cross-wiring."""
     text = (
         "Первый аят суры 114: بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ قُلْ أَعُوذُ بِرَبِّ النَّاسِ (114:1). "
-        "А также первый аят суры 112: قُلْ هُوَ اللَّهُ أَحَدٌ (112:1)."
+        "А также первый аят суры 112: بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ قُلْ هُوَ اللَّهُ أَحَدٌ (112:1)."
     )
     res = guard.verify_full_text(text)
     assert res["total_citations_found"] == 2
@@ -82,13 +82,13 @@ def test_multi_quote_alignment(guard):
 
 
 # 5. Tashkeel Distortion & Span-Safe Auto-Correction
-def test_tashkeel_distortion_and_correction(guard):
+def test_tashkeel_distortion_and_correction(engine, guard):
     distorted = "Аят аль-Курси (2:255): اللَّهُ لَا إِلَـٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ"
     res = guard.verify_full_text(distorted)
     assert res["hallucinations_count"] == 1
     assert res["hallucinations"][0]["type"] in ["TASHKEEL_DISTORTION", "TEXT_MUTATION"]
     assert res["corrected_text"] != distorted
-    assert "لَّهُۥ" in res["corrected_text"] or "ٱللَّهُ" in res["corrected_text"]
+    assert engine.get_ayah(2, 255)["text"] in res["corrected_text"]
 
 
 # 6. Exact Root Claim Verification

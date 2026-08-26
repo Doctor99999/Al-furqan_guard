@@ -10,8 +10,14 @@ env/
 venv/
 ENV/
 bot_config.json
+mcp_config.json
 *.pem
 *.key
+
+# Runtime data & local databases (keep seed/reference JSON, exclude state)
+*.db
+analytics.json
+data/feedback_submissions.json
 
 # IDE / OS files
 .vscode/
