@@ -9,10 +9,15 @@ from pathlib import Path
 # Base project directory (auto-detected relative to this config file or via ENV)
 BASE_DIR = Path(os.getenv("QURAN_BASE_DIR", Path(__file__).resolve().parent.parent))
 
-# Dataset filepaths
+# Dataset filepaths (read-only reference corpora, ship with the repo)
 MANIFEST_PATH = os.getenv("QURAN_MANIFEST_PATH", str(BASE_DIR / "security_manifest.jsonl"))
 TRANSLATIONS_PATH = os.getenv("QURAN_TRANSLATIONS_PATH", str(BASE_DIR / "translations" / "translations.json"))
 UI_DIR = os.getenv("QURAN_UI_DIR", str(BASE_DIR / "ui"))
+
+# Runtime data directory (writable): SQLite analytics DB, B2B keys, feedback submissions.
+# On Render/Cloud point this at a mounted persistent disk (e.g. /var/lib/alfurqan) so
+# runtime state survives deploys and restarts. The static BaseDir/data stays read-only.
+RUNTIME_DATA_DIR = os.getenv("RUNTIME_DATA_DIR", "").strip() or str(BASE_DIR / "data")
 
 # Server settings
 DEFAULT_HOST = os.getenv("HOST", "127.0.0.1")

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- NOTE FOR PRODUCTION: replace exemplar domain with your real public hostname. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://al-furqan-guard.onrender.com/</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://al-furqan-guard.onrender.com/#quran</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://al-furqan-guard.onrender.com/#halal</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://al-furqan-guard.onrender.com/#namaz</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://al-furqan-guard.onrender.com/#aaoifi</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+</urlset>

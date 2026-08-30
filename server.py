@@ -19,6 +19,7 @@ import base64
 import hashlib
 import hmac
 import secrets
+import logging
 import datetime
 from typing import Optional, Dict, Any, List, Tuple
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -29,7 +30,7 @@ from pydantic import BaseModel, Field
 
 from quran_guard import QuranEngine, QuranGuard, AhkamExtractor
 from quran_guard.halal_knowledge_base import HalalKnowledgeBase
-from quran_guard.config import MANIFEST_PATH, TRANSLATIONS_PATH, UI_DIR, CORS_ORIGINS
+from quran_guard.config import MANIFEST_PATH, TRANSLATIONS_PATH, UI_DIR, CORS_ORIGINS, RUNTIME_DATA_DIR
 from quran_guard.multimodal import (
     PDFDocumentProcessor,
     ImageOCRProcessor,
@@ -38,6 +39,14 @@ from quran_guard.multimodal import (
     SemanticThemeEngine,
     AuditCertificateGenerator
 )
+
+
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
+logger = logging.getLogger("alfurqan-server")
 
 def compute_sha256(filepath: str) -> str:
     """Calculates live cryptographic SHA-256 hash of file."""
@@ -177,8 +186,8 @@ async def lifespan(app: FastAPI):
     if hasattr(app.state, "bot_app"):
         try:
             await app.state.bot_app.shutdown()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("telegram bot shutdown failed: %s", e)
 
 app = FastAPI(
     title="Al-Furqan Guard — L0 Ground Truth & Anti-Hallucination API",
@@ -626,8 +635,8 @@ def screen_halal(req: HalalScreenRequest, request: Request = None):
                     "disclaimer_kk": ahkam.DISCLAIMER_KK,
                     "disclaimer": ahkam.DISCLAIMER_RU
                 }
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("barcode lookup during halal screen failed, falling back to text match: %s", e)
 
     matches = HalalKnowledgeBase.match_input(input_text)
     is_haram = any(f.get("verdict") == "HARAM" for f in matches)
@@ -845,9 +854,10 @@ def scan_image_ocr(req: ImageScanRequest, request: Request):
             "matches": screen_res.get("matches", [])
         }
     except Exception as e:
+        logger.error("OCR image processing failed: %s", e, exc_info=True)
         return {
             "status": "error",
-            "message": f"Ошибка обработки изображения: {str(e)}",
+            "message": "Не удалось обработать изображение. Проверьте формат файла (PNG/JPEG) и попробуйте снова.",
             "extracted_text": "",
             "matches": []
         }
@@ -878,7 +888,8 @@ def audit_pdf_document(req: PDFScanRequest, request: Request):
             "audit": audit_result
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"PDF Processing error: {str(e)}")
+        logger.error("PDF audit failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=400, detail="Не удалось прочитать PDF-документ. Проверьте, что файл не повреждён и не защищён паролем.")
 
 @app.post("/api/v1/documents/export-audit-pdf")
 def export_audit_pdf(req: ExportAuditPDFRequest):
@@ -908,7 +919,8 @@ def export_audit_pdf(req: ExportAuditPDFRequest):
             }
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF generation error: {str(e)}")
+        logger.error("PDF certificate generation failed: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Не удалось сформировать сертификат. Попробуйте ещё раз.")
 
 @app.get("/api/v1/keep-alive")
 async def keep_alive_ping():
@@ -961,7 +973,7 @@ def search_theme(q: str):
     results = SemanticThemeEngine.find_ayahs_by_topic(clean_q, engine)
     return {"query": clean_q, "total_found": len(results), "results": results}
 
-FEEDBACK_FILE_PATH = os.path.join(os.path.dirname(__file__), "data", "feedback_submissions.json")
+FEEDBACK_FILE_PATH = os.path.join(RUNTIME_DATA_DIR, "feedback_submissions.json")
 
 def persist_feedback_entry(entry: Dict[str, Any]):
     """Appends feedback entry to persistent disk storage."""
@@ -1053,8 +1065,8 @@ def get_feedback_list(request: Request):
             with open(FEEDBACK_FILE_PATH, "r", encoding="utf-8") as f:
                 items = json.load(f)
                 return {"total": len(items), "feedback": items}
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("failed to read feedback file %s, falling back to memory store: %s", FEEDBACK_FILE_PATH, e)
     return {"total": len(FEEDBACK_STORE), "feedback": FEEDBACK_STORE}
 
 # Mount static UI

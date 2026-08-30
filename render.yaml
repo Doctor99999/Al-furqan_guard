@@ -1,15 +1,42 @@
 services:
   - type: web
     name: al-furqan-guard
-    env: python
+    runtime: docker
+    # Production launch: "starter" (paid) is required for the persistent 1GB Disk below.
+    # Runtime state (SQLite analytics, B2B keys, feedback) is written to /app/data,
+    # so deploy/restart survives only when this Disk is mounted. Free tier has no disk.
+    plan: starter
     region: frankfurt
-    plan: free
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt -c requirements.lock
-    startCommand: python start_all.py
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    disk:
+      name: runtime-data
+      mountPath: /app/data
+      sizeGB: 1
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: PIP_ROOT_USER_ACTION
-        value: ignore
+      # --- Secrets (sync:false => create in the Render Dashboard, never committed) ---
       - key: TELEGRAM_BOT_TOKEN
         sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
+      - key: TELEGRAM_ADMIN_CHAT_ID
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+      - key: IP_HASH_SECRET
+        sync: false
+      # --- Optional (uncomment only if needed) ---
+      # - key: DATABASE_URL
+      #   sync: false
+      # - key: B2B_DEMO_API_KEY
+      #   sync: false
+      # - key: CORS_ORIGINS
+      #   value: https://your-custom-domain.com
+      # - key: LOG_LEVEL
+      #   value: INFO
+      # --- Auto-config: public URL of this service (enables Telegram webhook mode) ---
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          type: web
+          name: al-furqan-guard
+          property: host

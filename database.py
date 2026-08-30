@@ -20,6 +20,11 @@ import urllib.request
 import urllib.parse
 from typing import Optional, Dict, Any, List, Tuple
 
+try:
+    from quran_guard.config import RUNTIME_DATA_DIR
+except Exception:
+    RUNTIME_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+
 # Try importing SQLAlchemy if installed; otherwise use built-in sqlite3 seamlessly
 try:
     from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, Index
@@ -32,7 +37,8 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-LOCAL_SQLITE_PATH = os.path.join(os.path.dirname(__file__), "alfurqan_production.db")
+os.makedirs(RUNTIME_DATA_DIR, exist_ok=True)
+LOCAL_SQLITE_PATH = os.path.join(RUNTIME_DATA_DIR, "alfurqan_production.db")
 
 # =========================================================================
 # NATIVE SQLITE & POSTGRESQL MULTI-BACKEND ENGINE
@@ -109,18 +115,19 @@ def init_native_db():
     if "key_hash" not in cols:
         cur.execute("ALTER TABLE b2b_organizations ADD COLUMN key_hash TEXT")
     
-    # Seed default master demo B2B key (stored as SHA-256 hash only, never plaintext)
-    demo_key = os.environ.get("B2B_DEMO_API_KEY", "alfurqan_live_b2b_demo_secret_key")
-    demo_hash = hashlib.sha256(demo_key.encode()).hexdigest()
-    cur.execute("SELECT id FROM b2b_organizations WHERE key_hash = ? OR api_key = ?", (demo_hash, demo_key))
-    if not cur.fetchone():
-        # Upgrade any legacy plaintext row for this key
-        cur.execute("UPDATE b2b_organizations SET key_hash = ?, api_key = ? WHERE api_key = ?", (demo_hash, demo_hash, demo_key))
-        cur.execute("""
-            INSERT INTO b2b_organizations (org_name, api_key, key_hash, is_active, tier, total_requests)
-            SELECT 'Al-Furqan Enterprise Demo Partner', ?, ?, 1, 'ENTERPRISE', 0
-            WHERE NOT EXISTS (SELECT 1 FROM b2b_organizations WHERE key_hash = ?)
-        """, (demo_hash, demo_hash, demo_hash))
+    # Seed a demo B2B master key only when explicitly provided via env (no hardcoded backdoor).
+    demo_key = os.environ.get("B2B_DEMO_API_KEY", "").strip()
+    if demo_key:
+        demo_hash = hashlib.sha256(demo_key.encode()).hexdigest()
+        cur.execute("SELECT id FROM b2b_organizations WHERE key_hash = ? OR api_key = ?", (demo_hash, demo_key))
+        if not cur.fetchone():
+            # Upgrade any legacy plaintext row for this key
+            cur.execute("UPDATE b2b_organizations SET key_hash = ?, api_key = ? WHERE api_key = ?", (demo_hash, demo_hash, demo_key))
+            cur.execute("""
+                INSERT INTO b2b_organizations (org_name, api_key, key_hash, is_active, tier, total_requests)
+                SELECT 'Al-Furqan Enterprise Demo Partner', ?, ?, 1, 'ENTERPRISE', 0
+                WHERE NOT EXISTS (SELECT 1 FROM b2b_organizations WHERE key_hash = ?)
+            """, (demo_hash, demo_hash, demo_hash))
 
     conn.commit()
     conn.close()

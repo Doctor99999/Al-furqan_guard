@@ -49,7 +49,7 @@
 
 ---
 
-## 🛠️ Быстрый запуск на Render.com
+## 🛠️ Быстрый запуск на Render.com (боевой режим)
 
 ### Шаг 1: Загрузите репозиторий на GitHub
 ```bash
@@ -61,25 +61,36 @@ git remote add origin https://github.com/ВАШ_АККАУНТ/al-furqan-ai.git
 git push -u origin main
 ```
 
-### Шаг 2: Создайте Web Service на Render
-1. Перейдите на [dashboard.render.com](https://dashboard.render.com) и нажмите **New + $\rightarrow$ Web Service**.
-2. Подключите ваш GitHub-репозиторий `al-furqan-ai`.
-3. Настройки сервиса:
-   - **Environment:** `Python 3`
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `python start_all.py`
-4. В разделе **Environment Variables** добавьте:
-   - `TELEGRAM_BOT_TOKEN` = `ВАШ_ТОКЕН_ОТ_BOTFATHER` (для работы бота)
-   - `PORT` = `8000`
-   
-   Опциональные переменные безопасности:
-   - `ADMIN_API_KEY` — ключ для чтения отзывов через `GET /api/v1/feedback/list` (заголовок `X-Admin-Key`). Без него список фидбека закрыт (403)
-   - `TELEGRAM_WEBHOOK_SECRET` — общий секрет вебхука Telegram (иначе генерируется случайно на старте)
-   - `IP_HASH_SECRET` — соль анонимизации IP в аналитике (иначе случайная на процесс)
-   - `CORS_ORIGINS` — allow-list внешних origin'ов через запятую; пусто = кросс-доменные браузерные запросы запрещены
-   - `TRUST_PROXY_HEADERS` = `1` — доверять `X-Forwarded-For` за обратным прокси (на Render включается автоматически)
-   - `B2B_DEMO_API_KEY` — сид демо B2B-ключа (в БД хранится только SHA-256 хеш)
-5. Нажмите **Create Web Service**. Сервис автоматически соберется и запустится!
+### Шаг 2: Blueprint-деплой (рекомендуется)
+В репозитории лежит `render.yaml` — Blueprint для боевого запуска:
+
+1. На [dashboard.render.com](https://dashboard.render.com) → **New + → Blueprint**.
+2. Подключите репозиторий. Render сам создаст Web Service `al-furqan-guard`:
+   - **Runtime:** Docker (`./Dockerfile`, включая Tesseract OCR rus/kaz/ara/eng)
+   - **Health check:** `/api/v1/health`
+   - **Disk 1GB** смонтирован в `/app/data` (переживает деплой и рестарты)
+   - **План `starter` (платный)** — обязателен, т.к. только платные планы дают Disk.
+3. В разделе **Environment** заполните секреты, отмеченные `sync:false`
+   (значения появятся как плейсхолдеры):
+   - `TELEGRAM_BOT_TOKEN` — токен бота от @BotFather
+   - `TELEGRAM_WEBHOOK_SECRET` — **фиксированный** секрет вебхука
+   - `TELEGRAM_ADMIN_CHAT_ID` — chat ID для уведомлений об отзывах
+   - `ADMIN_API_KEY` — ключ для `GET /api/v1/feedback/list` (заголовок `X-Admin-Key`)
+   - `IP_HASH_SECRET` — **фиксированная** соль анонимизации IP
+4. Нажмите **Apply**. Автодеплой на каждую пуст.
+   `RENDER_EXTERNAL_URL` подставляется автоматически → Telegram работает через Webhook.
+
+> ⚠️ **Причины задавать фиксированные `TELEGRAM_WEBHOOK_SECRET` и `IP_HASH_SECRET`:**
+> при пустых значениях они генерируются заново на каждый старт — деплой будет
+> ротировать секрет Telegram-вебхука и «забывать» уникальные посетители в аналитике.
+
+### Шаг 3: Локальный запуск в Docker (тем же образом, что на проде)
+```bash
+docker build -t al-furqan .
+# персистентность runtime-состояния через volume
+docker run -d -p 8000:8000 -e TELEGRAM_BOT_TOKEN=... \
+  -v al-furqan-data:/app/data al-furqan
+```
 
 ---
 
@@ -90,17 +101,38 @@ git push -u origin main
 git clone https://github.com/YOUR_USER/al-furqan-ai.git
 cd al-furqan-ai
 
-# 2. Установка зависимостей
-pip install -r requirements.txt
+# 2. Установка зависимостей (Python 3.11+)
+pip install -r requirements-dev.txt -c requirements.lock
 
-# 3. Запуск веб-сервера
+# 3. Настройка окружения
+copy .env.example .env   # и заполните TELEGRAM_*/ADMIN_API_KEY
+
+# 4. Запуск веб-сервера
 python server.py
-
-# 4. Запуск Telegram-бота (в отдельном окне)
-$env:TELEGRAM_BOT_TOKEN="ВАШ_ТОКЕН" ; python bot.py
 ```
 
 Откройте веб-приложение: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+---
+
+## 🌐 Переменные окружения (полный список)
+
+| Переменная | Обязательность | Описание |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | боевой | Токен Telegram-бота |
+| `TELEGRAM_WEBHOOK_SECRET` | боевой (фикс.) | Секрет вебхука Telegram |
+| `ADMIN_API_KEY` | боевой | Ключ чтения отзывов (`X-Admin-Key`) |
+| `IP_HASH_SECRET` | боевой (фикс.) | Соль хэширования client IP |
+| `TELEGRAM_ADMIN_CHAT_ID` | опц. | Уведомления о новых отзывах |
+| `RUNTIME_DATA_DIR` | опц. | Каталог runtime-состояния (SQLite, ключи B2B, отзывы). По умолчанию `<repo>/data`; на Render — путь к смонтированному диску |
+| `DATABASE_URL` | опц. | PostgreSQL для аналитики (иначе SQLite в `RUNTIME_DATA_DIR`) |
+| `B2B_DEMO_API_KEY` | опц. | При задании сидится демо-партнёр B2B (SHA-256 в БД). **Пусто = бэкдора нет** |
+| `CORS_ORIGINS` | опц. | Разрешённые browser-origin через запятую; пусто = same-origin |
+| `TRUST_PROXY_HEADERS` | опц. | `1` — доверять `X-Forwarded-For` (на Render авто) |
+| `LOG_LEVEL` | опц. | `INFO` / `DEBUG` |
+| `PORT` / `HOST` | опц. | Bind сервера (Render задаёт `PORT`) |
+
+Полное описание: файл `.env.example`.
 
 ---
 

@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# NOTE FOR PRODUCTION: replace the domain below with your real public hostname
+# (custom domain or the auto-generated *.onrender.com URL after first deploy).
+Sitemap: https://al-furqan-guard.onrender.com/sitemap.xml
