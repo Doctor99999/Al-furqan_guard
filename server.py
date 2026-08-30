@@ -368,7 +368,7 @@ async def verify_integrity():
     }
 
 @app.get("/api/v1/analytics/visitor-count")
-async def get_visitor_count(request: Request):
+def get_visitor_count(request: Request):
     """Tracks and returns real, 100% authentic persistent visitor metrics across all timeframes via PostgreSQL."""
     client_ip = get_client_ip(request)
 
@@ -386,21 +386,25 @@ async def get_visitor_count(request: Request):
 barcode_rate_limiter = TokenBucketRateLimiter(capacity=20, refill_seconds=60)
 
 @app.get("/api/v1/halal/barcode/{barcode}")
-async def check_halal_barcode(barcode: str, request: Request):
+def check_halal_barcode(barcode: str, request: Request = None):
     """
     Looks up products by barcode (2.5M+ items) via PostgreSQL cache & Open Food Facts API.
     Rate limited (20/min per IP) to prevent outbound-request amplification; B2B keys bypass.
     """
-    api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
-    is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
-    if not is_b2b:
-        allowed, _remaining, wait_seconds = barcode_rate_limiter.is_allowed(get_client_ip(request))
-        if not allowed:
-            raise HTTPException(
-                status_code=429,
-                detail=f"Слишком много запросов. Повторите через {wait_seconds} секунд.",
-                headers={"Retry-After": str(wait_seconds)}
-            )
+    if request is None:
+        # Internal/nested call (e.g. from /b2b/halal-check): auth handled by caller.
+        is_b2b = True
+    else:
+        api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+        is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
+        if not is_b2b:
+            allowed, _remaining, wait_seconds = barcode_rate_limiter.is_allowed(get_client_ip(request))
+            if not allowed:
+                raise HTTPException(
+                    status_code=429,
+                    detail=f"Слишком много запросов. Повторите через {wait_seconds} секунд.",
+                    headers={"Retry-After": str(wait_seconds)}
+                )
 
     clean_code = re.sub(r"\D", "", barcode.strip())[:20]
     if not clean_code:
@@ -476,7 +480,7 @@ async def check_halal_barcode(barcode: str, request: Request):
 # =========================================================================
 @app.post("/api/v1/b2b/halal-check")
 @app.post("/api/v1/halal-check")
-async def b2b_halal_check(req: HalalScreenRequest, request: Request):
+def b2b_halal_check(req: HalalScreenRequest, request: Request):
     """
     Enterprise B2B / Public Halal Screening Endpoint:
     Accepts text, barcode, or ingredient list.
@@ -491,7 +495,7 @@ async def b2b_halal_check(req: HalalScreenRequest, request: Request):
 
     # If barcode provided
     if re.match(r"^\d{8,14}$", query_text):
-        return await check_halal_barcode(query_text)
+        return check_halal_barcode(query_text, request)
 
     # Deep Shubhât and Halal Analysis
     analysis = HalalKnowledgeBase.analyze_ingredients_deep(query_text)
@@ -513,7 +517,7 @@ async def b2b_halal_check(req: HalalScreenRequest, request: Request):
 # CROSS-LINGUAL SEMANTIC SEARCH (RUSSIAN / KAZAKH -> ARABIC ROOT)
 # =========================================================================
 @app.get("/api/v1/quran/semantic-search")
-async def semantic_search(q: str = "", limit: int = 50):
+def semantic_search(q: str = "", limit: int = 50):
     """
     Cross-Language Semantic & Stemming Search:
     Translates Russian/Kazakh queries (e.g. 'Милосердие', 'Мейірім') to Arabic Root ('رحм') and returns verified Ayahs.
@@ -541,7 +545,7 @@ async def get_surahs_list():
     return {"total_surahs": 114, "surahs": surahs_list}
 
 @app.get("/api/v1/quran/search")
-async def quran_search(q: str, lang: str = "all", limit: int = 30):
+def quran_search(q: str, lang: str = "all", limit: int = 30):
     """Universal full-text search across Arabic text and 7 language translations."""
     clean_q = q.strip()[:100]
     if not clean_q:
@@ -556,7 +560,7 @@ async def quran_search(q: str, lang: str = "all", limit: int = 30):
 
 @app.post("/api/verify")
 @app.post("/api/v1/guard/validate")
-async def verify_text(req: VerifyRequest):
+def verify_text(req: VerifyRequest):
     """Full Anti-Hallucination verification of input text."""
     if not req.text or not req.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
@@ -566,14 +570,14 @@ async def verify_text(req: VerifyRequest):
 
 @app.post("/api/verify/root")
 @app.post("/api/v1/roots/verify")
-async def verify_root(req: RootClaimRequest):
+def verify_root(req: RootClaimRequest):
     """Verifies morphological root claim."""
     result = guard.verify_root_claim(req.word, req.claimed_root, req.context_id)
     return result
 
 @app.post("/api/audit/contract")
 @app.post("/api/v1/halal/screen")
-async def screen_halal(req: HalalScreenRequest):
+def screen_halal(req: HalalScreenRequest, request: Request = None):
     """Universal Halal, food ingredients, and Shariah screener with barcode auto-detection."""
     input_text = (req.text or req.query or "").strip()
     if not input_text:
@@ -595,7 +599,7 @@ async def screen_halal(req: HalalScreenRequest):
     clean_digits = re.sub(r"\D", "", input_text)
     if 8 <= len(clean_digits) <= 14 and clean_digits == input_text:
         try:
-            barcode_res = await check_halal_barcode(clean_digits)
+            barcode_res = check_halal_barcode(clean_digits, request)
             if barcode_res.get("halal_verdict") != "NOT_FOUND":
                 v = barcode_res["halal_verdict"]
                 m = [{
@@ -658,7 +662,7 @@ async def screen_halal(req: HalalScreenRequest):
     }
 
 @app.get("/api/v1/halal/database")
-async def get_halal_master_database():
+def get_halal_master_database():
     """Returns the full standalone Master Halal/Haram Knowledge Base JSON dataset."""
     db_path = os.path.join(os.path.dirname(__file__), "data", "halal_master_database.json")
     if os.path.exists(db_path):
@@ -671,7 +675,7 @@ async def get_halal_master_database():
     }
 
 @app.post("/api/v1/contracts/audit-aaoifi")
-async def audit_contract_aaoifi(req: ContractAuditRequest):
+def audit_contract_aaoifi(req: ContractAuditRequest):
     """Deep AAOIFI Shariah contract compliance analysis."""
     result = HalalKnowledgeBase.audit_contract_aaoifi(req.text)
     return result
@@ -716,7 +720,7 @@ async def get_ayah(sura: int, ayah: int):
     }
 
 @app.get("/api/v1/surah/{sura}")
-async def get_surah_full(sura: int):
+def get_surah_full(sura: int):
     """Retrieves all Ayahs of a Surah with translations, transliterations, and audio."""
     if not (1 <= sura <= 114):
         raise HTTPException(status_code=400, detail="Surah number must be between 1 and 114")
@@ -765,7 +769,7 @@ async def get_surah_full(sura: int):
 
 @app.get("/api/root/{root}")
 @app.get("/api/v1/root/{root}")
-async def get_root(root: str):
+def get_root(root: str):
     """Searches for verses containing the specified morphological root."""
     root_clean = root.strip()[:20]
     results = engine.search_by_root(root_clean)
@@ -773,7 +777,7 @@ async def get_root(root: str):
 
 @app.get("/api/roots")
 @app.get("/api/v1/roots")
-async def list_roots():
+def list_roots():
     """Returns list of top roots with occurrence frequencies."""
     roots_with_counts = []
     for r, occurrences in engine.root_index.items():
@@ -787,7 +791,7 @@ async def list_roots():
 
 @app.get("/api/ahkam/{category}")
 @app.get("/api/v1/ahkam/{category}")
-async def get_ahkam(category: str):
+def get_ahkam(category: str):
     """Returns categorized Ahkam (tahrim, ibaha, wajib, finance, justice)."""
     cat_clean = category.strip()[:30]
     return ahkam.get_category_ayahs(cat_clean)
@@ -798,7 +802,7 @@ async def get_ahkam(category: str):
 
 @app.post("/api/v1/images/audit-ocr")
 @app.post("/api/v1/halal/scan-image")
-async def scan_image_ocr(req: ImageScanRequest, request: Request):
+def scan_image_ocr(req: ImageScanRequest, request: Request):
     """
     Real OCR image processing using Pillow & Tesseract.
     Protected by Token Bucket Rate Limiter (3 tokens max, +1 refill every 2 min).
@@ -850,7 +854,7 @@ async def scan_image_ocr(req: ImageScanRequest, request: Request):
 
 
 @app.post("/api/v1/documents/audit-pdf")
-async def audit_pdf_document(req: PDFScanRequest, request: Request):
+def audit_pdf_document(req: PDFScanRequest, request: Request):
     """Audits PDF contract or text for Quran quotes and AAOIFI compliance. Rate limited (3/10min per IP); B2B bypass."""
     api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
     is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
@@ -877,7 +881,7 @@ async def audit_pdf_document(req: PDFScanRequest, request: Request):
         raise HTTPException(status_code=400, detail=f"PDF Processing error: {str(e)}")
 
 @app.post("/api/v1/documents/export-audit-pdf")
-async def export_audit_pdf(req: ExportAuditPDFRequest):
+def export_audit_pdf(req: ExportAuditPDFRequest):
     """Generates official AAOIFI Shariah Compliance PDF Certificate."""
     try:
         audit_data = req.audit_data
@@ -917,7 +921,7 @@ async def keep_alive_ping():
     }
 
 @app.get("/api/v1/halal/certified-registry")
-async def get_certified_registry():
+def get_certified_registry():
     """Returns official Cross-Validated Halal Certified Brands database."""
     reg_path = os.path.join(os.path.dirname(__file__), "data", "halal_certified_registry.json")
     if os.path.exists(reg_path):
@@ -926,7 +930,7 @@ async def get_certified_registry():
     return {"status": "ok", "certified_brands": {}}
 
 @app.get("/api/v1/namaz/times")
-async def get_namaz_times(lat: float = 51.1694, lon: float = 71.4491):
+def get_namaz_times(lat: float = 51.1694, lon: float = 71.4491):
     """Returns astronomical 5 prayer times and Qibla compass bearing for given GPS coordinates."""
     times = PrayerTimesCalculator.calculate_prayer_times(lat, lon)
     qibla_deg, compass = PrayerTimesCalculator.calculate_qibla(lat, lon)
@@ -939,7 +943,7 @@ async def get_namaz_times(lat: float = 51.1694, lon: float = 71.4491):
     }
 
 @app.post("/api/v1/zakat/calculate")
-async def calculate_zakat(req: ZakatRequest):
+def calculate_zakat(req: ZakatRequest):
     """Computes Nisab and 2.5% Zakat liability."""
     return ZakatCalculator.calculate_zakat(
         cash_savings=req.cash_savings,
@@ -951,7 +955,7 @@ async def calculate_zakat(req: ZakatRequest):
     )
 
 @app.get("/api/v1/search/theme")
-async def search_theme(q: str):
+def search_theme(q: str):
     """Semantic thematic Quran search across 6,236 Ayahs."""
     clean_q = q.strip()[:100]
     results = SemanticThemeEngine.find_ayahs_by_topic(clean_q, engine)
@@ -981,7 +985,7 @@ def persist_feedback_entry(entry: Dict[str, Any]):
         logger.warning(f"Failed to persist feedback to disk: {e}")
 
 @app.post("/api/v1/feedback")
-async def submit_feedback(req: FeedbackRequest):
+def submit_feedback(req: FeedbackRequest):
     """Submits user feedback with memory bounds protection and persistent disk storage."""
     if not req.message or not req.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
@@ -1037,7 +1041,7 @@ async def submit_feedback(req: FeedbackRequest):
     }
 
 @app.get("/api/v1/feedback/list")
-async def get_feedback_list(request: Request):
+def get_feedback_list(request: Request):
     """Returns list of submitted user feedback. Restricted: requires X-Admin-Key header."""
     if not ADMIN_API_KEY:
         raise HTTPException(status_code=403, detail="Feedback access disabled: ADMIN_API_KEY is not configured")

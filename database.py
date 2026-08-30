@@ -41,8 +41,12 @@ LOCAL_SQLITE_PATH = os.path.join(os.path.dirname(__file__), "alfurqan_production
 class DBConnection:
     @staticmethod
     def get_sqlite_conn():
-        conn = sqlite3.connect(LOCAL_SQLITE_PATH, check_same_thread=False)
+        conn = sqlite3.connect(LOCAL_SQLITE_PATH, check_same_thread=False, timeout=30)
         conn.row_factory = sqlite3.Row
+        # WAL: readers don't block writers (and vice-versa); critical since several
+        # endpoints (B2B counters, visitor logs) write while reads are frequent.
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=5000")
         return conn
 
 def init_native_db():
