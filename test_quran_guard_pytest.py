@@ -23,6 +23,19 @@ def ahkam(engine):
 
 
 # 1. Corpus & Manifest Integrity Tests
+def test_verify_full_text_compat_contract(guard):
+    """Guard report must expose claims_detected/is_valid/violations for bot.py & ui/app.js."""
+    result = guard.verify_full_text("Простой текст без цитат Корана.")
+    for key in ("claims_detected", "is_valid", "violations"):
+        assert key in result, f"Guard report must expose compat key '{key}'"
+    assert isinstance(result["claims_detected"], bool)
+    assert isinstance(result["is_valid"], bool)
+    assert isinstance(result["violations"], list)
+    # Each violation must carry 'details' consumed by the UI display
+    for v in result["violations"]:
+        assert "details" in v
+
+
 def test_manifest_dimensions(engine):
     assert len(engine.ayahs) == 6236, "Must contain exactly 6,236 Ayahs"
     assert engine.total_tokens == 130030, "Must contain exactly 130,030 sub-tokens"
