@@ -87,8 +87,11 @@ def get_client_ip(request: Request) -> str:
 
 
 def sanitize_md(text: str) -> str:
-    """Strips Markdown control characters from untrusted strings before Telegram formatting."""
-    return re.sub(r'[*_`\[\]]', '', text or "")
+    """Escapes Markdown v2 special characters from untrusted strings for Telegram formatting."""
+    if not text:
+        return ""
+    # Telegram MarkdownV2 special characters that must be escaped with backslash
+    return re.sub(r'([_*\[\]()~`>#+\-=|{}.!\\])', r'\\\1', text)
 
 # Live Cryptographic Hashes of Canonical Ground Truth
 MANIFEST_SHA256 = compute_sha256(MANIFEST_PATH)
@@ -104,6 +107,7 @@ ahkam = AhkamExtractor(engine)
 print(f"Engine Ready! Loaded {len(engine.ayahs)} Ayahs, {engine.total_tokens} tokens, {len(engine.all_roots)} roots.")
 
 import time
+import threading
 from database import (
     VisitorAnalyticsService, 
     OpenFoodFactsService, 
@@ -120,39 +124,64 @@ class TokenBucketRateLimiter:
     - Capacity: 3 tokens available immediately
     - Refill Rate: 1 token restored every 120 seconds (2 minutes)
     - Unlimited for B2B API keys and Barcode lookups
+    Thread-safe: all bucket operations are guarded by a lock.
     """
     def __init__(self, capacity: int = 3, refill_seconds: int = 120):
         self.capacity = capacity
         self.refill_seconds = refill_seconds
         self.buckets: Dict[str, Dict[str, Any]] = {}
+        self._lock = threading.Lock()
 
     def is_allowed(self, client_id: str) -> Tuple[bool, int, float]:
         now = time.time()
-        bucket = self.buckets.get(client_id)
         
-        if not bucket:
-            # First request: consume 1 token, leaving capacity - 1
-            self.buckets[client_id] = {
-                "tokens": self.capacity - 1,
-                "last_refill": now
-            }
-            return True, self.capacity - 1, 0.0
+        with self._lock:
+            # Periodic cleanup of stale tokens to prevent unbounded memory leaks
+            if len(self.buckets) > 5000:
+                stale_threshold = self.refill_seconds * self.capacity
+                self.buckets = {
+                    k: v for k, v in self.buckets.items() 
+                    if (now - v["last_refill"]) < stale_threshold
+                }
 
-        # Refill tokens based on elapsed intervals
-        elapsed = now - bucket["last_refill"]
-        refill_count = int(elapsed // self.refill_seconds)
-        if refill_count > 0:
-            bucket["tokens"] = min(self.capacity, bucket["tokens"] + refill_count)
-            bucket["last_refill"] = now - (elapsed % self.refill_seconds)
+            bucket = self.buckets.get(client_id)
+            
+            if not bucket:
+                # First request: consume 1 token, leaving capacity - 1
+                self.buckets[client_id] = {
+                    "tokens": self.capacity - 1,
+                    "last_refill": now
+                }
+                return True, self.capacity - 1, 0.0
 
-        if bucket["tokens"] >= 1:
-            bucket["tokens"] -= 1
-            return True, int(bucket["tokens"]), 0.0
-        else:
-            time_until_next = max(1, int(self.refill_seconds - (now - bucket["last_refill"])))
-            return False, 0, time_until_next
+            # Refill tokens based on elapsed intervals
+            elapsed = now - bucket["last_refill"]
+            refill_count = int(elapsed // self.refill_seconds)
+            if refill_count > 0:
+                bucket["tokens"] = min(self.capacity, bucket["tokens"] + refill_count)
+                bucket["last_refill"] = now - (elapsed % self.refill_seconds)
+
+            if bucket["tokens"] >= 1:
+                bucket["tokens"] -= 1
+                return True, int(bucket["tokens"]), 0.0
+            else:
+                time_until_next = max(1, int(self.refill_seconds - (now - bucket["last_refill"])))
+                return False, 0, time_until_next
 
 ocr_rate_limiter = TokenBucketRateLimiter(capacity=3, refill_seconds=120)
+
+# =========================================================================
+# GLOBAL REQUEST BODY SIZE GUARD (DoS mitigation)
+# =========================================================================
+# Rejects oversized payloads BEFORE they are read into memory. Applies to all
+# POST/PUT/PATCH bodies; individual Pydantic fields keep their own caps.
+DEFAULT_MAX_BODY_BYTES = 35 * 1024 * 1024  # 35 MiB
+
+def max_request_body_bytes() -> int:
+    try:
+        return max(1024, int(os.environ.get("MAX_BODY_BYTES", str(DEFAULT_MAX_BODY_BYTES))))
+    except (TypeError, ValueError):
+        return DEFAULT_MAX_BODY_BYTES
 
 # Legacy in-memory fallback for non-DB environments
 ANALYTICS_DATA = {"total_queries_verified": 0}
@@ -222,6 +251,18 @@ async def telegram_webhook(request: Request):
 # 1. Enterprise Security Headers Middleware
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if request.method in ("POST", "PUT", "PATCH") and content_length:
+        try:
+            if int(content_length) > max_request_body_bytes():
+                return Response(
+                    content=json.dumps({"detail": "Payload Too Large"}),
+                    status_code=413,
+                    media_type="application/json",
+                    headers={"X-Content-Type-Options": "nosniff"},
+                )
+        except (TypeError, ValueError):
+            pass
     response = await call_next(request)
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "SAMEORIGIN"
@@ -301,6 +342,9 @@ class ZakatRequest(BaseModel):
     business_inventory: float = Field(0.0, ge=0)
     liabilities_due: float = Field(0.0, ge=0)
     currency: Optional[str] = Field("₸", max_length=10)
+    gold_price_per_gram: Optional[float] = Field(None, ge=0)
+    silver_price_per_gram: Optional[float] = Field(None, ge=0)
+    nisab_reference: Optional[str] = Field("silver", max_length=10)
 
 class FeedbackRequest(BaseModel):
     name: Optional[str] = Field("Anonymous", max_length=100)
@@ -308,8 +352,27 @@ class FeedbackRequest(BaseModel):
     category: str = Field("suggestion", max_length=50)
     message: str = Field(..., min_length=1, max_length=10000)
 
-FEEDBACK_STORE: List[Dict[str, Any]] = []
+from collections import deque
+
 MAX_FEEDBACK_ITEMS = 1000
+FEEDBACK_STORE: deque = deque(maxlen=MAX_FEEDBACK_ITEMS)
+FEEDBACK_ID_COUNTER = 0
+_feedback_lock = threading.Lock()
+
+# ... later (after FEEDBACK_FILE_PATH is defined):
+
+# Initialize feedback counter from persisted file to avoid ID collision after restart
+def _init_feedback_counter():
+    global FEEDBACK_ID_COUNTER
+    if os.path.exists(FEEDBACK_FILE_PATH):
+        try:
+            with open(FEEDBACK_FILE_PATH, "r", encoding="utf-8") as f:
+                items = json.load(f)
+                if isinstance(items, list) and items:
+                    max_id = max((item.get("id", 0) for item in items), default=0)
+                    FEEDBACK_ID_COUNTER = max_id
+        except Exception:
+            pass
 
 # Privacy salt for IP anonymization: ENV secret or per-process random (never hardcoded)
 IP_HASH_SALT = os.environ.get("IP_HASH_SECRET") or secrets.token_hex(32)
@@ -395,25 +458,28 @@ def get_visitor_count(request: Request):
 barcode_rate_limiter = TokenBucketRateLimiter(capacity=20, refill_seconds=60)
 
 @app.get("/api/v1/halal/barcode/{barcode}")
-def check_halal_barcode(barcode: str, request: Request = None):
+async def check_halal_barcode(barcode: str, request: Request = None, is_b2b: bool = None):
     """
     Looks up products by barcode (2.5M+ items) via PostgreSQL cache & Open Food Facts API.
     Rate limited (20/min per IP) to prevent outbound-request amplification; B2B keys bypass.
+    `is_b2b` short-circuits the auth lookup when the caller (e.g. /b2b/halal-check)
+    has already validated the key, removing duplicate validation per request.
     """
-    if request is None:
-        # Internal/nested call (e.g. from /b2b/halal-check): auth handled by caller.
-        is_b2b = True
-    else:
-        api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
-        is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
-        if not is_b2b:
-            allowed, _remaining, wait_seconds = barcode_rate_limiter.is_allowed(get_client_ip(request))
-            if not allowed:
-                raise HTTPException(
-                    status_code=429,
-                    detail=f"Слишком много запросов. Повторите через {wait_seconds} секунд.",
-                    headers={"Retry-After": str(wait_seconds)}
-                )
+    if is_b2b is None:
+        if request is None:
+            # Internal/nested call (e.g. from /b2b/halal-check): auth handled by caller.
+            is_b2b = True
+        else:
+            api_key = request.headers.get("x-api-key") or request.headers.get("authorization", "").replace("Bearer ", "").strip()
+            is_b2b = bool(api_key and B2BAuthService.validate_api_key(api_key))
+    if not is_b2b:
+        allowed, _remaining, wait_seconds = barcode_rate_limiter.is_allowed(get_client_ip(request))
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Слишком много запросов. Повторите через {wait_seconds} секунд.",
+                headers={"Retry-After": str(wait_seconds)}
+            )
 
     clean_code = re.sub(r"\D", "", barcode.strip())[:20]
     if not clean_code:
@@ -435,7 +501,7 @@ def check_halal_barcode(barcode: str, request: Request = None):
         }
 
     # 2. Fetch from Open Food Facts API (2.5M+ products)
-    off_data = OpenFoodFactsService.fetch_product_by_barcode(clean_code)
+    off_data = await OpenFoodFactsService.fetch_product_by_barcode(clean_code)
     if not off_data:
         return {
             "barcode": clean_code,
@@ -489,7 +555,7 @@ def check_halal_barcode(barcode: str, request: Request = None):
 # =========================================================================
 @app.post("/api/v1/b2b/halal-check")
 @app.post("/api/v1/halal-check")
-def b2b_halal_check(req: HalalScreenRequest, request: Request):
+async def b2b_halal_check(req: HalalScreenRequest, request: Request):
     """
     Enterprise B2B / Public Halal Screening Endpoint:
     Accepts text, barcode, or ingredient list.
@@ -503,8 +569,8 @@ def b2b_halal_check(req: HalalScreenRequest, request: Request):
         raise HTTPException(status_code=400, detail="Параметр query или text обязателен")
 
     # If barcode provided
-    if re.match(r"^\d{8,14}$", query_text):
-        return check_halal_barcode(query_text, request)
+    if query_text.isdigit() and len(query_text) >= 8:
+        return await check_halal_barcode(query_text, request, is_b2b=bool(org))
 
     # Deep Shubhât and Halal Analysis
     analysis = HalalKnowledgeBase.analyze_ingredients_deep(query_text)
@@ -586,7 +652,7 @@ def verify_root(req: RootClaimRequest):
 
 @app.post("/api/audit/contract")
 @app.post("/api/v1/halal/screen")
-def screen_halal(req: HalalScreenRequest, request: Request = None):
+async def screen_halal(req: HalalScreenRequest, request: Request = None):
     """Universal Halal, food ingredients, and Shariah screener with barcode auto-detection."""
     input_text = (req.text or req.query or "").strip()
     if not input_text:
@@ -608,7 +674,7 @@ def screen_halal(req: HalalScreenRequest, request: Request = None):
     clean_digits = re.sub(r"\D", "", input_text)
     if 8 <= len(clean_digits) <= 14 and clean_digits == input_text:
         try:
-            barcode_res = check_halal_barcode(clean_digits, request)
+            barcode_res = await check_halal_barcode(clean_digits, request)
             if barcode_res.get("halal_verdict") != "NOT_FOUND":
                 v = barcode_res["halal_verdict"]
                 m = [{
@@ -837,9 +903,28 @@ def scan_image_ocr(req: ImageScanRequest, request: Request):
         img_bytes = base64.b64decode(img_data)
         
         extracted_text = ImageOCRProcessor.extract_text(img_bytes)
+        text_readable = ImageOCRProcessor.ocr_readable(extracted_text)
+        
+        # Never run Halal analysis on error/fallback OCR strings: that would fabricate verdicts
+        # for content we could not actually read (e.g. garbage -> 'HALAL' false positive).
+        if not text_readable:
+            return {
+                "status": "success",
+                "extracted_text": extracted_text[:1200],
+                "halal_verdict": "NOT_FOUND",
+                "summary_ru": "Текст с изображения не распознан. Сфотографируйте состав продукта чётко и без бликов.",
+                "summary_kk": "Суреттегі мәтін танылмады. Өнім құрамын айқын етіп, жылтырсыз түсіріңіз.",
+                "haram_items": [],
+                "doubtful_items": [],
+                "shubhat_details": [],
+                "guard_report": guard.verify_full_text(extracted_text[:20000]),
+                "matches": [],
+                "ocr_text_read": False
+            }
+
         analysis = HalalKnowledgeBase.analyze_ingredients_deep(extracted_text)
         guard_report = guard.verify_full_text(extracted_text[:20000])
-        screen_res = engine.screen_halal(extracted_text)
+        matches_list = HalalKnowledgeBase.match_input(extracted_text)
         
         return {
             "status": "success",
@@ -851,7 +936,8 @@ def scan_image_ocr(req: ImageScanRequest, request: Request):
             "doubtful_items": analysis["doubtful_items"],
             "shubhat_details": analysis["shubhat_details"],
             "guard_report": guard_report,
-            "matches": screen_res.get("matches", [])
+            "matches": matches_list,
+            "ocr_text_read": True
         }
     except Exception as e:
         logger.error("OCR image processing failed: %s", e, exc_info=True)
@@ -883,6 +969,11 @@ def audit_pdf_document(req: PDFScanRequest, request: Request):
         pdf_bytes = base64.b64decode(pdf_data)
         
         audit_result = PDFDocumentProcessor.audit_pdf(pdf_bytes, guard, HalalKnowledgeBase)
+        if not audit_result.get("total_pages"):
+            raise HTTPException(
+                status_code=400,
+                detail="Не удалось прочитать PDF-документ. Проверьте, что файл не повреждён и не защищён паролем."
+            )
         return {
             "status": "success",
             "audit": audit_result
@@ -956,15 +1047,21 @@ def get_namaz_times(lat: float = 51.1694, lon: float = 71.4491):
 
 @app.post("/api/v1/zakat/calculate")
 def calculate_zakat(req: ZakatRequest):
-    """Computes Nisab and 2.5% Zakat liability."""
-    return ZakatCalculator.calculate_zakat(
-        cash_savings=req.cash_savings,
-        gold_grams=req.gold_grams,
-        silver_grams=req.silver_grams,
-        business_inventory=req.business_inventory,
-        liabilities_due=req.liabilities_due,
-        currency_symbol=req.currency or "₸"
-    )
+    """Computes Nisab and 2.5% Zakat liability. Prices/reference overridable for market accuracy."""
+    kwargs = {
+        "cash_savings": req.cash_savings,
+        "gold_grams": req.gold_grams,
+        "silver_grams": req.silver_grams,
+        "business_inventory": req.business_inventory,
+        "liabilities_due": req.liabilities_due,
+        "currency_symbol": req.currency or "₸",
+        "nisab_reference": req.nisab_reference or "silver",
+    }
+    if req.gold_price_per_gram is not None:
+        kwargs["gold_price_per_gram"] = req.gold_price_per_gram
+    if req.silver_price_per_gram is not None:
+        kwargs["silver_price_per_gram"] = req.silver_price_per_gram
+    return ZakatCalculator.calculate_zakat(**kwargs)
 
 @app.get("/api/v1/search/theme")
 def search_theme(q: str):
@@ -974,6 +1071,7 @@ def search_theme(q: str):
     return {"query": clean_q, "total_found": len(results), "results": results}
 
 FEEDBACK_FILE_PATH = os.path.join(RUNTIME_DATA_DIR, "feedback_submissions.json")
+_init_feedback_counter()
 
 def persist_feedback_entry(entry: Dict[str, Any]):
     """Appends feedback entry to persistent disk storage."""
@@ -1002,19 +1100,18 @@ def submit_feedback(req: FeedbackRequest):
     if not req.message or not req.message.strip():
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     
-    global FEEDBACK_STORE
-    if len(FEEDBACK_STORE) >= MAX_FEEDBACK_ITEMS:
-        FEEDBACK_STORE.pop(0)
-        
-    entry = {
-        "id": len(FEEDBACK_STORE) + 1,
-        "name": req.name.strip()[:100],
-        "contact": req.email_or_phone.strip()[:150],
-        "category": req.category[:50],
-        "message": req.message.strip()[:10000],
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
-    }
-    FEEDBACK_STORE.append(entry)
+    global FEEDBACK_STORE, FEEDBACK_ID_COUNTER
+    with _feedback_lock:
+        FEEDBACK_ID_COUNTER += 1
+        entry = {
+            "id": FEEDBACK_ID_COUNTER,
+            "name": req.name.strip()[:100],
+            "contact": req.email_or_phone.strip()[:150],
+            "category": req.category[:50],
+            "message": req.message.strip()[:10000],
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+        }
+        FEEDBACK_STORE.append(entry)
     persist_feedback_entry(entry)
 
     # Optional Telegram Admin notification

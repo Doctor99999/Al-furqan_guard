@@ -50,6 +50,7 @@ from quran_guard.multimodal import (
     ZakatCalculator,
     SemanticThemeEngine
 )
+from database import UserPreferencesService
 
 # Настройка логирования
 logging.basicConfig(
@@ -65,9 +66,12 @@ guard = QuranGuard(engine)
 ahkam = AhkamExtractor(engine)
 print("Ядро Al-Furqan Guard успешно загружено!")
 
-# Хранилище языковых настроек пользователей (user_id -> lang)
-USER_LANGS = {}
-USER_RECITERS = {} # user_id -> reciter ('alafasy', 'husary', 'abdulbasit')
+# Хранилище языковых настроек пользователей — persistent SQLite
+def get_user_lang(user_id: int) -> str:
+    return UserPreferencesService.get_lang(user_id)
+
+def get_user_reciter(user_id: int) -> str:
+    return UserPreferencesService.get_reciter(user_id)
 
 # CDN чтецов
 RECITERS_CDN = {
@@ -75,12 +79,6 @@ RECITERS_CDN = {
     "husary": "https://everyayah.com/data/Husary_128kbps",
     "abdulbasit": "https://everyayah.com/data/Abdul_Basit_Murattal_192kbps"
 }
-
-def get_user_lang(user_id: int) -> str:
-    return USER_LANGS.get(user_id, "ru")
-
-def get_user_reciter(user_id: int) -> str:
-    return USER_RECITERS.get(user_id, "alafasy")
 
 # =========================================================================
 # ТЕКСТЫ И ИНТЕРФЕЙС
@@ -190,6 +188,99 @@ I18N_MESSAGES = {
             "• `/zakat` — Zakat calculation\n\n"
             "📸 *Multi-Modal:* Send a **Photo** or **PDF document** for automated text extraction & audit!"
         )
+    },
+    "tr": {
+        "welcome": (
+            "🌟 *Al-Furqan Guard'a Hoş Geldiniz!* 🌟\n\n"
+            "Kuran gerçekleri, İslam finansı ve Helal uyumluluk (6.236 Ayet, 1.651 Kök).\n\n"
+            "📌 *Temel Özellikler:*\n"
+            "• 📖 *Kuran:* Her ayeti meal ve transkripsiyon ile dinleyin\n"
+            "• 🛡️ *Anti-Hallucination:* Kuran alıntılarını doğrulayın\n"
+            "• 📄 *PDF Denetimi:* AAOIFI uyumluluğu için PDF yükleyin\n"
+            "• 📷 *Foto OCR:* Yiyecek etiketlerini tarayın\n"
+            "• 📍 *Namaz Vakitleri:* Konum gönderin, 5 vakit namaz ve Kıble\n"
+            "• 💰 *Zekat Hesaplama:* Nisab ve %2.5 zekat hesabı\n\n"
+            "👇 *Menüyü kullanın veya metin/foto/PDF gönderin:*"
+        ),
+        "btn_fatiha": "📖 114 Sure Kataloğu",
+        "btn_halal": "🥗 Helal Tarayıcı",
+        "btn_roots": "🧬 1.651 Kök",
+        "btn_namaz": "📍 Namaz Vakitleri",
+        "btn_zakat": "💰 Zekat Hesaplama",
+        "btn_search": "🔍 Tematik Arama",
+        "btn_reciter": "🎙️ Kıraatçı Seçin",
+        "btn_lang": "🌐 Dili Değiştir",
+        "help": (
+            "📖 *Komutlar:*\n\n"
+            "• `/fatiha` — Fatiha Suresi\n"
+            "• `/ayah 2 255` — Ayetel Kürsi\n"
+            "• `/halal` — Helal doğrulama\n"
+            "• `/search sabır` — Tematik arama\n"
+            "• `/zakat` — Zekat hesabı\n"
+            "📸 *Foto veya PDF gönderin!*"
+        )
+    },
+    "uz": {
+        "welcome": (
+            "🌟 *Al-Furqan Guard botiga xush kelibsiz!* 🌟\n\n"
+            "Qur'on haqiqatlari, islom moliyasi va Halal muvofiqlik (6.236 oyat, 1.651 ildiz).\n\n"
+            "📌 *Asosiy imkoniyatlar:*\n"
+            "• 📖 *Qur'on:* Har bir oyatni tarjima va transliteratsiya bilan tinglang\n"
+            "• 🛡️ *Anti-Hallucination:* Qur'on iqtiboslarini tekshiring\n"
+            "• 📄 *PDF tekshiruvi:* AAOIFI muvofiqligi uchun PDF yuklang\n"
+            "• 📷 *Foto OCR:* Oziq-ovqat yorliqlarini skanerlang\n"
+            "• 📍 *Namoz vaqtlari:* Joylashuv yuboring, 5 vaqt namoz va Qibla\n"
+            "• 💰 *Zakot hisobi:* Nisab va 2.5% zakot hisoblash\n\n"
+            "👇 *Menyudan foydalaning yoki matn/foto/PDF yuboring:*"
+        ),
+        "btn_fatiha": "📖 114 Suralar katalogi",
+        "btn_halal": "🥗 Halal skaneri",
+        "btn_roots": "🧬 1.651 Ildiz",
+        "btn_namaz": "📍 Namoz vaqtlari",
+        "btn_zakat": "💰 Zakot hisobi",
+        "btn_search": "🔍 Mavzuy bo'yicha qidirish",
+        "btn_reciter": "🎙️ O'qlovchini tanlang",
+        "btn_lang": "🌐 Tilni o'zgartirish",
+        "help": (
+            "📖 *Buyruqlar:*\n\n"
+            "• `/fatiha` — Al-Fatiha surasi\n"
+            "• `/ayah 2 255` — Oyatul Kursi\n"
+            "• `/halal` — Halal tekshirish\n"
+            "• `/search sabr` — Mavzuy bo'yicha qidirish\n"
+            "• `/zakat` — Zakot hisobi\n"
+            "📸 *Foto yoki PDF yuboring!*"
+        )
+    },
+    "id": {
+        "welcome": (
+            "🌟 *Selamat datang di Al-Furqan Guard!* 🌟\n\n"
+            "Kebenaran Al-Qur'an, Keuangan Islam & Kepatuhan Halal (6.236 Ayat, 1.651 Akar).\n\n"
+            "📌 *Fitur Utama:*\n"
+            "• 📖 *Al-Qur'an:* Dengarkan setiap ayat dengan terjemahan\n"
+            "• 🛡️ *Anti-Hallucination:* Verifikasi kutipan Al-Qur'an\n"
+            "• 📄 *Audit PDF:* Unggah kontrak untuk kepatuhan AAOIFI\n"
+            "• 📷 *Foto OCR:* Pindai label makanan\n"
+            "• 📍 *Waktu Sholat:* Kirim lokasi untuk 5 waktu & Kiblat\n"
+            "• 💰 *Kalkulator Zakat:* Hitung Nisab & 2.5% zakat\n\n"
+            "👇 *Gunakan menu atau kirim teks/foto/PDF:*"
+        ),
+        "btn_fatiha": "📖 Katalog 114 Surah",
+        "btn_halal": "🥗 Pindai Halal",
+        "btn_roots": "🧬 1.651 Akar",
+        "btn_namaz": "📍 Waktu Sholat",
+        "btn_zakat": "💰 Kalkulator Zakat",
+        "btn_search": "🔍 Pencarian Tematik",
+        "btn_reciter": "🎙️ Pilih Qari",
+        "btn_lang": "🌐 Ganti Bahasa",
+        "help": (
+            "📖 *Perintah:*\n\n"
+            "• `/fatiha` — Surah Al-Fatiha\n"
+            "• `/ayah 2 255` — Ayat Kursi\n"
+            "• `/halal` — Verifikasi Halal\n"
+            "• `/search sabar` — Pencarian tematik\n"
+            "• `/zakat` — Kalkulasi zakat\n"
+            "📸 *Kirim foto atau PDF!*"
+        )
     }
 }
 
@@ -204,6 +295,21 @@ def get_persistent_reply_keyboard(lang: str = "ru") -> ReplyKeyboardMarkup:
         keyboard = [
             [KeyboardButton("📖 Read Quran"), KeyboardButton("🥗 Halal Scanner")],
             [KeyboardButton("🕋 Prayer & Qibla"), KeyboardButton("ℹ️ How to Use")]
+        ]
+    elif lang == "tr":
+        keyboard = [
+            [KeyboardButton("📖 Kuran Oku"), KeyboardButton("🥗 Helal Tarayıcı")],
+            [KeyboardButton("🕋 Namaz & Kıble"), KeyboardButton("ℹ️ Nasıl Kullanılır")]
+        ]
+    elif lang == "uz":
+        keyboard = [
+            [KeyboardButton("📖 Qur'on o'qish"), KeyboardButton("🥗 Halal skaneri")],
+            [KeyboardButton("🕋 Namoz va Qibla"), KeyboardButton("ℹ️ Qo'llanma")]
+        ]
+    elif lang == "id":
+        keyboard = [
+            [KeyboardButton("📖 Baca Al-Qur'an"), KeyboardButton("🥗 Pindai Halal")],
+            [KeyboardButton("🕋 Sholat & Kiblat"), KeyboardButton("ℹ️ Cara Pakai")]
         ]
     else:
         keyboard = [
@@ -694,7 +800,8 @@ async def zakat_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "📌 *Пример использования:*\n"
             "• `/zakat 1000000` (Закят с 1 000 000 тенге/рублей)\n"
             "• `/zakat 500000 100` (500 000 сбережений + 100 грамм золота)\n\n"
-            f"📊 *Текущий порог Нисаба (85г золота):* ~{res['gold_nisab_threshold']:,.0f} ₸\n"
+            f"📊 *Текущий порог Нисаба (по серебру, 595г):* ~{res['silver_nisab_threshold']:,.0f} ₸\n"
+            f"📊 *Порог по золоту (85г, консервативный):* ~{res['gold_nisab_threshold']:,.0f} ₸\n"
             f"⚖️ *Ставка Закята:* 2.5% (1/40 часть)"
         )
         return
@@ -715,13 +822,14 @@ async def zakat_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💰 *РЕЗУЛЬТАТ РАСЧЕТА ЗАКЯТА*\n\n"
             f"{verdict}\n\n"
             f"• *Общее имущество:* `{res['gross_wealth']:,.2f}`\n"
-            f"• *Порог Нисаба:* `{res['gold_nisab_threshold']:,.2f}`\n\n"
+            f"• *Порог Нисаба (используемый):* `{res['nisab_threshold_used']:,.2f}`\n"
+            f"• *Нисаб серебро / золото:* `{res['silver_nisab_threshold']:,.2f}` / `{res['gold_nisab_threshold']:,.2f}`\n\n"
             f"{amount_text}\n\n"
             f"📖 _«Выстаивайте молитву и выплачивайте закят...» (Коран 2:43)_"
         )
         await update.message.reply_markdown(msg)
     except Exception as e:
-        await update.message.reply_markdown(f"❌ Ошибка ввода: {str(e)}")
+        await update.message.reply_markdown("❌ Некорректный ввод. Пример: `/zakat 1000000`")
 
 # =========================================================================
 # МУЛЬТИМОДАЛЬНЫЕ ОБРАБОТЧИКИ (ФОТО, PDF, ГЕОЛОКАЦИЯ)
@@ -737,17 +845,24 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         photo_bytes = await file.download_as_bytearray()
         
         extracted_text = ImageOCRProcessor.extract_text(bytes(photo_bytes))
-        
-        # Проверка на Халяль
-        matches = HalalKnowledgeBase.match_input(extracted_text)
+        text_readable = ImageOCRProcessor.ocr_readable(extracted_text)
+        matches = HalalKnowledgeBase.match_input(extracted_text) if text_readable else []
         lang = get_user_lang(update.effective_user.id)
         
+        from telegram.helpers import escape_markdown
+        def _md_escape(t): return escape_markdown(str(t), version=1)
+
         report_lines = [
             "📋 *РЕЗУЛЬТАТ OCR-АНАЛИЗА ФОТО:*\n",
-            f"📝 *Распознанный фрагмент:*\n`{extracted_text[:300]}`\n"
+            f"📝 *Распознанный фрагмент:*\n`{_md_escape(extracted_text[:300])}`\n"
         ]
         
-        if matches:
+        if not text_readable:
+            if "Изображение" in extracted_text or "Ошибка обработки" in extracted_text:
+                report_lines.append("❌ *Система распознавания текста (OCR) не установлена или недоступна на сервере.* Пожалуйста, введите состав текстом вручную.")
+            else:
+                report_lines.append("ℹ️ *Текст с изображения не распознан.* Попробуйте сделать фото чётче и без бликов.")
+        elif matches:
             report_lines.append("🚨 *ОБНАРУЖЕНЫ ШАРИАТСКИЕ МАРКЕРЫ:*\n")
             for m in matches:
                 is_h = m["verdict"] == "HARAM"
@@ -759,8 +874,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             report_lines.append("🟢 *Прямых запретов / Харама на изображении не обнаружено.*")
 
         await update.message.reply_markdown("\n".join(report_lines))
-    except Exception as e:
-        await update.message.reply_markdown(f"❌ Ошибка обработки фото: {str(e)}")
+    except Exception:
+        await update.message.reply_markdown("❌ Не удалось обработать фото. Попробуйте изображение в формате PNG/JPEG.")
 
 async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработка PDF-документов: извлечение текста, проверка цитат и аудит договоров AAOIFI."""
@@ -777,12 +892,19 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         audit = PDFDocumentProcessor.audit_document(bytes(pdf_bytes), guard, HalalKnowledgeBase)
         
+        if not audit.get("total_pages"):
+            await update.message.reply_markdown("❌ Не удалось прочитать PDF-документ. Проверьте, что файл не повреждён и не защищён паролем.")
+            return
+        
         g_rep = audit["guard_report"]
         a_rep = audit["aaoifi_report"]
         
+        from telegram.helpers import escape_markdown
+        def _md_escape(t): return escape_markdown(str(t), version=1)
+
         msg_lines = [
             f"📑 *ОФИЦИАЛЬНЫЙ АУДИТОРСКИЙ ОТЧЕТ AL-FURQAN AI*\n",
-            f"• *Файл:* `{doc.file_name}`",
+            f"• *Файл:* `{_md_escape(doc.file_name)}`",
             f"• *Количество страниц:* {audit['total_pages']}",
             f"• *Символов проанализировано:* {audit['text_length']:,}\n"
         ]
@@ -790,7 +912,20 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # 1. Результат проверки цитат Корана
         if g_rep["claims_detected"]:
             if g_rep["is_valid"]:
-                msg_lines.append("✅ *Цитаты Корана:* 100% достоверны (Канонический Tanzil L0).")
+                if g_rep.get("contains_unverified_content"):
+                    if (g_rep.get("content_verified_count") or 0) > 0:
+                        msg_lines.append(
+                            f"🟡 *Цитаты Корана:* частично сверены — "
+                            f"{g_rep.get('content_verified_count') or 0} точно по канону, "
+                            f"{g_rep.get('coordinate_only_count') or 0} только по номерам (арабский текст отсутствует)."
+                        )
+                    else:
+                        msg_lines.append(
+                            f"ℹ️ *Цитаты Корана:* номера аятов верны ("
+                            f"{g_rep.get('coordinate_only_count') or 0}), но текст цитат не сверен с каноном — арабский текст отсутствует."
+                        )
+                else:
+                    msg_lines.append("✅ *Цитаты Корана:* 100% достоверны (Канонический Tanzil L0).")
             else:
                 msg_lines.append(f"🚨 *Цитаты Корана:* ОБНАРУЖЕНО {len(g_rep['violations'])} ИСКАЖЕНИЙ/ОШИБОК!")
         else:
@@ -808,7 +943,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg_lines.append("\n🛡️ _Детерминированный аудит Al-Furqan Guard с криптографической верификацией._")
         await update.message.reply_markdown("\n".join(msg_lines))
     except Exception as e:
-        await update.message.reply_markdown(f"❌ Ошибка аудита PDF: {str(e)}")
+        await update.message.reply_markdown("❌ Ошибка при обработке PDF. Убедитесь, что файл не повреждён.")
 
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Расчет точного времени 5 намазов и Киблы по геолокации."""
@@ -875,29 +1010,60 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
         try:
             from database import OpenFoodFactsService, HalalProductCache
             cached = HalalProductCache.get_by_barcode(clean_digits)
-            if not cached:
-                cached = await OpenFoodFactsService.fetch_product_by_barcode(clean_digits)
-                if cached:
-                    HalalProductCache.save_product(cached)
             
-            if cached and cached.get("name"):
-                analysis = HalalKnowledgeBase.analyze_ingredients_deep(
-                    cached.get("ingredients_text", ""),
-                    cached.get("additives_tags", [])
-                )
-                v = analysis["verdict"]
+            # Use cached or fetch and compute
+            if cached:
+                v = cached.get("halal_verdict", "DOUBTFUL")
+                summary_ru = cached.get("shubhat_summary", "")
+                name = cached.get("product_name", "")
+                brand = cached.get("brand", "")
+                ingredients_text = cached.get("ingredients_text", "")
+            else:
+                fetched = await OpenFoodFactsService.fetch_product_by_barcode(clean_digits)
+                if fetched and fetched.get("name"):
+                    analysis = HalalKnowledgeBase.analyze_ingredients_deep(
+                        fetched.get("ingredients_text", ""),
+                        fetched.get("additives_tags", [])
+                    )
+                    v = analysis["verdict"]
+                    summary_ru = analysis.get("summary_ru", "")
+                    name = fetched.get("name", "")
+                    brand = fetched.get("brand", "")
+                    ingredients_text = fetched.get("ingredients_text", "")
+                    
+                    try:
+                        import json
+                        HalalProductCache.save_product(
+                            barcode=fetched["barcode"],
+                            name=name,
+                            brand=brand,
+                            categories=fetched.get("categories", ""),
+                            ingredients=ingredients_text,
+                            verdict=v,
+                            summary=summary_ru,
+                            shubhat_json=json.dumps(analysis),
+                            source="OPEN_FOOD_FACTS"
+                        )
+                    except Exception as ex:
+                        print(f"Cache save error: {ex}")
+                        
+                    cached = True  # Signal that we have data
+                else:
+                    cached = False
+
+            if cached:
                 badge = "🟢 *ХАЛЯЛЬ (ДОЗВОЛЕНО)*" if v == "HALAL" else ("🔴 *ХАРАМ (ЗАПРЕТНО)*" if v == "HARAM" else "🟡 *КҮМӘНДІ / ТРЕБУЕТ ПРОВЕРКИ*")
 
                 def _md_clean(s: str) -> str:
                     return re.sub(r'[*_`\[\]]', '', s or "")
 
-                brand_str = f" ({_md_clean(cached.get('brand'))})" if cached.get('brand') else ""
-                ing_str = f"\n\n📝 *Состав:* {_md_clean(cached.get('ingredients_text', '')[:350])}" if cached.get('ingredients_text') else ""
+                brand_str = f" ({_md_clean(brand)})" if brand else ""
+                ing_str = f"\n\n📝 *Состав:* {_md_clean(ingredients_text[:350])}" if ingredients_text else ""
                 msg = (
                     f"{badge}\n\n"
-                    f"📦 *Товар:* {_md_clean(cached.get('name'))}{brand_str}\n"
+                    f"📦 *Товар:* {_md_clean(name)}{brand_str}\n"
                     f"🔢 *Штрихкод:* `{clean_digits}`{ing_str}\n\n"
-                    f"ℹ️ *Заключение:* {analysis['summary_ru']}\n\n"
+                    f"ℹ️ *Заключение:* {summary_ru}\n\n"
                     f"🛡️ _База Open Food Facts (2,5 млн товаров) • Al-Furqan Guard_"
                 )
                 await update.message.reply_markdown(msg)
@@ -906,7 +1072,7 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 await update.message.reply_markdown(f"📦 *Штрихкод:* `{clean_digits}` не найден в базе Open Food Facts. Отправьте фото состава товара на этикетке 📸!")
                 return
         except Exception as e:
-            await update.message.reply_markdown(f"❌ Ошибка проверки штрихкода: {str(e)}")
+            await update.message.reply_markdown("❌ Ошибка проверки штрихкода. Попробуйте другое изображение.")
             return
 
     elif text in ["🥗 Халяль сканер", "🥗 Халал сүзгісі", "🥗 Halal Scanner"]:
@@ -939,6 +1105,24 @@ async def handle_text_message(update: Update, context: ContextTypes.DEFAULT_TYPE
                 err_msg += f"• ⚠️ *{v.get('type')}:* {v.get('details')}\n"
             err_msg += "\n🛡️ _Al-Furqan Guard предотвратил распространение искаженного текста Корана._"
             await update.message.reply_markdown(err_msg)
+            return
+        elif audit_report.get("contains_unverified_content"):
+            partial = audit_report.get("content_verified_count", 0) > 0
+            if partial:
+                nuance_msg = (
+                    "🟡 *ЧАСТИЧНАЯ СВЕРКА ЦИТАТ*\n\n"
+                    f"✅ Сверено с каноном: {audit_report['content_verified_count']}\n"
+                    f"ℹ️ Проверено только по номерам аятов: {audit_report['coordinate_only_count']}\n\n"
+                    "Арабский текст части цитат отсутствует, поэтому полная сверка с текстом Tanzil невозможна. "
+                    "Укажите цитаты на арабском языке для верификации 100%."
+                )
+            else:
+                nuance_msg = (
+                    "ℹ️ *НОМЕРА АЯТОВ ВЕРНЫ, ТЕКСТ ЦИТАТ НЕ ПРОВЕРЕН*\n\n"
+                    "Ссылки (сура:аят) корректны, но текст цитат не был сверен с каноном — арабский текст не передан. "
+                    "Приведите цитату на арабском языке для полной верификации."
+                )
+            await update.message.reply_markdown(nuance_msg)
             return
         else:
             ok_msg = (
@@ -996,14 +1180,26 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         return
     elif data.startswith("surah_page_"):
         parts = data.split("_")
-        sura_num = int(parts[2])
-        page_num = int(parts[3])
+        try:
+            sura_num = int(parts[2])
+            page_num = int(parts[3])
+        except (ValueError, IndexError):
+            await query.message.reply_text("❌ Некорректные данные навигации")
+            return
         await send_surah_paginated(update, context, sura=sura_num, page=page_num, edit=True)
     elif data.startswith("open_surah_"):
-        sura_num = int(data.split("_")[2])
+        try:
+            sura_num = int(data.split("_")[2])
+        except (ValueError, IndexError):
+            await query.message.reply_text("❌ Некорректный номер суры")
+            return
         await send_surah_paginated(update, context, sura=sura_num, page=1, edit=True)
     elif data.startswith("cmd_surah_catalog_"):
-        cat_page = int(data.split("_")[3])
+        try:
+            cat_page = int(data.split("_")[3])
+        except (ValueError, IndexError):
+            await query.message.reply_text("❌ Некорректный номер страницы")
+            return
         await send_surah_catalog(update, context, page=cat_page, edit=True)
     elif data in ["cmd_fatiha", "cmd_quran_catalog"]:
         await send_surah_catalog(update, context, page=1, edit=False)
@@ -1023,7 +1219,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             "💰 *Калькулятор Закята*\n\n"
             "Напишите команду `/zakat <сумма>`, например:\n"
             "• `/zakat 1000000` (Закят с 1 млн сбережений)\n\n"
-            f"Порог Нисаба: ~{res['gold_nisab_threshold']:,.0f} ₸"
+            f"Порог Нисаба (по серебру): ~{res['silver_nisab_threshold']:,.0f} ₸ | по золоту: ~{res['gold_nisab_threshold']:,.0f} ₸"
         )
     elif data == "cmd_roots_menu":
         await query.message.reply_markdown(
@@ -1058,7 +1254,7 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
         )
     elif data.startswith("set_reciter_"):
         new_reciter = data.replace("set_reciter_", "")
-        USER_RECITERS[user_id] = new_reciter
+        UserPreferencesService.set_reciter(user_id, new_reciter)
         names = {
             "alafasy": "Мишари Рашид Аль-Афаси",
             "husary": "Махмуд Халиль Аль-Хусари",
@@ -1070,17 +1266,22 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
             [
                 InlineKeyboardButton("🇰🇿 Қазақша", callback_data="set_lang_kk"),
                 InlineKeyboardButton("🇷🇺 Русский", callback_data="set_lang_ru"),
-                InlineKeyboardButton("🇬🇧 English", callback_data="set_lang_en")
+                InlineKeyboardButton("🇬🇧 English", callback_data="set_lang_en"),
+            ],
+            [
+                InlineKeyboardButton("🇹🇷 Türkçe", callback_data="set_lang_tr"),
+                InlineKeyboardButton("🇺🇿 O'zbekcha", callback_data="set_lang_uz"),
+                InlineKeyboardButton("🇮🇩 Bahasa", callback_data="set_lang_id"),
             ]
         ]
         await query.message.reply_markdown(
-            "🌐 *Выберите язык интерфейса:*",
+            "🌐 *Выберите язык интерфейса / Тілді таңдаңыз / Choose language:*",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
     elif data.startswith("set_lang_"):
         new_lang = data.replace("set_lang_", "")
-        USER_LANGS[user_id] = new_lang
-        lang_names = {"kk": "Қазақша", "ru": "Русский", "en": "English"}
+        UserPreferencesService.set_lang(user_id, new_lang)
+        lang_names = {"kk": "Қазақша", "ru": "Русский", "en": "English", "tr": "Türkçe", "uz": "O'zbekcha", "id": "Bahasa Indonesia"}
         await query.message.reply_markdown(
             f"✅ Язык изменен на *{lang_names.get(new_lang, new_lang)}*!",
             reply_markup=get_main_keyboard(new_lang)
@@ -1160,7 +1361,8 @@ def main():
             app = create_bot_app(token)
 
             print("✅ Мультимодальный бот Al-Furqan Guard успешно запущен и слушает события Telegram!")
-            # drop_pending_updates=True drops stale updates / webhook remnants
+            # explicitly drop webhook to avoid Polling vs Webhook conflict
+            loop.run_until_complete(app.bot.delete_webhook(drop_pending_updates=True))
             app.run_polling(drop_pending_updates=True, stop_signals=None, close_loop=False)
             break
         except Conflict as e:

@@ -53,31 +53,35 @@ class PDFDocumentProcessor:
                 extracted_text.append(f"--- [СТРАНИЦА {i+1}] ---\n{text}")
                 
             return "\n\n".join(extracted_text), total_pages
-        except Exception as e:
-            return f"Ошибка чтения PDF: {str(e)}", 0
+        except Exception:
+            return "", 0
 
     @staticmethod
     def audit_pdf(pdf_bytes: bytes, guard, halal_engine, lang: str = "ru") -> Dict[str, Any]:
         """Runs complete Anti-Hallucination and AAOIFI audit across entire PDF document."""
         full_text, pages_count = PDFDocumentProcessor.extract_text_from_bytes(pdf_bytes)
+        text_truncated = len(full_text) > 200000
+        audit_text = full_text[:200000]
         
         # 1. Guardrail quote check
-        guard_report = guard.verify_full_text(full_text[:50000])
+        guard_report = guard.verify_full_text(audit_text)
         
         # 2. AAOIFI contract compliance check
-        aaoifi_report = halal_engine.audit_contract_aaoifi(full_text[:50000])
+        aaoifi_report = halal_engine.audit_contract_aaoifi(audit_text)
         
         # 3. Halal food / ingredient check
-        halal_matches = halal_engine.match_input(full_text[:50000])
+        halal_matches = halal_engine.match_input(audit_text)
         
-        return {
+        result = {
             "total_pages": pages_count,
+            "text_truncated": text_truncated,
             "text_length": len(full_text),
             "guard_report": guard_report,
             "aaoifi_report": aaoifi_report,
             "halal_matches": halal_matches,
             "text_preview": full_text[:1200]
         }
+        return result
 
     # Alias for backwards compatibility
     audit_document = audit_pdf
@@ -93,7 +97,14 @@ class ImageOCRProcessor:
     def extract_text(image_bytes: bytes) -> str:
         """Extracts text from image bytes using Tesseract with image preprocessing fallback."""
         try:
+            # Prevent Decompression Bomb DoS (25 megapixels limit)
+            Image.MAX_IMAGE_PIXELS = 25_000_000
+            
             img = Image.open(io.BytesIO(image_bytes))
+            
+            # Check dimensions explicitly as well
+            if img.width * img.height > 25_000_000:
+                return "Ошибка: Изображение превышает лимит в 25 мегапикселей."
             
             # Convert to grayscale / RGB for optimal OCR
             if img.mode != 'RGB':
@@ -101,18 +112,27 @@ class ImageOCRProcessor:
                 
             if PYTESSERACT_AVAILABLE:
                 try:
-                    # Attempt Tesseract with multi-language support (rus, kaz, ara, eng)
-                    text = pytesseract.image_to_string(img, lang="rus+kaz+ara+eng")
+                    # Attempt Tesseract with multi-language support (rus, kaz, ara, eng) and explicit timeout
+                    text = pytesseract.image_to_string(img, lang="rus+kaz+ara+eng", timeout=10)
                     if text and text.strip():
                         return text.strip()
-                except Exception:
-                    pass
+                except Exception as ex:
+                    print(f"Tesseract OCR Exception: {ex}")
                     
             # Fallback: Basic image analysis metadata
             width, height = img.size
             return f"Изображение {width}x{height}px получено для анализа состава."
-        except Exception as e:
-            return f"Ошибка обработки изображения: {str(e)}"
+        except Exception:
+            return "Ошибка обработки изображения"
+
+    @staticmethod
+    def ocr_readable(text: str) -> bool:
+        """True only when OCR produced real content; False for error/fallback strings."""
+        if not text or not text.strip():
+            return False
+        if text.startswith("Ошибка обработки изображения"):
+            return False
+        return not re.match(r"^Изображение \d+x\d+px получено для анализа состава", text)
 
 # =========================================================================
 # 3. ASTRONOMICAL NAMAZ PRAYER TIMES & QIBLA DIRECTION
@@ -245,24 +265,37 @@ class ZakatCalculator:
         silver_grams: float = 0.0,
         business_inventory: float = 0.0,
         liabilities_due: float = 0.0,
-        gold_price_per_gram: float = 35000.0, # Default approx in KZT / ~75 USD
-        silver_price_per_gram: float = 400.0,
-        currency_symbol: str = "₸"
+        gold_price_per_gram: float = 66000.0,   # KZT/gram - EXAMPLE default; pass live market price for accuracy
+        silver_price_per_gram: float = 550.0,   # KZT/gram - EXAMPLE default; pass live market price for accuracy
+        currency_symbol: str = "₸",
+        nisab_reference: str = "silver"  # "silver" (preferred for cash wealth) or "gold"
     ) -> Dict[str, Any]:
-        """Calculates exact Zakat liability and Nisab eligibility."""
-        gold_value = gold_grams * gold_price_per_gram
-        silver_value = silver_grams * silver_price_per_gram
-        
+        """Calculates exact Zakat liability and Nisab eligibility.
+
+        The obligation threshold follows `nisab_reference`:
+        - "silver" (default): 595g of silver -- the standard most fiqh authorities
+          prefer for monetary wealth, because the lower threshold obligates earlier
+          and benefits the poor (this matches the calculator's documented intent).
+        - "gold": 85g of gold -- the higher, more conservative threshold.
+        Both thresholds are returned so clients can display them transparently.
+        """
+        gold_value = max(0.0, gold_grams) * gold_price_per_gram
+        silver_value = max(0.0, silver_grams) * silver_price_per_gram
+
         gross_wealth = cash_savings + gold_value + silver_value + business_inventory
         net_wealth = max(0.0, gross_wealth - liabilities_due)
-        
+
         gold_nisab_threshold = ZakatCalculator.GOLD_NISAB_GRAMS * gold_price_per_gram
         silver_nisab_threshold = ZakatCalculator.SILVER_NISAB_GRAMS * silver_price_per_gram
-        
-        # In Islamic Jurisprudence, silver nisab is preferred for monetary wealth to benefit the poor
-        is_obligatory = net_wealth >= gold_nisab_threshold
+
+        reference = nisab_reference.strip().lower() if isinstance(nisab_reference, str) else "silver"
+        if reference not in ("silver", "gold"):
+            reference = "silver"
+        nisab_threshold_used = silver_nisab_threshold if reference == "silver" else gold_nisab_threshold
+
+        is_obligatory = net_wealth >= nisab_threshold_used
         zakat_amount = (net_wealth * ZakatCalculator.ZAKAT_RATE) if is_obligatory else 0.0
-        
+
         return {
             "is_obligatory": is_obligatory,
             "currency": currency_symbol,
@@ -270,6 +303,9 @@ class ZakatCalculator:
             "liabilities": round(liabilities_due, 2),
             "net_wealth": round(net_wealth, 2),
             "gold_nisab_threshold": round(gold_nisab_threshold, 2),
+            "silver_nisab_threshold": round(silver_nisab_threshold, 2),
+            "nisab_reference": reference,
+            "nisab_threshold_used": round(nisab_threshold_used, 2),
             "zakat_due": round(zakat_amount, 2),
             "rate_percent": "2.5%"
         }
@@ -325,6 +361,115 @@ THEMATIC_INDEX = {
         (2, 183), (2, 184), (2, 185), (2, 187)
     ],
     "пост": [
+        (2, 183), (2, 184), (2, 185), (2, 187)
+    ],
+    # English (en)
+    "patience": [
+        (2, 153), (2, 155), (3, 200), (39, 10), (103, 3)
+    ],
+    "parents": [
+        (17, 23), (17, 24), (31, 14), (46, 15), (29, 8)
+    ],
+    "justice": [
+        (4, 58), (4, 135), (5, 8), (16, 90), (42, 15)
+    ],
+    "trade": [
+        (2, 275), (2, 282), (4, 29), (62, 9), (83, 1)
+    ],
+    "commerce": [
+        (2, 275), (2, 282), (4, 29), (62, 9), (83, 1)
+    ],
+    "usury": [
+        (2, 275), (2, 276), (2, 278), (3, 130), (30, 39)
+    ],
+    "interest": [
+        (2, 275), (2, 276), (2, 278), (3, 130), (30, 39)
+    ],
+    "forgiveness": [
+        (3, 133), (3, 134), (4, 110), (39, 53), (42, 40)
+    ],
+    "zakat": [
+        (2, 43), (2, 110), (9, 60), (9, 103), (22, 41)
+    ],
+    "prayer": [
+        (2, 45), (2, 238), (4, 103), (20, 14), (29, 45)
+    ],
+    "salat": [
+        (2, 45), (2, 238), (4, 103), (20, 14), (29, 45)
+    ],
+    "fasting": [
+        (2, 183), (2, 184), (2, 185), (2, 187)
+    ],
+    # Turkish (tr)
+    "sabır": [
+        (2, 153), (2, 155), (3, 200), (39, 10), (103, 3)
+    ],
+    "ebeveyn": [
+        (17, 23), (17, 24), (31, 14), (46, 15), (29, 8)
+    ],
+    "adalet": [
+        (4, 58), (4, 135), (5, 8), (16, 90), (42, 15)
+    ],
+    "ticaret": [
+        (2, 275), (2, 282), (4, 29), (62, 9), (83, 1)
+    ],
+    "faiz": [
+        (2, 275), (2, 276), (2, 278), (3, 130), (30, 39)
+    ],
+    "bağışlama": [
+        (3, 133), (3, 134), (4, 110), (39, 53), (42, 40)
+    ],
+    "zekat": [
+        (2, 43), (2, 110), (9, 60), (9, 103), (22, 41)
+    ],
+    "namaz": [
+        (2, 45), (2, 238), (4, 103), (20, 14), (29, 45)
+    ],
+    "oruç": [
+        (2, 183), (2, 184), (2, 185), (2, 187)
+    ],
+    # Uzbek (uz)
+    "sabr": [
+        (2, 153), (2, 155), (3, 200), (39, 10), (103, 3)
+    ],
+    "ota-ona": [
+        (17, 23), (17, 24), (31, 14), (46, 15), (29, 8)
+    ],
+    "adolat": [
+        (4, 58), (4, 135), (5, 8), (16, 90), (42, 15)
+    ],
+    "savdo": [
+        (2, 275), (2, 282), (4, 29), (62, 9), (83, 1)
+    ],
+    "ribo": [
+        (2, 275), (2, 276), (2, 278), (3, 130), (30, 39)
+    ],
+    "kechirim": [
+        (3, 133), (3, 134), (4, 110), (39, 53), (42, 40)
+    ],
+    "roza": [
+        (2, 183), (2, 184), (2, 185), (2, 187)
+    ],
+    # Indonesian (id)
+    "kesabaran": [
+        (2, 153), (2, 155), (3, 200), (39, 10), (103, 3)
+    ],
+    "orang tua": [
+        (17, 23), (17, 24), (31, 14), (46, 15), (29, 8)
+    ],
+    "keadilan": [
+        (4, 58), (4, 135), (5, 8), (16, 90), (42, 15)
+    ],
+    "perdagangan": [
+        (2, 275), (2, 282), (4, 29), (62, 9), (83, 1)
+    ],
+    "ampunan": [
+        (3, 133), (3, 134), (4, 110), (39, 53), (42, 40)
+    ],
+    "solat": [
+        (2, 45), (2, 238), (4, 103), (20, 14), (29, 45)
+    ],
+    "puasa": [
         (2, 183), (2, 184), (2, 185), (2, 187)
     ]
 }
@@ -436,15 +581,17 @@ class AuditCertificateGenerator:
         elements.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#CBD5E1'), spaceAfter=14))
 
         # Document Details Box
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC")
+        timestamp = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
         is_compliant = audit_report.get("is_compliant", False)
         status_text = "🟢 100% COMPLIANT (СООТВЕТСТВУЕТ ШАРИАТУ)" if is_compliant else "🔴 NON-COMPLIANT (ОБНАРУЖЕНЫ ШАРИАТСКИЕ РИСКИ)"
         status_color = colors.HexColor('#16A34A') if is_compliant else colors.HexColor('#DC2626')
 
+        import html
+        
         info_data = [
-            [Paragraph("<b>Название документа:</b>", body_style), Paragraph(str(doc_title), body_style)],
+            [Paragraph("<b>Название документа:</b>", body_style), Paragraph(html.escape(str(doc_title)), body_style)],
             [Paragraph("<b>Дата аудита:</b>", body_style), Paragraph(timestamp, body_style)],
-            [Paragraph("<b>Тип контракта (AAOIFI):</b>", body_style), Paragraph(str(audit_report.get("contract_type", "COMMERCIAL")), body_style)],
+            [Paragraph("<b>Тип контракта (AAOIFI):</b>", body_style), Paragraph(html.escape(str(audit_report.get("contract_type", "COMMERCIAL"))), body_style)],
             [Paragraph("<b>Вердикт аудитора:</b>", body_style), Paragraph(f"<b>{status_text}</b>", ParagraphStyle('Status', parent=body_style, textColor=status_color))]
         ]
         info_table = Table(info_data, colWidths=[150, 370])
@@ -466,13 +613,14 @@ class AuditCertificateGenerator:
             elements.append(Paragraph("В ходе глубокого семантического и юридического аудита условий договора прямого несоответствия стандартам AAOIFI и аятам Корана не обнаружено.", body_style))
         else:
             for idx, f in enumerate(findings, 1):
-                f_title = f.get("risk_title_ru") or f.get("standard")
-                f_issue = f.get("issue_ru", "")
-                f_solution = f.get("solution_ru", "")
-                f_ayah = f.get("ayah_ref", "")
-                f_ayah_trans = f.get("ayah_trans_ru", "")
+                f_title = html.escape(str(f.get("risk_title_ru") or f.get("standard") or ""))
+                f_issue = html.escape(str(f.get("issue_ru", "")))
+                f_solution = html.escape(str(f.get("solution_ru", "")))
+                f_ayah = html.escape(str(f.get("ayah_ref", "")))
+                f_ayah_trans = html.escape(str(f.get("ayah_trans_ru", "")))
+                f_severity = html.escape(str(f.get("severity", "CRITICAL")))
 
-                elements.append(Paragraph(f"{idx}. {f_title} [{f.get('severity', 'CRITICAL')}]", finding_title_style))
+                elements.append(Paragraph(f"{idx}. {f_title} [{f_severity}]", finding_title_style))
                 elements.append(Paragraph(f"<b>Суть нарушения:</b> {f_issue}", body_style))
                 elements.append(Spacer(1, 3))
                 if f_ayah:

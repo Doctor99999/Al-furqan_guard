@@ -75,6 +75,8 @@ html {
     background-color: var(--apple-black);
     overflow-x: hidden;
     width: 100%;
+    max-width: 100vw;
+    overscroll-behavior: none;
 }
 
 body {
@@ -86,6 +88,8 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     width: 100%;
+    max-width: 100vw;
+    overscroll-behavior: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.02em;
@@ -665,10 +669,18 @@ body::before {
    ========================================================================= */
 .main-tabs-bar {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 24px;
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: sticky;
+    top: 84px;
+    z-index: 998;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    background: linear-gradient(to bottom, var(--apple-black) 85%, transparent);
 }
 
 .tab-btn {
@@ -683,8 +695,12 @@ body::before {
     cursor: pointer;
     text-align: left;
     transition: all 0.25s var(--ease-apple);
-    font-family: inherit;
     min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    font-family: inherit;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .tab-btn:hover {
@@ -718,6 +734,7 @@ body::before {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    overflow: hidden;
 }
 
 .tab-title {
@@ -744,12 +761,18 @@ body::before {
 .tab-content-container {
     min-height: 380px;
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .tab-pane {
     display: none;
     animation: appleFadeIn 0.35s var(--ease-apple);
     width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .tab-pane.active {
@@ -1848,7 +1871,7 @@ body::before {
         grid-template-columns: repeat(2, 1fr);
     }
     .main-tabs-bar {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .prayer-times-grid {
         grid-template-columns: repeat(3, 1fr);
@@ -1910,9 +1933,10 @@ body::before {
     }
 
     .main-tabs-bar {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         margin-bottom: 16px;
+        top: 76px;
     }
     
     .tab-btn {
@@ -1920,6 +1944,7 @@ body::before {
         gap: 8px;
         border-radius: var(--radius-md);
         min-width: 0;
+        max-width: 100%;
     }
 
     .tab-sub {
@@ -2017,9 +2042,10 @@ body::before {
     }
 
     .main-tabs-bar {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
         margin-bottom: 14px;
+        top: 72px;
     }
 
     .tab-btn {
@@ -2028,6 +2054,7 @@ body::before {
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
+        max-width: 100%;
     }
 
     .tab-icon {

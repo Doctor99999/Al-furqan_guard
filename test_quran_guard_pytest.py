@@ -125,6 +125,60 @@ def test_muqattaat_verse_handling(guard):
     assert len(res["verified_items"]) == 1
 
 
+# 7a. Honest verdict semantics: coordinates-only citations must NOT be claimed as "verified content"
+def test_coordinates_only_verdict_is_not_canonical(guard):
+    """A citation with a valid sura:ayah but NO Arabic quote text must surface as
+    VERIFIED_COORDINATES_ONLY (content never diffed against canonical Tanzil)."""
+    text = "Как указано в суре 2 аяте 255, Аллах управляет мирами, и этот аят часто читают дома."
+    res = guard.verify_full_text(text)
+    assert res["hallucinations_count"] == 0
+    assert res["is_valid"] is True
+    assert res["verdict"] == "VERIFIED_COORDINATES_ONLY"
+    assert res["content_verified_count"] == 0
+    assert res["coordinate_only_count"] == 1
+    assert res["contains_unverified_content"] is True
+    assert res["verified_items"][0]["type"] == "VALID_COORDINATE"
+    assert res["verified_items"][0]["content_verified"] is False
+
+
+def test_exact_quote_is_canonical_verified(guard):
+    """A citation WITH matching Arabic quote must be EXACT_CITATION / VERIFIED_CANONICAL."""
+    canon = guard.engine.get_ayah(2, 255)["text"]
+    text = f"Аят аль-Курси (2:255): {canon}"
+    res = guard.verify_full_text(text)
+    assert res["hallucinations_count"] == 0
+    assert res["verdict"] == "VERIFIED_CANONICAL"
+    assert res["content_verified_count"] == 1
+    assert res["coordinate_only_count"] == 0
+    assert res["contains_unverified_content"] is False
+    assert res["verified_items"][0]["type"] == "EXACT_CITATION"
+    assert res["verified_items"][0]["content_verified"] is True
+
+
+def test_partial_verification_verdict(guard):
+    """Mixed input: one exact Arabic quote + one coordinates-only cite => PARTIAL, not 100%."""
+    canon = guard.engine.get_ayah(2, 255)["text"]
+    text = f"Аят аль-Курси (2:255): {canon}. А также упоминается сура 112 аят 1 в тексте."
+    res = guard.verify_full_text(text)
+    assert res["hallucinations_count"] == 0
+    assert res["total_citations_found"] == 2
+    assert res["verdict"] == "VERIFIED_CANONICAL_PARTIAL"
+    assert res["content_verified_count"] == 1
+    assert res["coordinate_only_count"] == 1
+    assert res["contains_unverified_content"] is True
+    assert res["is_valid"] is True
+
+
+def test_guard_report_exposes_verification_metrics(guard):
+    """New verbosity fields must always be present (incl. the no-citation path)."""
+    res = guard.verify_full_text("Обычный текст без цитат.")
+    for key in ("content_verified_count", "coordinate_only_count", "contains_unverified_content"):
+        assert key in res, f"Guard report must expose '{key}'"
+        assert res["content_verified_count"] == 0
+        assert res["coordinate_only_count"] == 0
+    assert res["contains_unverified_content"] is False
+
+
 # 8. Shariah Contextual Screener (Riba vs Discount)
 def test_shariah_contract_screening(ahkam):
     # Riba loan -> Flagged

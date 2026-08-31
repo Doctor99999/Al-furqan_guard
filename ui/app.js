@@ -3,6 +3,16 @@
  * 100% Real Backend Data Pipelines (Zero Mocks / Full Universal Search / Real OCR & PDF / 7-Language Reactive)
  */
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // PWA Service Worker Registration
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -300,11 +310,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 item.innerHTML = `
                     <div class="search-result-header-line">
                         <span style="font-weight: 800; color: ${isHaram ? '#F87171' : '#34D399'};">
-                            ${verdictBadge}: ${title}
+                            ${escapeHtml(verdictBadge)}: ${escapeHtml(title)}
                         </span>
-                        <span style="font-size: 11px; color: var(--text-muted);">${m.ayah_ref || 'Шариат'}</span>
+                        <span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(m.ayah_ref || 'Шариат')}</span>
                     </div>
-                    <div class="search-result-trans">${desc}</div>
+                    <div class="search-result-trans">${escapeHtml(desc)}</div>
                 `;
                 item.addEventListener('click', () => {
                     searchResultsDropdown.style.display = 'none';
@@ -660,7 +670,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        if (isValid) {
+        if (isValid && data.contains_unverified_content) {
+            const partial = (data.content_verified_count || 0) > 0;
+            if (partial) {
+                verificationResultBox.innerHTML = `
+                    <div class="verdict-header" style="color: #FBBF24;">${I18N.t('guardPartialHeader') || '🟡 ЧАСТИЧНАЯ СВЕРКА ЦИТАТ (PARTIAL VERIFICATION)'}</div>
+                    <div class="verdict-desc">${I18N.t('guardPartialDesc') || `Часть цитат точно сверена с каноном (Tanzil), остальные проверены только по номерам аятов (без арабского текста). Приведите арабский текст для полной верификации. Сверено: ${data.content_verified_count}, только номера: ${data.coordinate_only_count}.`}</div>
+                `;
+            } else {
+                verificationResultBox.innerHTML = `
+                    <div class="verdict-header" style="color: #FBBF24;">${I18N.t('guardCoordsOnlyHeader') || 'ℹ️ НОМЕРА АЯТОВ ВЕРНЫ, ТЕКСТ ЦИТАТ НЕ ПРОВЕРЕН'}</div>
+                    <div class="verdict-desc">${I18N.t('guardCoordsOnlyDesc') || 'Ссылки (сура:аят) корректны, но текст цитат отсутствует в арабском виде — сверка с каноном невозможна. Укажите цитату на арабском языке для полной верификации.'}</div>
+                `;
+            }
+        } else if (isValid) {
             verificationResultBox.innerHTML = `
                 <div class="verdict-header" style="color: #34D399;">${I18N.t('guardValidHeader') || '✅ ЦИТАТА ИЗ КОРАНА 100% ДОСТОВЕРНА (CANONICAL TANZIL)'}</div>
                 <div class="verdict-desc">${I18N.t('guardValidDesc') || 'Все номера аятов, канонический текст и огласовки полностью соответствуют канону. Галлюцинаций не обнаружено.'}</div>
@@ -668,7 +691,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             let violationsHtml = '';
             (data.violations || []).forEach(v => {
-                violationsHtml += `<li><strong>${v.type}:</strong> ${v.details}</li>`;
+                violationsHtml += `<li><strong>${escapeHtml(v.type)}:</strong> ${escapeHtml(v.details)}</li>`;
             });
 
             verificationResultBox.innerHTML = `
@@ -678,6 +701,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div style="font-size: 12px; color: var(--text-muted);">${I18N.t('guardProtectedNote') || '🛡️ Al-Furqan AI защитил от распространения недостоверного текста.'}</div>
             `;
         }
+    }
+
+    function guardQuoteBadge(gRep) {
+        if (!gRep.claims_detected) return 'ℹ️ Прямых цитат не обнаружено';
+        if (!gRep.is_valid) return '⚠️ Найдено искажение цитат';
+        if (gRep.contains_unverified_content) {
+            return (gRep.content_verified_count > 0)
+                ? '🟡 Часть цитат сверена, часть — только номера'
+                : 'ℹ️ Номера аятов верны, текст цитат не сверен';
+        }
+        return '✅ Цитаты 100% достоверны';
     }
 
     window.playSpecificAyah = async (sura, ayah) => {
@@ -1411,7 +1445,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 12px;">
                         <div style="font-size: 12px; color: var(--text-secondary);">Цитаты из Корана (Ground Truth):</div>
                         <div style="font-weight: 800; font-size: 14px; color: #38BDF8; margin-top: 4px;">
-                            ${gRep.claims_detected ? (gRep.is_valid ? '✅ Цитаты 100% достоверны' : '⚠️ Найдено искажение цитат') : 'ℹ️ Прямых цитат не обнаружено'}
+                            ${guardQuoteBadge(gRep)}
                         </div>
                     </div>
                 </div>
@@ -1476,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     btnGetLocation.addEventListener('click', () => {
         if (!navigator.geolocation) {
-            alert("Геолокация не поддерживается вашим браузером.");
+            alert(I18N.t('geoNotSupported') || "Геолокация не поддерживается вашим браузером.");
             return;
         }
         navigator.geolocation.getCurrentPosition(
@@ -1484,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 cityPills.forEach(p => p.classList.remove('active'));
                 loadNamazTimes(pos.coords.latitude, pos.coords.longitude);
             },
-            (err) => alert("Не удалось получить местоположение: " + err.message)
+            (err) => alert((I18N.t('geoError') || "Не удалось получить местоположение: ") + err.message)
         );
     });
 
@@ -1528,10 +1562,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const res = await resp.json();
 
             zakatAmountText.textContent = `${Number(res.zakat_due).toLocaleString()} ₸`;
+            const nisabUsed = Number(res.nisab_threshold_used ?? res.gold_nisab_threshold).toLocaleString();
             if (res.is_obligatory) {
-                zakatNoteText.textContent = I18N.t('zakatNoteObligatory', { threshold: Number(res.gold_nisab_threshold).toLocaleString() }) || `Имущество превышает Нисаб (~${Number(res.gold_nisab_threshold).toLocaleString()} ₸). Закят обязателен (2.5%).`;
+                zakatNoteText.textContent = I18N.t('zakatNoteObligatory', { threshold: nisabUsed }) || `Имущество превышает Нисаб (~${nisabUsed} ₸). Закят обязателен (2.5%).`;
             } else {
-                zakatNoteText.textContent = I18N.t('zakatNoteExempt', { threshold: Number(res.gold_nisab_threshold).toLocaleString() }) || `Имущество меньше порога Нисаба (~${Number(res.gold_nisab_threshold).toLocaleString()} ₸). Закят не начисляется.`;
+                zakatNoteText.textContent = I18N.t('zakatNoteExempt', { threshold: nisabUsed }) || `Имущество меньше порога Нисаба (~${nisabUsed} ₸). Закят не начисляется.`;
             }
         } catch (e) {
             console.warn("Zakat calculation notice:", e);
@@ -2243,20 +2278,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
 
                 <p><strong>1. Исповедание веры (Шахада):</strong><br>
-                Я, <u>${name}</u>, находясь в здравом уме, твердой памяти и ясном сознании, свидетельствую: <i>«Нет божества, кроме Аллаха, Единственного, не имеющего сотоварищей, и свидетельствую, что Мухаммад — Его раб и Посланник»</i>.</p>
+                Я, <u>${escapeHtml(name)}</u>, находясь в здравом уме, твердой памяти и ясном сознании, свидетельствую: <i>«Нет божества, кроме Аллаха, Единственного, не имеющего сотоварищей, и свидетельствую, что Мухаммад — Его раб и Посланник»</i>.</p>
 
                 <p><strong>2. Распоряжение имуществом и благотворительность (Васият / Вакуф):</strong><br>
-                На основании аята Священного Корана (Сура Аль-Бакара 2:180) и сунны Пророка ﷺ я завещаю выделить из принадлежащего мне имущества долю в размере <strong>${waqfText}</strong> на нужды благотворительности (садака джария / вакуф / помощь нуждающимся).</p>
+                На основании аята Священного Корана (Сура Аль-Бакара 2:180) и сунны Пророка ﷺ я завещаю выделить из принадлежащего мне имущества долю в размере <strong>${escapeHtml(waqfText)}</strong> на нужды благотворительности (садака джария / вакуф / помощь нуждающимся).</p>
 
                 <p><strong>3. Распределение наследства по Шариату (Мирас / Фараид):</strong><br>
                 Все оставшееся после выплаты долгов и указанной доли имущество подлежит строгому разделу между законными наследниками по нормам Шариата в долях, установленных Всевышним Аллахом в <strong>Суре Ан-Ниса (аяты 11, 12 и 176)</strong>.</p>
 
                 <p><strong>4. Особые поручения и долги:</strong><br>
-                ${notes}</p>
+                ${escapeHtml(notes)}</p>
 
                 <div style="margin-top: 30px; display: flex; justify-content: space-between;">
                     <div>
-                        <p><strong>Завещатель:</strong> ________________ / ${name} /</p>
+                        <p><strong>Завещатель:</strong> ________________ / ${escapeHtml(name)} /</p>
                     </div>
                     <div>
                         <p><strong>Свидетель 1:</strong> ________________</p>

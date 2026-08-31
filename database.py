@@ -114,6 +114,9 @@ def init_native_db():
     cols = [r[1] for r in cur.execute("PRAGMA table_info(b2b_organizations)").fetchall()]
     if "key_hash" not in cols:
         cur.execute("ALTER TABLE b2b_organizations ADD COLUMN key_hash TEXT")
+
+    # Index for fast B2B auth lookups (avoids full-table scan per request)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_b2b_key_hash ON b2b_organizations(key_hash)")
     
     # Seed a demo B2B master key only when explicitly provided via env (no hardcoded backdoor).
     demo_key = os.environ.get("B2B_DEMO_API_KEY", "").strip()
@@ -132,8 +135,81 @@ def init_native_db():
     conn.commit()
     conn.close()
 
+    # 4. User preferences (Telegram bot language / reciter) — survives deploys
+    conn2 = DBConnection.get_sqlite_conn()
+    cur2 = conn2.cursor()
+    cur2.execute("""
+        CREATE TABLE IF NOT EXISTS user_preferences (
+            user_id INTEGER PRIMARY KEY,
+            lang TEXT DEFAULT 'ru',
+            reciter TEXT DEFAULT 'alafasy',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn2.commit()
+    conn2.close()
+
 # Auto-initialize database tables
 init_native_db()
+
+
+# =========================================================================
+# USER PREFERENCES (Telegram bot language / reciter persistence)
+# =========================================================================
+class UserPreferencesService:
+    """Persists per-user Telegram bot settings (language, reciter) to SQLite."""
+
+    @staticmethod
+    def get_lang(user_id: int) -> str:
+        conn = DBConnection.get_sqlite_conn()
+        try:
+            row = conn.execute("SELECT lang FROM user_preferences WHERE user_id = ?", (user_id,)).fetchone()
+            return row["lang"] if row else "ru"
+        except Exception:
+            return "ru"
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_reciter(user_id: int) -> str:
+        conn = DBConnection.get_sqlite_conn()
+        try:
+            row = conn.execute("SELECT reciter FROM user_preferences WHERE user_id = ?", (user_id,)).fetchone()
+            return row["reciter"] if row else "alafasy"
+        except Exception:
+            return "alafasy"
+        finally:
+            conn.close()
+
+    @staticmethod
+    def set_lang(user_id: int, lang: str):
+        conn = DBConnection.get_sqlite_conn()
+        try:
+            conn.execute("""
+                INSERT INTO user_preferences (user_id, lang, updated_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id) DO UPDATE SET lang = excluded.lang, updated_at = CURRENT_TIMESTAMP
+            """, (user_id, lang))
+            conn.commit()
+        except Exception as e:
+            print(f"[UserPrefs] set_lang error: {e}")
+        finally:
+            conn.close()
+
+    @staticmethod
+    def set_reciter(user_id: int, reciter: str):
+        conn = DBConnection.get_sqlite_conn()
+        try:
+            conn.execute("""
+                INSERT INTO user_preferences (user_id, reciter, updated_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(user_id) DO UPDATE SET reciter = excluded.reciter, updated_at = CURRENT_TIMESTAMP
+            """, (user_id, reciter))
+            conn.commit()
+        except Exception as e:
+            print(f"[UserPrefs] set_reciter error: {e}")
+        finally:
+            conn.close()
 
 
 # =========================================================================
@@ -143,27 +219,48 @@ init_native_db()
 class VisitorAnalyticsService:
     """Manages real persistent visitor metrics across day, week, month, year, and all-time."""
 
+    _seen_ips = set()
+    _cached_stats = {}
+    _last_stat_refresh = 0
+
     @staticmethod
     def record_visit(ip_hash: str, user_agent: str = "") -> Dict[str, Any]:
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        today_str = now_utc.strftime("%Y-%m-%d")
+        
+        # In-memory check to prevent hammering SQLite with repeat visits
+        cache_key = f"{ip_hash}_{today_str}"
+        is_new = cache_key not in VisitorAnalyticsService._seen_ips
+        
+        now_ts = time.time()
+        # Return cached stats if not a new unique visitor and cache is fresh (< 60s)
+        if not is_new and VisitorAnalyticsService._cached_stats and (now_ts - VisitorAnalyticsService._last_stat_refresh < 60):
+            return VisitorAnalyticsService._cached_stats
+
         conn = DBConnection.get_sqlite_conn()
         cur = conn.cursor()
         try:
-            now_utc = datetime.datetime.now(datetime.timezone.utc)
-            today_str = now_utc.strftime("%Y-%m-%d")
             year_month_str = now_utc.strftime("%Y-%m")
             year_str = now_utc.strftime("%Y")
             start_of_week = (now_utc - datetime.timedelta(days=now_utc.weekday())).strftime("%Y-%m-%d")
 
-            # Check if this IP was already recorded today
-            cur.execute("SELECT id FROM visitor_logs WHERE ip_hash = ? AND visit_date = ?", (ip_hash, today_str))
-            if not cur.fetchone():
-                cur.execute("""
-                    INSERT INTO visitor_logs (ip_hash, visit_date, year_month, year, week_start, user_agent)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (ip_hash, today_str, year_month_str, year_str, start_of_week, user_agent[:250] if user_agent else ""))
-                conn.commit()
+            if is_new:
+                cur.execute("SELECT id FROM visitor_logs WHERE ip_hash = ? AND visit_date = ?", (ip_hash, today_str))
+                if not cur.fetchone():
+                    cur.execute("""
+                        INSERT INTO visitor_logs (ip_hash, visit_date, year_month, year, week_start, user_agent)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    """, (ip_hash, today_str, year_month_str, year_str, start_of_week, user_agent[:250] if user_agent else ""))
+                    conn.commit()
+                # Track in memory to never query SQLite for this IP again today
+                VisitorAnalyticsService._seen_ips.add(cache_key)
+                # Cap the memory usage of seen IPs (evict oldest 20% to avoid DB storm)
+                if len(VisitorAnalyticsService._seen_ips) > 50000:
+                    evict_count = len(VisitorAnalyticsService._seen_ips) // 5
+                    for _ in range(evict_count):
+                        VisitorAnalyticsService._seen_ips.pop()
 
-            # Real aggregated metrics across all timeframes
+            # Refresh Aggregated metrics across all timeframes
             cur.execute("SELECT COUNT(DISTINCT ip_hash) FROM visitor_logs WHERE visit_date = ?", (today_str,))
             today_count = cur.fetchone()[0] or 1
 
@@ -182,7 +279,7 @@ class VisitorAnalyticsService:
             cur.execute("SELECT COUNT(*) FROM visitor_logs")
             all_time_count = cur.fetchone()[0] or 1
 
-            return {
+            stats = {
                 "today": max(1, today_count),
                 "week": max(1, week_count),
                 "month": max(1, month_count),
@@ -192,6 +289,9 @@ class VisitorAnalyticsService:
                 "unique_visitors": max(1, unique_all_count),
                 "status": "SQL_PERSISTENT_REAL"
             }
+            VisitorAnalyticsService._cached_stats = stats
+            VisitorAnalyticsService._last_stat_refresh = now_ts
+            return stats
         except Exception as e:
             print(f"[VisitorAnalyticsService] Error: {e}")
             return {
@@ -212,7 +312,7 @@ class OpenFoodFactsService:
     API_URL = "https://world.openfoodfacts.org/api/v2/product/{barcode}.json"
 
     @classmethod
-    def fetch_product_by_barcode(cls, barcode: str) -> Optional[Dict[str, Any]]:
+    async def fetch_product_by_barcode(cls, barcode: str) -> Optional[Dict[str, Any]]:
         clean_barcode = re.sub(r"\D", "", barcode.strip())
         if not clean_barcode:
             return None
@@ -223,10 +323,11 @@ class OpenFoodFactsService:
         }
         
         try:
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                if resp.status == 200:
-                    payload = json.loads(resp.read().decode("utf-8"))
+            import httpx
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200:
+                    payload = resp.json()
                     if payload.get("status") == 1 and "product" in payload:
                         p = payload["product"]
                         return {
@@ -273,31 +374,35 @@ class B2BAuthService:
         conn = DBConnection.get_sqlite_conn()
         cur = conn.cursor()
         try:
+            # Indexed lookup (WHERE key_hash = ?) instead of scanning every active org.
             cur.execute("""
                 SELECT id, org_name, api_key, key_hash, is_active, tier, total_requests
                 FROM b2b_organizations
-                WHERE is_active = 1
-            """)
-            matched_row = None
-            for row in cur.fetchall():
-                stored_hash = (row["key_hash"] or "").strip()
-                stored_plain = row["api_key"] or ""
-                if stored_hash:
-                    if hmac.compare_digest(stored_hash, key_hash):
-                        matched_row = row
-                        break
-                elif stored_plain:
-                    # Legacy plaintext row: timing-safe compare, then upgrade to hash
-                    if hmac.compare_digest(stored_plain, key):
-                        now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
-                        cur.execute("""
-                            UPDATE b2b_organizations
-                            SET key_hash = ?, api_key = ?, last_used_at = COALESCE(last_used_at, ?)
-                            WHERE id = ?
-                        """, (key_hash, key_hash, now_str, row["id"]))
-                        conn.commit()
-                        matched_row = row
-                        break
+                WHERE is_active = 1 AND key_hash = ?
+                LIMIT 1
+            """, (key_hash,))
+            matched_row = cur.fetchone()
+
+            if matched_row is None:
+                # Legacy plaintext row: single-row lookup by raw key, then upgrade in place.
+                cur.execute("""
+                    SELECT id, org_name, api_key, key_hash, is_active, tier, total_requests
+                    FROM b2b_organizations
+                    WHERE is_active = 1 AND api_key = ?
+                    LIMIT 1
+                """, (key,))
+                legacy = cur.fetchone()
+                if legacy is not None and hmac.compare_digest((legacy["api_key"] or ""), key):
+                    now_str = datetime.datetime.now(datetime.timezone.utc).isoformat()
+                    cur.execute("""
+                        UPDATE b2b_organizations
+                        SET key_hash = ?, api_key = ?, last_used_at = COALESCE(last_used_at, ?)
+                        WHERE id = ?
+                    """, (key_hash, key_hash, now_str, legacy["id"]))
+                    conn.commit()
+                    legacy = dict(legacy)
+                    legacy["key_hash"] = key_hash
+                    matched_row = legacy
 
             if matched_row is None:
                 return None
@@ -326,6 +431,8 @@ class B2BAuthService:
 
 # Compatibility helpers for HalalProduct Cache
 class HalalProductCache:
+    _save_count = 0
+
     @staticmethod
     def get_by_barcode(barcode: str) -> Optional[Dict[str, Any]]:
         conn = DBConnection.get_sqlite_conn()
@@ -358,12 +465,14 @@ class HalalProductCache:
                     shubhat_details_json=excluded.shubhat_details_json,
                     updated_at=CURRENT_TIMESTAMP
             """, (barcode, name, brand, categories, ingredients, verdict, summary, shubhat_json, source))
-            # Bound cache growth (disk-fill protection): keep newest 50k rows
-            cur.execute("""
-                DELETE FROM halal_products WHERE rowid NOT IN (
-                    SELECT rowid FROM halal_products ORDER BY rowid DESC LIMIT 50000
-                )
-            """)
+            # Bound cache growth: prune every 100 saves to avoid per-insert overhead
+            HalalProductCache._save_count += 1
+            if HalalProductCache._save_count % 100 == 0:
+                cur.execute("""
+                    DELETE FROM halal_products WHERE rowid NOT IN (
+                        SELECT rowid FROM halal_products ORDER BY rowid DESC LIMIT 50000
+                    )
+                """)
             conn.commit()
         except Exception as e:
             print(f"[HalalProductCache] Save error: {e}")

@@ -57,7 +57,7 @@ class QuranGuard:
         self.bare_numeric_pattern = re.compile(r'\b(?P<sura>\d{1,3})[:/](?P<ayah>\d{1,3})\b')
 
         # Arabic script detection pattern (3+ consecutive Arabic words or meaningful phrases)
-        self.arabic_pattern = re.compile(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\s]{4,}')
+        self.arabic_pattern = re.compile(r'[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF\s]{4,}')
 
     def _has_contextual_anchor(self, text: str, start: int, end: int, window: int = 60) -> bool:
         """Verifies if a numeric citation has Quranic keywords in its surrounding text context."""
@@ -303,7 +303,10 @@ class QuranGuard:
             best_quote_idx = None
             best_score = -1.0
 
-            canonical_text = self.engine.get_ayah(cit['sura'], cit['ayah'])['text']
+            ayah_data = self.engine.get_ayah(cit['sura'], cit['ayah'])
+            if not ayah_data:
+                continue
+            canonical_text = ayah_data.get('text', '') or ayah_data.get('text_uthmani', '')
             norm_canonical = normalize_arabic(canonical_text)
 
             for q_idx, q in enumerate(quotes):
@@ -367,7 +370,9 @@ class QuranGuard:
                 })
             else:
                 ayah_record = self.engine.get_ayah(cit['sura'], cit['ayah'])
-                canonical_text = ayah_record['text']
+                if not ayah_record:
+                    continue
+                canonical_text = ayah_record.get('text', '') or ayah_record.get('text_uthmani', '')
                 canonical_id = cit['id']
 
                 if matched_arabic:
@@ -380,7 +385,8 @@ class QuranGuard:
                             "text": canonical_text,
                             "transliteration": ayah_record.get('transliteration', ''),
                             "translations": ayah_record.get('translations', {}),
-                            "tokens": ayah_record['tokens']
+                            "tokens": ayah_record['tokens'],
+                            "content_verified": True
                         })
                     else:
                         error_type = "TASHKEEL_DISTORTION" if diff_info['has_tashkeel_error'] else "TEXT_MUTATION"
@@ -407,7 +413,9 @@ class QuranGuard:
                         "canonical_text": canonical_text,
                         "transliteration": ayah_record.get('transliteration', ''),
                         "translations": ayah_record.get('translations', {}),
-                        "tokens": ayah_record['tokens']
+                        "tokens": ayah_record['tokens'],
+                        "content_verified": False,
+                        "note_ru": "Проверена только координата (сура:аят). Текст цитаты не сверен с каноном, т.к. арабский текст цитаты отсутствует."
                     })
 
         # Apply span-safe replacements from right-to-left
@@ -415,6 +423,13 @@ class QuranGuard:
         replacements.sort(key=lambda x: x[0], reverse=True)
         for start, end, rep in replacements:
             corrected_text = corrected_text[:start] + rep + corrected_text[end:]
+
+        # Content-verification accounting:
+        # EXACT_CITATION  => quote text + coordinates matched canonical Tanzil text
+        # VALID_COORDINATE => coordinates are valid, but quote content was NOT verified
+        #                     (no Arabic quote present to diff against the canonical text)
+        content_verified_count = sum(1 for v in verified_items if v.get("content_verified"))
+        coordinate_only_count = len(verified_items) - content_verified_count
 
         # Trust score calculation
         total_checks = len(citations)
@@ -436,9 +451,15 @@ class QuranGuard:
             elif med_count > 0:
                 verdict = "MINOR_WARNINGS"
                 verdict_ru = "Предупреждение: обнаружены неточности в огласовках (ташкиле)"
-            else:
+            elif coordinate_only_count == 0:
                 verdict = "VERIFIED_CANONICAL"
                 verdict_ru = "Текст полностью верифицирован и соответствует каноническому манифесту"
+            elif content_verified_count > 0:
+                verdict = "VERIFIED_CANONICAL_PARTIAL"
+                verdict_ru = "Частичная сверка: часть цитат соответствует канону, остальные проверены только по номерам аятов"
+            else:
+                verdict = "VERIFIED_COORDINATES_ONLY"
+                verdict_ru = "Номера аятов корректны, но текст цитат не сверен с каноном (арабский текст цитат отсутствует)"
 
         # Backwards-compatible aliases consumed by bot.py and ui/app.js:
         # claims_detected / is_valid / violations[{type, details}]
@@ -459,6 +480,9 @@ class QuranGuard:
             "corrected_text": corrected_text,
             "original_text": text,
             "claims_detected": len(citations) > 0,
+            "content_verified_count": content_verified_count,
+            "coordinate_only_count": coordinate_only_count,
+            "contains_unverified_content": coordinate_only_count > 0,
             "is_valid": len(hallucinations) == 0,
             "violations": violations
         }
