@@ -521,6 +521,16 @@ class AuditCertificateGenerator:
         from reportlab.lib import colors
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+        from reportlab.pdfbase.ttfonts import TTFont
+        from reportlab.pdfbase import pdfmetrics
+        import os
+        
+        font_name = 'Helvetica'
+        font_bold = 'Helvetica-Bold'
+        if os.path.exists('f:/al-furqan-ai/Roboto-Regular.ttf'):
+            pdfmetrics.registerFont(TTFont('Roboto', 'f:/al-furqan-ai/Roboto-Regular.ttf'))
+            font_name = 'Roboto'
+            font_bold = 'Roboto' # using regular as fallback for bold
 
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(
@@ -536,6 +546,7 @@ class AuditCertificateGenerator:
         title_style = ParagraphStyle(
             'CertTitle',
             parent=styles['Heading1'],
+            fontName=font_bold,
             fontSize=16,
             leading=20,
             textColor=colors.HexColor('#0F172A'),
@@ -544,6 +555,7 @@ class AuditCertificateGenerator:
         subtitle_style = ParagraphStyle(
             'CertSubtitle',
             parent=styles['Normal'],
+            fontName=font_name,
             fontSize=10,
             leading=14,
             textColor=colors.HexColor('#64748B'),
@@ -552,6 +564,7 @@ class AuditCertificateGenerator:
         body_style = ParagraphStyle(
             'CertBody',
             parent=styles['Normal'],
+            fontName=font_name,
             fontSize=9.5,
             leading=13,
             textColor=colors.HexColor('#1E293B')
@@ -562,11 +575,12 @@ class AuditCertificateGenerator:
             fontSize=10.5,
             leading=14,
             textColor=colors.HexColor('#DC2626'),
-            fontName='Helvetica-Bold'
+            fontName=font_bold
         )
         quran_box_style = ParagraphStyle(
             'QuranBox',
             parent=styles['Normal'],
+            fontName=font_name,
             fontSize=9,
             leading=13,
             textColor=colors.HexColor('#0F766E')
@@ -606,7 +620,7 @@ class AuditCertificateGenerator:
 
         # Findings Section
         findings = audit_report.get("findings", [])
-        elements.append(Paragraph(f"<b>РЕЗУЛЬТАТЫ ПРОВЕРКИ И ВЫЯВЛЕННЫЕ РИСКИ ({len(findings)}):</b>", ParagraphStyle('H2', parent=styles['Heading2'], fontSize=11.5, leading=15, textColor=colors.HexColor('#0F172A'))))
+        elements.append(Paragraph(f"<b>РЕЗУЛЬТАТЫ ПРОВЕРКИ И ВЫЯВЛЕННЫЕ РИСКИ ({len(findings)}):</b>", ParagraphStyle('H2', parent=styles['Heading2'], fontName=font_bold, fontSize=11.5, leading=15, textColor=colors.HexColor('#0F172A'))))
         elements.append(Spacer(1, 6))
 
         if not findings:
