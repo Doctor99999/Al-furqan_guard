@@ -1204,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <span style="font-size: 11.5px; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 6px;">#${data.barcode}</span>
                 </div>
                 ${certInfoHtml}
-                <div style="font-size: 13.5px; color: #E2E8F0; line-height: 1.5; margin-top: 8px;">${summaryText}</div>
+                <div style="font-size: 13.5px; color: #E2E8F0; line-height: 1.5; margin-top: 8px; white-space: pre-wrap;">${summaryText}</div>
                 ${additivesHtml}
                 ${ingredientsText}
             </div>
@@ -1291,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div style="font-weight: 800; font-size: 15px; color: #FCA5A5;">
                         🔴 ${I18N.t('verdictHaramBadge') || 'ХАРАМ (ЗАПРЕТНО)'}: ${data.haram_items.join(', ')}
                     </div>
-                    <div style="font-size: 13px; color: #E2E8F0; margin-top: 6px;">${data[`summary_${currentLang}`] || data.summary_ru || 'Обнаружены запрещенные в пищу компоненты.'}</div>
+                    <div style="font-size: 13px; color: #E2E8F0; margin-top: 6px; white-space: pre-wrap;">${data[`summary_${currentLang}`] || data.summary_ru || 'Обнаружены запрещенные в пищу компоненты.'}</div>
                 </div>
             `;
         }
@@ -1302,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div style="font-weight: 800; font-size: 15px; color: #FDE68A;">
                         🟡 ${I18N.t('verdictDoubtfulBadge') || 'СОМНИТЕЛЬНО'}: ${data.doubtful_items.join(', ')}
                     </div>
-                    <div style="font-size: 13px; color: #E2E8F0; margin-top: 6px;">${data[`summary_${currentLang}`] || data.summary_ru || 'Требуется уточнение происхождения сырья (животное/растительное).'}</div>
+                    <div style="font-size: 13px; color: #E2E8F0; margin-top: 6px; white-space: pre-wrap;">${data[`summary_${currentLang}`] || data.summary_ru || 'Требуется уточнение происхождения сырья (животное/растительное).'}</div>
                 </div>
             `;
         }

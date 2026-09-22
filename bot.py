@@ -862,16 +862,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 report_lines.append("❌ *Система распознавания текста (OCR) не установлена или недоступна на сервере.* Пожалуйста, введите состав текстом вручную.")
             else:
                 report_lines.append("ℹ️ *Текст с изображения не распознан.* Попробуйте сделать фото чётче и без бликов.")
-        elif matches:
-            report_lines.append("🚨 *ОБНАРУЖЕНЫ ШАРИАТСКИЕ МАРКЕРЫ:*\n")
-            for m in matches:
-                is_h = m["verdict"] == "HARAM"
-                icon = "🔴" if is_h else "🟡"
-                report_lines.append(f"{icon} *{m.get(f'title_{lang}', m.get('title_ru'))}*")
-                report_lines.append(f"   {m.get(f'description_{lang}', m.get('description_ru'))}")
-                report_lines.append(f"   📖 _Основа: {m.get('ayah_ref', '')}_\n")
         else:
-            report_lines.append("🟢 *Прямых запретов / Харама на изображении не обнаружено.*")
+            analysis = HalalKnowledgeBase.analyze_ingredients_deep(extracted_text)
+            if analysis["verdict"] != "HALAL":
+                report_lines.append("🚨 *ОБНАРУЖЕНЫ ШАРИАТСКИЕ МАРКЕРЫ:*\n")
+                summary_text = analysis.get(f"summary_{lang}") or analysis.get("summary_ru", "")
+                report_lines.append(_md_escape(summary_text))
+            else:
+                report_lines.append("🟢 *Прямых запретов / Харама на изображении не обнаружено.*")
 
         await update.message.reply_markdown("\n".join(report_lines))
     except Exception:

@@ -563,15 +563,53 @@ class HalalKnowledgeBase:
             elif m["verdict"] == "DOUBTFUL" and m["title_ru"] not in doubtful_items:
                 doubtful_items.append(m["title_ru"])
 
+        detailed_explanations_ru = []
+        detailed_explanations_kk = []
+
+        for s in shubhat_details:
+            if s.get("reason_ru"): 
+                exp = f"• {s['name']}: {s['reason_ru']}"
+                if s.get("detailed_fiqh_ru"):
+                    exp += f" Обоснование: {s['detailed_fiqh_ru']}"
+                if exp not in detailed_explanations_ru:
+                    detailed_explanations_ru.append(exp)
+            if s.get("reason_kk"): 
+                if s['reason_kk'] not in detailed_explanations_kk:
+                    detailed_explanations_kk.append(f"• {s['name']}: {s['reason_kk']}")
+                    
+        for m in matches:
+            if m["verdict"] in ["HARAM", "DOUBTFUL"]:
+                title = m["title_ru"]
+                desc = m.get("description_ru")
+                if desc:
+                    exp = f"• {title}: {desc}"
+                    if exp not in detailed_explanations_ru:
+                        detailed_explanations_ru.append(exp)
+                title_kk = m.get("title_kk", title)
+                desc_kk = m.get("description_kk")
+                if desc_kk:
+                    exp_kk = f"• {title_kk}: {desc_kk}"
+                    if exp_kk not in detailed_explanations_kk:
+                        detailed_explanations_kk.append(exp_kk)
+
+        # Determine overall verdict
         # Determine overall verdict
         if haram_items:
             final_verdict = "HARAM"
             summary_ru = f"🔴 ВНИМАНИЕ: Продукт содержит запрещенные (ХАРАМ) компоненты: {', '.join(haram_items)}."
+            if detailed_explanations_ru:
+                summary_ru += "\n\n📖 ОБОСНОВАНИЕ ПО ШАРИАТУ:\n" + "\n".join(detailed_explanations_ru)
             summary_kk = f"🔴 ЕСКЕРТУ: Өнімде шариғатта тыйым салынған (ХАРАМ) заттар табылды: {', '.join(haram_items)}."
+            if detailed_explanations_kk:
+                summary_kk += "\n\n📖 ШАРИҒАТ БОЙЫНША НЕГІЗДЕМЕ:\n" + "\n".join(detailed_explanations_kk)
         elif doubtful_items or shubhat_details:
             final_verdict = "DOUBTFUL"
             summary_ru = f"🟡 ВНИМАНИЕ: Обнаружены сомнительные ингредиенты (ШУБХАТ): {', '.join(doubtful_items)}. Требуется подтверждение происхождения или сертификат Халяль."
+            if detailed_explanations_ru:
+                summary_ru += "\n\n📖 ОБОСНОВАНИЕ ПО ШАРИАТУ:\n" + "\n".join(detailed_explanations_ru)
             summary_kk = f"🟡 ЕСКЕРТУ: Құрамында күмәнді (ШҮБӘЛІ) қоспалар табылды: {', '.join(doubtful_items)}. Халал сертификаты немесе өсімдіктен алынғанын растау қажет."
+            if detailed_explanations_kk:
+                summary_kk += "\n\n📖 ШАРИҒАТ БОЙЫНША НЕГІЗДЕМЕ:\n" + "\n".join(detailed_explanations_kk)
         elif not text.strip() and not additives_tags:
             final_verdict = "DOUBTFUL"
             summary_ru = "🟡 ВНИМАНИЕ: В базе данных отсутствует информация о составе этого продукта. Невозможно вынести решение. Пожалуйста, сфотографируйте состав продукта на этикетке."
